@@ -1,0 +1,629 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Card } from '../ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Checkbox } from '../ui/checkbox';
+import { Badge } from '../ui/badge';
+import { Camera, X, ImageIcon } from 'lucide-react';
+import { LANGUAGES } from '../../types/onboarding';
+import { Country, State, City } from 'country-state-city';
+import { UserCircle2 } from 'lucide-react';
+import { AvatarGalleryDialog } from '../AvatarGalleryDialog';
+import { AddressAutocomplete } from '../AddressAutocomplete';
+// @ts-ignore
+import { lookup } from 'india-pincode-lookup';
+
+interface OnboardingStep3Props {
+  data: {
+    profilePhoto?: File | string;
+    selectedAvatarUrl?: string;
+    gender: string;
+    dateOfBirth: string;
+    address1: string;
+    address2: string;
+    country: string;
+    state: string;
+    city: string;
+    zipCode: string;
+    languages: string[];
+    timezone: string;
+    termsAccepted: boolean;
+  };
+  onUpdate: (data: any) => void;
+  onNext: () => void;
+  onBack: () => void;
+}
+
+const GENDERS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+
+export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack }: OnboardingStep3Props) {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [photoPreview, setPhotoPreview] = useState<string | null>(() => {
+    // Initialize from existing data if available
+    if (data.profilePhoto) {
+      if (typeof data.profilePhoto === 'string') return data.profilePhoto;
+      // If it's a File, we'll read it in useEffect
+    }
+    return null;
+  });
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [availableStates, setAvailableStates] = useState<any[]>([]);
+  const [availableCities, setAvailableCities] = useState<any[]>([]);
+  const [showOtherCityInput, setShowOtherCityInput] = useState(false);
+  const [showAvatarGallery, setShowAvatarGallery] = useState(false);
+
+  // Display priority: selectedAvatarUrl > photoPreview > camera icon
+  const displayAvatar = data.selectedAvatarUrl || photoPreview;
+
+  // Initialize photo preview from File if exists
+  useEffect(() => {
+    if (data.profilePhoto && data.profilePhoto instanceof File) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(data.profilePhoto);
+    }
+  }, []);
+
+  // Auto-populate states when country changes
+  useEffect(() => {
+    if (data.country) {
+      const states = State.getStatesOfCountry(data.country);
+      setAvailableStates(states);
+
+      // Reset state and city when country changes
+      // Don't reset if the current state is valid for the new country (rare but possible during initial load)
+      /* 
+      const currentStateValid = states.some(s => s.isoCode === data.state);
+      if (!currentStateValid) {
+         // COMMENTED OUT: PREVENT OVERRIDE OF GOOGLE MAPS DATA
+         // onUpdate({ state: '', city: '' });
+         // setAvailableCities([]);
+      }
+      */
+      setShowOtherCityInput(false);
+    }
+  }, [data.country]);
+
+  // Auto-populate cities when state changes
+  useEffect(() => {
+    if (data.country && data.state) {
+      const cities = City.getCitiesOfState(data.country, data.state);
+      setAvailableCities(cities);
+
+      // Reset city when state changes
+      /*
+      const currentCityValid = cities.some(c => c.name === data.city);
+      if (!currentCityValid) {
+        // COMMENTED OUT: PREVENT OVERRIDE OF GOOGLE MAPS DATA
+        // onUpdate({ city: '' });
+      }
+      */
+      setShowOtherCityInput(false);
+    }
+  }, [data.state]);
+
+  // Handle city change
+  useEffect(() => {
+    if (data.city === 'Other') {
+      setShowOtherCityInput(true);
+    } else {
+      setShowOtherCityInput(false);
+    }
+  }, [data.city]);
+
+  // Auto-detect timezone based on location
+  useEffect(() => {
+    if (data.country && data.state && data.city && data.city !== 'Other') {
+      // Try to find city data to get lat/long for timezone, or use library defaults if available
+      // country-state-city doesn't provide timezone directly, but we can approximate or leave it to the user/browser default
+      // For now, we'll keep the browser default or existing logic if we had a timezone library
+      // Since we removed locationData.ts which had timezones, we might rely on browser default
+      // or implement a lookup if critical.
+      // For this implementation, we'll skip overwriting timezone to avoid clearing user selection
+      // unless we have a better source.
+    }
+  }, [data.country, data.state, data.city]);
+
+  // India Pincode Lookup
+  useEffect(() => {
+    if (data.country === 'IN' && data.zipCode?.length === 6) {
+      try {
+        const results = lookup(data.zipCode);
+        if (results && results.length > 0) {
+          const firstResult = results[0];
+          // Format: { officeName, pincode, taluk, districtName, stateName }
+          const stateName = firstResult.stateName;
+          const districtName = firstResult.districtName;
+
+          // Map Name to ISO for State
+          const states = State.getStatesOfCountry('IN');
+          const matchedState = states.find(s => s.name.toLowerCase() === stateName.toLowerCase());
+
+          if (matchedState) {
+            // Get cities for this state to find correct city name match
+            const cities = City.getCitiesOfState('IN', matchedState.isoCode);
+            const matchedCity = cities.find(c => c.name.toLowerCase() === districtName.toLowerCase());
+
+            // ONLY Auto-populate if City/State are empty to avoid overriding Google Maps selections
+            // verifying that we don't overwrite explicit user/map selection with potentially generic district data
+            if (!data.city || !data.state) {
+              onUpdate({
+                state: matchedState.isoCode,
+                city: matchedCity ? matchedCity.name : districtName
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Pincode lookup error", e);
+      }
+    } else if (data.country === 'US' && data.zipCode?.length === 5) {
+      // Google Geocoder for US Zip Codes
+      const google = (window as any).google;
+      if (google && google.maps && google.maps.Geocoder) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({
+          componentRestrictions: { country: 'US', postalCode: data.zipCode }
+        }, (results: any, status: any) => {
+          if (status === 'OK' && results && results[0]) {
+            const components = results[0].address_components;
+            let city = '';
+            let stateCode = '';
+
+            for (const component of components) {
+              // @ts-ignore
+              if (component.types.includes('locality')) {
+                city = component.longText;
+              }
+              // @ts-ignore
+              if (component.types.includes('administrative_area_level_1')) {
+                stateCode = component.shortText; // e.g. CA
+              }
+            }
+
+            if (city && stateCode) {
+              onUpdate({
+                state: stateCode,
+                city: city
+              });
+            }
+          }
+        });
+      }
+    }
+  }, [data.zipCode, data.country]);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB');
+        e.target.value = ''; // Reset input
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.match(/image\/(jpeg|jpg|png|gif)/)) {
+        alert('Only JPG, PNG, and GIF files are allowed');
+        e.target.value = ''; // Reset input
+        return;
+      }
+
+      onUpdate({ profilePhoto: file });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    onUpdate({ profilePhoto: undefined, selectedAvatarUrl: undefined });
+    setPhotoPreview(null);
+  };
+
+  const handleSelectAvatar = (avatarUrl: string) => {
+    onUpdate({ selectedAvatarUrl: avatarUrl, profilePhoto: undefined });
+    setPhotoPreview(null); // Clear custom uploaded photo when selecting from gallery
+  };
+
+  const toggleLanguage = (language: string) => {
+    const currentLanguages = data.languages || [];
+    const newLanguages = currentLanguages.includes(language)
+      ? currentLanguages.filter((l) => l !== language)
+      : [...currentLanguages, language];
+    onUpdate({ languages: newLanguages });
+  };
+
+  const removeLanguage = (language: string) => {
+    onUpdate({ languages: (data.languages || []).filter((l) => l !== language) });
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!data.gender) newErrors.gender = 'Gender is required';
+    if (!data.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+    if (!data.country) newErrors.country = 'Country is required';
+    if (!data.state) newErrors.state = 'State is required';
+    if (!data.city) newErrors.city = 'City is required';
+    if (!data.zipCode) newErrors.zipCode = 'Zip/Postal Code is required';
+    if ((data.languages || []).length === 0) newErrors.languages = 'Select at least one language';
+    if (!data.termsAccepted) newErrors.terms = 'You must accept the terms';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    if (validateForm()) {
+      setIsSubmitting(true);
+      onNext();
+    }
+  };
+
+  return (
+    <div className="w-full max-w-2xl mx-auto px-6">
+      <div className="p-8 shadow-lg rounded-lg bg-white/80 backdrop-blur-md border border-gray-100">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-200 flex items-center justify-center mb-4">
+            <UserCircle2 className="h-6 w-6 text-orange-500" />
+          </div>
+          <h1 className="text-3xl font-medium leading-8 text-gray-900 mb-2">Personal Details</h1>
+          <p className="text-sm text-muted-foreground">
+            Help us get to know you better and personalize your experience
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Profile Photo */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="relative">
+              <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
+                {displayAvatar ? (
+                  <img src={displayAvatar} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="h-12 w-12 text-gray-400" />
+                )}
+              </div>
+              <input
+                type="file"
+                id="photo-upload"
+                accept="image/jpeg,image/jpg,image/png,image/gif"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+              <label
+                htmlFor="photo-upload"
+                className="absolute bottom-2 right-2 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-600 shadow-lg transition-colors"
+                title="Upload profile photo"
+              >
+                <Camera className="h-5 w-5 text-white" />
+              </label>
+              {displayAvatar && (
+                <button
+                  type="button"
+                  onClick={removePhoto}
+                  className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg transition-colors"
+                  title="Remove photo"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </button>
+              )}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowAvatarGallery(true)}
+              >
+                <ImageIcon className="h-4 w-4" />
+                Choose Avatar
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Upload your own photo or choose from our gallery • Max 2MB
+            </p>
+          </div>
+
+          {/* Avatar Gallery Dialog */}
+          <AvatarGalleryDialog
+            open={showAvatarGallery}
+            onOpenChange={setShowAvatarGallery}
+            onSelectAvatar={handleSelectAvatar}
+            selectedAvatar={data.selectedAvatarUrl}
+          />
+
+          <div className="grid grid-cols-2 gap-6">
+            {/* Gender */}
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender *</Label>
+              <Select value={data.gender} onValueChange={(value) => onUpdate({ gender: value })}>
+                <SelectTrigger className={errors.gender ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDERS.map((gender) => (
+                    <SelectItem key={gender} value={gender}>
+                      {gender}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.gender && <p className="text-xs text-red-500">{errors.gender}</p>}
+            </div>
+
+            {/* Date of Birth */}
+            <div className="space-y-2">
+              <Label htmlFor="dob">Date of Birth *</Label>
+              <Input
+                id="dob"
+                type="date"
+                className={errors.dateOfBirth ? 'border-red-500' : ''}
+                value={data.dateOfBirth}
+                onChange={(e) => onUpdate({ dateOfBirth: e.target.value })}
+                max={new Date().toISOString().split('T')[0]}
+              />
+              {errors.dateOfBirth && <p className="text-xs text-red-500">{errors.dateOfBirth}</p>}
+            </div>
+          </div>
+
+          {/* Street Address */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <AddressAutocomplete
+                id="address1"
+                label="Street Address Line 1 *"
+                value={data.address1 || ''}
+                onChange={(value, components) => {
+                  // Prefer parsed street address for Line 1 if available and not empty, otherwise fallback to formatted value
+                  const streetAddress = (components?.street && components.street.trim().length > 0)
+                    ? components.street
+                    : value.split(',')[0]; // Try to take first part of formatted address as fallback if parsing failed
+
+                  const updates: any = {
+                    address1: streetAddress
+                  };
+
+                  if (components) {
+                    if (components.city) updates.city = components.city;
+                    if (components.state) updates.state = components.state;
+                    if (components.countryCode) updates.country = components.countryCode;
+                    if (components.zip) updates.zipCode = components.zip;
+
+                    console.log('📍 Applying consolidated address updates:', updates);
+                    onUpdate(updates);
+                  } else {
+                    onUpdate({ address1: value });
+                  }
+                }}
+                placeholder="123 Main Street"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address2">Street Address Line 2 (Optional)</Label>
+              <Input
+                id="address2"
+                value={data.address2 || ''}
+                onChange={(e) => onUpdate({ address2: e.target.value })}
+                placeholder="Apt, Suite, Floor, etc."
+              />
+            </div>
+          </div>
+
+          {/* Country */}
+          <div className="space-y-2">
+            <Label htmlFor="country">Country *</Label>
+            <Select value={data.country} onValueChange={(value) => onUpdate({ country: value })}>
+              <SelectTrigger className={errors.country ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent>
+                {Country.getAllCountries().map((country) => (
+                  <SelectItem key={country.isoCode} value={country.isoCode}>
+                    {country.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.country && <p className="text-xs text-red-500">{errors.country}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            {/* State */}
+            <div className="space-y-2">
+              <Label htmlFor="state">State / Province *</Label>
+              {availableStates.length > 0 && (!data.state || availableStates.some(s => s.isoCode === data.state)) ? (
+                <Select value={data.state} onValueChange={(value) => onUpdate({ state: value })}>
+                  <SelectTrigger className={errors.state ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStates.map((state) => (
+                      <SelectItem key={state.isoCode} value={state.isoCode}>
+                        {state.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="state"
+                  type="text"
+                  placeholder="e.g., California"
+                  className={errors.state ? 'border-red-500' : ''}
+                  value={data.state}
+                  onChange={(e) => onUpdate({ state: e.target.value })}
+                  disabled={!data.country}
+                />
+              )}
+              {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
+            </div>
+
+            {/* City */}
+            <div className="space-y-2">
+              <Label htmlFor="city">City *</Label>
+              {availableCities.length > 0 && !showOtherCityInput && (!data.city || availableCities.some(c => c.name === data.city)) ? (
+                <Select value={data.city} onValueChange={(value) => onUpdate({ city: value })}>
+                  <SelectTrigger className={errors.city ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCities.map((city) => (
+                      <SelectItem key={city.name} value={city.name}>
+                        {city.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="city"
+                  type="text"
+                  placeholder="e.g., Los Angeles"
+                  className={errors.city ? 'border-red-500' : ''}
+                  value={data.city === 'Other' ? '' : data.city}
+                  onChange={(e) => onUpdate({ city: e.target.value })}
+                  disabled={!data.state}
+                />
+              )}
+              {errors.city && <p className="text-xs text-red-500">{errors.city}</p>}
+            </div>
+          </div>
+
+          {/* Zip & Timezone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="zipCode">Zip / Postal Code</Label>
+              <Input
+                id="zipCode"
+                value={data.zipCode || ''}
+                onChange={(e) => onUpdate({ zipCode: e.target.value })}
+                placeholder="10001"
+                className={errors.zipCode ? 'border-red-500' : ''}
+              />
+              {errors.zipCode && <p className="text-xs text-red-500">{errors.zipCode}</p>}
+            </div>
+
+            {/* Timezone (Auto-populated, read-only) */}
+            <div className="space-y-2">
+              <Label htmlFor="timezone">Timezone (Auto-detected)</Label>
+              <Input
+                id="timezone"
+                type="text"
+                value={data.timezone}
+                readOnly
+                className="bg-gray-50 cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-500">
+                Timezone is automatically set based on your location
+              </p>
+            </div>
+          </div>
+
+          {/* Languages Spoken */}
+          <div className="space-y-2">
+            <Label>Languages Spoken *</Label>
+            <div className="relative">
+              <Select
+                open={showLanguageDropdown}
+                onOpenChange={setShowLanguageDropdown}
+              >
+                <SelectTrigger className={errors.languages ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Select languages" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LANGUAGES.map((language) => (
+                    <div
+                      key={language}
+                      className="flex items-center gap-2 px-2 py-2 cursor-pointer hover:bg-gray-100"
+                      onClick={() => toggleLanguage(language)}
+                    >
+                      <Checkbox checked={(data.languages || []).includes(language)} />
+                      <span className="text-sm">{language}</span>
+                    </div>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(data.languages || []).length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {(data.languages || []).map((language) => (
+                  <Badge
+                    key={language}
+                    variant="secondary"
+                    className="px-3 py-1 bg-orange-500/10 text-orange-500 hover:bg-orange-500/20"
+                  >
+                    {language}
+                    <button
+                      type="button"
+                      onClick={() => removeLanguage(language)}
+                      className="ml-2 hover:text-red-500"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {errors.languages && <p className="text-xs text-red-500">{errors.languages}</p>}
+          </div>
+
+          {/* Terms and Conditions */}
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="terms"
+              checked={data.termsAccepted}
+              onCheckedChange={(checked) => onUpdate({ termsAccepted: checked })}
+              className={errors.terms ? 'border-red-500' : ''}
+            />
+            <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer">
+              I agree to the{' '}
+              <a href="#" className="text-orange-500 hover:underline">
+                Terms and Conditions
+              </a>{' '}
+              and{' '}
+              <a href="#" className="text-orange-500 hover:underline">
+                Privacy Policy
+              </a>
+            </label>
+          </div>
+          {errors.terms && <p className="text-xs text-red-500">{errors.terms}</p>}
+
+          {/* Navigation Buttons */}
+          <div className="flex gap-4 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onBack}
+              className="flex-1 rounded-full"
+            >
+              Back
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 rounded-full"
+            >
+              {isSubmitting ? 'Processing...' : 'Continue'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

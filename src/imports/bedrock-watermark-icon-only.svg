@@ -1,0 +1,11 @@
+<svg width="500" height="500" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(50, 50)" opacity="0.15">
+<path d="M 0,-35 L 30.31,-17.5 L 0,0 Z" fill="#F59E0B"/>
+<path d="M 30.31,-17.5 L 30.31,17.5 L 0,0 Z" fill="#DC2626"/>
+<path d="M 30.31,17.5 L 0,35 L 0,0 Z" fill="#F97316"/>
+<path d="M 0,35 L -30.31,17.5 L 0,0 Z" fill="#F59E0B"/>
+<path d="M -30.31,17.5 L -30.31,-17.5 L 0,0 Z" fill="#B91C1C"/>
+<path d="M -30.31,-17.5 L 0,-35 L 0,0 Z" fill="#EA580C"/>
+<path d="M 0,-12 L 10.39,-6 L 10.39,6 L 0,12 L -10.39,6 L -10.39,-6 Z" fill="#FFFFFF"/>
+</g>
+</svg>

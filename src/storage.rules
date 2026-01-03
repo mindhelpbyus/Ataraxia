@@ -1,0 +1,82 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check file size (in bytes)
+    function isValidSize(maxSize) {
+      return request.resource.size < maxSize;
+    }
+    
+    // Helper function to check if file is an image
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Helper function to check if file is a document
+    function isDocument() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.*');
+    }
+    
+    // Chat Files (images and documents shared in messages)
+    match /chat-files/{chatRoomId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidSize(10 * 1024 * 1024) && // 10MB limit
+                      (isImage() || isDocument() || 
+                       request.resource.contentType.matches('video/.*') ||
+                       request.resource.contentType.matches('audio/.*'));
+    }
+    
+    // Profile Pictures
+    match /profile-pictures/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      request.auth.uid == userId &&
+                      isValidSize(5 * 1024 * 1024) && // 5MB limit
+                      isImage();
+    }
+    
+    // Therapist Documents (licenses, certifications)
+    match /therapist-documents/{therapistId}/{fileName} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == therapistId ||
+        // Admin can read
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+      allow write: if isAuthenticated() && 
+                      request.auth.uid == therapistId &&
+                      isValidSize(10 * 1024 * 1024) && // 10MB limit
+                      (isImage() || isDocument());
+    }
+    
+    // Session Recordings (if call recording is enabled)
+    match /call-recordings/{callId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidSize(500 * 1024 * 1024); // 500MB limit for recordings
+    }
+    
+    // Session Notes Attachments
+    match /session-notes/{noteId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidSize(10 * 1024 * 1024) && // 10MB limit
+                      (isImage() || isDocument());
+    }
+    
+    // Appointment Attachments
+    match /appointment-attachments/{appointmentId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      isValidSize(10 * 1024 * 1024) && // 10MB limit
+                      (isImage() || isDocument());
+    }
+  }
+}

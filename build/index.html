@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM - Waste</title>
+  <script type="module" crossorigin src="/assets/index-DKcoXNmW.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DE2Nnm5e.css">
+</head>
+
+<body>
+  <script>
+    // Force light mode - remove dark class if it exists
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+
+    // Clear any theme-related localStorage
+    localStorage.removeItem('theme');
+    localStorage.removeItem('vite-ui-theme');
+
+    // Force light mode CSS variables
+    document.documentElement.style.setProperty('--foreground', '#1a1a2e');
+    document.documentElement.style.setProperty('--background', '#f8f9fc');
+
+    // Prevent dark class from being added
+    const observer = new MutationObserver(() => {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+      }
+      if (document.body.classList.contains('dark')) {
+        document.body.classList.remove('dark');
+      }
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  </script>
+  <div id="root"></div>
+</body>
+
+</html>
