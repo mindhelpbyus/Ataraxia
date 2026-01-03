@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedrock Health - Watermark Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 3rem;
+        }
+
+        .controls {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e5e7eb;
+            outline: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #F97316;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #F97316;
+            cursor: pointer;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #F97316;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #EA580C;
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
+        }
+
+        .btn-outline {
+            background: white;
+            color: #F97316;
+            border: 2px solid #F97316;
+        }
+
+        .btn-outline:hover {
+            background: #FFF7ED;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .preview-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .preview-header {
+            background: #F97316;
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .preview-content {
+            position: relative;
+            min-height: 500px;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark.no-rotate {
+            transform: translate(-50%, -50%);
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sample-text {
+            margin-bottom: 1.5rem;
+        }
+
+        .sample-text h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #1a1a1a;
+        }
+
+        .sample-text p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .dark-preview {
+            background: #111827;
+            color: white;
+        }
+
+        .dark-preview .sample-text h3 {
+            color: white;
+        }
+
+        .dark-preview .sample-text p {
+            color: #d1d5db;
+        }
+
+        .dark-preview .stat-card {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        .dark-preview .stat-label {
+            color: #9ca3af;
+        }
+
+        .dark-preview .stat-value {
+            color: white;
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: #F59E0B;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+        }
+
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Bedrock Health Watermark Preview</h1>
+        <p class="subtitle">Interactive preview of watermark logos in different scenarios</p>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2 style="margin-bottom: 1.5rem;">Watermark Settings</h2>
+            
+            <div class="control-group">
+                <label>
+                    Opacity: <span id="opacityValue">30</span>%
+                </label>
+                <input type="range" id="opacitySlider" min="5" max="100" value="30">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Size: <span id="sizeValue">720</span>px
+                </label>
+                <input type="range" id="sizeSlider" min="300" max="1200" step="50" value="720">
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-primary" id="toggleWatermark">Hide Watermarks</button>
+                <button class="btn btn-outline" id="toggleRotation">Remove Rotation</button>
+                <button class="btn btn-outline" id="switchVariant">Switch to Icon Only</button>
+            </div>
+        </div>
+
+        <!-- Preview Grid -->
+        <div class="preview-grid">
+            <!-- Light Background -->
+            <div class="preview-card">
+                <div class="preview-header">
+                    Light Background - Document
+                </div>
+                <div class="preview-content" id="preview1">
+                    <img 
+                        src="/imports/bedrock-watermark.svg.tsx" 
+                        class="watermark" 
+                        id="watermark1"
+                        style="width: 720px; opacity: 0.3;"
+                        alt="Watermark"
+                    >
+                    <div class="content">
+                        <div class="sample-text">
+                            <h3>Client Appointment Schedule</h3>
+                            <p>
+                                This document contains confidential client information and is protected
+                                by the Bedrock Health watermark. The watermark ensures document authenticity
+                                and helps prevent unauthorized distribution.
+                            </p>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Today's Appointments</div>
+                                <div class="stat-value">12</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">This Week</div>
+                                <div class="stat-value">45</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Completed</div>
+                                <div class="stat-value">8</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Pending</div>
+                                <div class="stat-value">4</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dark Background -->
+            <div class="preview-card">
+                <div class="preview-header">
+                    Dark Background - Dashboard
+                </div>
+                <div class="preview-content dark-preview" id="preview2">
+                    <img 
+                        src="/imports/bedrock-watermark.svg.tsx" 
+                        class="watermark" 
+                        id="watermark2"
+                        style="width: 720px; opacity: 0.3;"
+                        alt="Watermark"
+                    >
+                    <div class="content">
+                        <div class="sample-text">
+                            <h3>Professional Dashboard</h3>
+                            <p>
+                                Welcome to your Bedrock Health dashboard. The watermark provides
+                                visual branding while maintaining readability on dark backgrounds.
+                            </p>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Active Clients</div>
+                                <div class="stat-value">156</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Sessions Today</div>
+                                <div class="stat-value">9</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Messages</div>
+                                <div class="stat-value">23</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Pending Tasks</div>
+                                <div class="stat-value">7</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direct SVG Previews -->
+        <div class="preview-card" style="margin-bottom: 2rem;">
+            <div class="preview-header">
+                Direct SVG Files - Full Size Preview
+            </div>
+            <div class="preview-content" style="background: #f9fafb; padding: 3rem; text-align: center;">
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Full Logo Watermark (1200x1200px)</h3>
+                    <img 
+                        src="/imports/bedrock-watermark.svg.tsx" 
+                        id="directWatermark"
+                        style="max-width: 100%; height: auto; width: 720px;"
+                        alt="Full Logo Watermark"
+                    >
+                    <div class="code-block" style="text-align: left; max-width: 600px; margin: 1rem auto 0;">
+<img src="/imports/bedrock-watermark.svg.tsx" 
+     style="width: 720px; opacity: 0.3;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-card" style="margin-bottom: 2rem;">
+            <div class="preview-header">
+                Icon Only Watermark
+            </div>
+            <div class="preview-content" style="background: white; padding: 3rem; text-align: center;">
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Icon Only (1200x1200px)</h3>
+                    <img 
+                        src="/imports/bedrock-watermark-icon-only.svg" 
+                        id="directWatermarkIcon"
+                        style="max-width: 100%; height: auto; width: 720px;"
+                        alt="Icon Only Watermark"
+                    >
+                    <div class="code-block" style="text-align: left; max-width: 600px; margin: 1rem auto 0;">
+<img src="/imports/bedrock-watermark-icon-only.svg" 
+     style="width: 720px; opacity: 0.3;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-card">
+            <div class="preview-header">
+                Horizontal Layout Watermark
+            </div>
+            <div class="preview-content" style="background: white; padding: 3rem; text-align: center;">
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Horizontal Layout (600x200px)</h3>
+                    <img 
+                        src="/imports/bedrock-watermark-horizontal.svg" 
+                        id="directWatermarkHorizontal"
+                        style="max-width: 100%; height: auto; width: 600px;"
+                        alt="Horizontal Watermark"
+                    >
+                    <div class="code-block" style="text-align: left; max-width: 600px; margin: 1rem auto 0;">
+<img src="/imports/bedrock-watermark-horizontal.svg" 
+     style="width: 600px; opacity: 0.3;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get elements
+        const opacitySlider = document.getElementById('opacitySlider');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const opacityValue = document.getElementById('opacityValue');
+        const sizeValue = document.getElementById('sizeValue');
+        const toggleBtn = document.getElementById('toggleWatermark');
+        const rotationBtn = document.getElementById('toggleRotation');
+        const variantBtn = document.getElementById('switchVariant');
+
+        const watermarks = [
+            document.getElementById('watermark1'),
+            document.getElementById('watermark2')
+        ];
+        const directWatermarks = [
+            document.getElementById('directWatermark'),
+            document.getElementById('directWatermarkIcon'),
+            document.getElementById('directWatermarkHorizontal')
+        ];
+
+        let watermarkVisible = true;
+        let rotated = true;
+        let variant = 'full'; // 'full' or 'icon'
+
+        // Opacity slider
+        opacitySlider.addEventListener('input', (e) => {
+            const value = e.target.value;
+            opacityValue.textContent = value;
+            const opacity = value / 100;
+            watermarks.forEach(w => w.style.opacity = opacity);
+        });
+
+        // Size slider
+        sizeSlider.addEventListener('input', (e) => {
+            const value = e.target.value;
+            sizeValue.textContent = value;
+            watermarks.forEach(w => w.style.width = `${value}px`);
+            directWatermarks.forEach((w, i) => {
+                if (i === 2) { // Horizontal watermark
+                    w.style.width = '600px';
+                } else {
+                    w.style.width = `${value}px`;
+                }
+            });
+        });
+
+        // Toggle visibility
+        toggleBtn.addEventListener('click', () => {
+            watermarkVisible = !watermarkVisible;
+            watermarks.forEach(w => w.style.display = watermarkVisible ? 'block' : 'none');
+            toggleBtn.textContent = watermarkVisible ? 'Hide Watermarks' : 'Show Watermarks';
+            toggleBtn.className = watermarkVisible ? 'btn btn-primary' : 'btn btn-outline';
+        });
+
+        // Toggle rotation
+        rotationBtn.addEventListener('click', () => {
+            rotated = !rotated;
+            watermarks.forEach(w => {
+                if (rotated) {
+                    w.classList.remove('no-rotate');
+                } else {
+                    w.classList.add('no-rotate');
+                }
+            });
+            rotationBtn.textContent = rotated ? 'Remove Rotation' : 'Add Rotation';
+        });
+
+        // Switch variant
+        variantBtn.addEventListener('click', () => {
+            variant = variant === 'full' ? 'icon' : 'full';
+            const src = variant === 'full' 
+                ? '/imports/bedrock-watermark.svg.tsx' 
+                : '/imports/bedrock-watermark-icon-only.svg';
+            
+            watermarks.forEach(w => w.src = src);
+            variantBtn.textContent = variant === 'full' ? 'Switch to Icon Only' : 'Switch to Full Logo';
+        });
+    </script>
+</body>
+</html>

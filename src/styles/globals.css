@@ -1,0 +1,779 @@
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+
+
+:root {
+  --font-size: 16px;
+
+  /* ===================================
+     TYPOGRAPHY SCALE - DESIGN SYSTEM
+     =================================== */
+
+  /* Headings */
+  --heading-1: 3rem;
+  /* 48px */
+  --heading-2: 2rem;
+  /* 32px */
+  --heading-3: 1.75rem;
+  /* 28px */
+  --heading-4: 1.5rem;
+  /* 24px */
+  --heading-5: 1.25rem;
+  /* 20px */
+
+  /* Body Text */
+  --body-xl: 1.25rem;
+  /* 20px */
+  --body-lg: 1.125rem;
+  /* 18px */
+  --body-md: 1rem;
+  /* 16px */
+  --body-sm: 0.875rem;
+  /* 14px */
+  --body-xs: 0.75rem;
+  /* 12px */
+
+  /* Legacy Text Sizes (for compatibility) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  /* Line Heights */
+  --leading-heading-1: 3.6rem;
+  /* 57.6px - 1.2 */
+  --leading-heading-2: 2.5rem;
+  /* 40px - 1.25 */
+  --leading-heading-3: 2rem;
+  /* 32px - 1.14 */
+  --leading-heading-4: 1.75rem;
+  /* 28px - 1.17 */
+  --leading-heading-5: 1.5rem;
+  /* 24px - 1.2 */
+  --leading-body-xl: 1.75rem;
+  /* 28px - 1.4 */
+  --leading-body-lg: 1.75rem;
+  /* 28px - 1.56 */
+  --leading-body-md: 1.5rem;
+  /* 24px - 1.5 */
+  --leading-body-sm: 1.25rem;
+  /* 20px - 1.43 */
+  --leading-body-xs: 1rem;
+  /* 16px - 1.33 */
+
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ===================================
+     GLOBAL COLORS - BASE PALETTE
+     =================================== */
+
+  /* Neutral Scale */
+  --neutral-0: #FFFFFF;
+  --neutral-10: #FAFAFA;
+  --neutral-20: #F5F5F5;
+  --neutral-30: #EEEEEE;
+  --neutral-40: #E0E0E0;
+  --neutral-50: #BDBDBD;
+  --neutral-60: #9E9E9E;
+  --neutral-70: #757575;
+  --neutral-80: #616161;
+  --neutral-90: #424242;
+  --neutral-100: #212121;
+
+  /* Blue Scale */
+  --blue-10: #E3F2FD;
+  --blue-20: #BBDEFB;
+  --blue-30: #90CAF9;
+  --blue-40: #64B5F6;
+  --blue-50: #42A5F5;
+  --blue-60: #2196F3;
+  --blue-70: #1E88E5;
+  --blue-80: #1976D2;
+
+  /* Green Scale */
+  --green-10: #E8F5E9;
+  --green-20: #C8E6C9;
+  --green-30: #A5D6A7;
+  --green-40: #81C784;
+  --green-50: #66BB6A;
+  --green-60: #4CAF50;
+  --green-70: #43A047;
+  --green-80: #388E3C;
+
+  /* Red Scale */
+  --red-10: #FFEBEE;
+  --red-20: #FFCDD2;
+  --red-30: #EF9A9A;
+  --red-40: #E57373;
+  --red-50: #EF5350;
+  --red-60: #F44336;
+  --red-70: #E53935;
+  --red-80: #D32F2F;
+
+  /* Orange Scale */
+  --orange-10: #FFF3E0;
+  --orange-20: #FFE0B2;
+  --orange-30: #FFCC80;
+  --orange-40: #FFB74D;
+  --orange-50: #FFA726;
+  --orange-60: #FF9800;
+  --orange-70: #FB8C00;
+  --orange-80: #F57C00;
+
+  /* Purple Scale */
+  --purple-10: #F3E5F5;
+  --purple-20: #E1BEE7;
+  --purple-30: #CE93D8;
+  --purple-40: #BA68C8;
+  --purple-50: #AB47BC;
+  --purple-60: #9C27B0;
+  --purple-70: #8E24AA;
+  --purple-80: #7B1FA2;
+
+  /* Yellow Scale */
+  --yellow-10: #FFFDE7;
+  --yellow-20: #FFF9C4;
+  --yellow-30: #FFF59D;
+  --yellow-40: #FFF176;
+  --yellow-50: #FFEE58;
+  --yellow-60: #FFEB3B;
+  --yellow-70: #FDD835;
+  --yellow-80: #FBC02D;
+
+  /* ===================================
+     SEMANTIC COLOR TOKENS - LIGHT MODE
+     =================================== */
+
+  /* CONTENT - for Typography and Icons */
+  /* Dark Content */
+  --content-dark-primary: var(--neutral-100);
+  --content-dark-secondary: var(--neutral-80);
+  --content-dark-tertiary: var(--neutral-70);
+  --content-dark-disable: var(--neutral-60);
+  --content-dark-informative: var(--blue-60);
+  --content-dark-positive: var(--green-60);
+  --content-dark-error: var(--red-60);
+
+  /* Light Content */
+  --content-light-primary: var(--neutral-0);
+  --content-light-secondary: var(--neutral-20);
+  --content-light-tertiary: var(--neutral-30);
+  --content-light-disable: var(--neutral-60);
+  --content-light-informative: var(--blue-60);
+  --content-light-positive: var(--green-60);
+  --content-light-error: var(--red-60);
+
+  /* BORDER - for static borders */
+  --border-primary: var(--neutral-40);
+  --border-secondary: var(--neutral-60);
+  --border-tertiary: var(--neutral-100);
+  --border-informative: var(--blue-30);
+  --border-positive: var(--green-30);
+  --border-error: var(--red-30);
+  --border-warning: var(--blue-30);
+
+  /* BACKGROUND - for static backgrounds */
+  --background-primary: var(--neutral-0);
+  --background-secondary: var(--neutral-20);
+  --background-tertiary: var(--neutral-30);
+  --background-blue: var(--blue-10);
+  --background-green: var(--green-10);
+  --background-red: var(--red-10);
+  --background-orange: var(--orange-10);
+  --background-purple: var(--purple-10);
+  --background-yellow: var(--yellow-10);
+
+  /* ACTION - for action components (buttons, etc) */
+  /* Primary Action - ORANGE BRAND COLOR */
+  --action-primary-base: #F97316;
+  --action-primary-hover: #ea6a0f;
+  --action-primary-active: #dc5f08;
+  --action-primary-selected: #F97316;
+  --action-primary-disabled: #fcd9bf;
+
+  /* Secondary Action */
+  --action-secondary-base: var(--neutral-0);
+  --action-secondary-base-2: var(--neutral-30);
+  --action-secondary-hover: var(--neutral-40);
+  --action-secondary-active: var(--neutral-50);
+  --action-secondary-selected: var(--neutral-30);
+  --action-secondary-disabled: var(--neutral-20);
+
+  /* Outline Action */
+  --action-outline-base: var(--neutral-50);
+  --action-outline-hover: var(--neutral-60);
+  --action-outline-active: var(--neutral-70);
+  --action-outline-selected: var(--neutral-70);
+  --action-outline-disabled: var(--neutral-30);
+
+  /* Destructive Action */
+  --action-destructive-base: var(--red-50);
+  --action-destructive-hover: var(--red-60);
+  --action-destructive-active: var(--red-70);
+  --action-destructive-selected: var(--red-60);
+  --action-destructive-disabled: var(--red-20);
+
+  /* INTERACTION - for form components */
+  /* Outline Interaction */
+  --interaction-outline-base: #D9DFEB;
+  --interaction-outline-hover: #A3A7B0;
+  --interaction-outline-active: #6D7076;
+  --interaction-outline-selected: var(--neutral-70);
+  --interaction-outline-disabled: #E8ECF3;
+
+  /* Primary Interaction (for checkboxes, radio buttons when checked) */
+  --interaction-primary-base: #F97316;
+  --interaction-primary-hover: #ea580c;
+  --interaction-primary-active: #c2410c;
+
+  /* Secondary Interaction (for unchecked state backgrounds) */
+  --interaction-secondary-base: #FFFFFF;
+  --interaction-secondary-disabled: #F7F9FB;
+  --interaction-secondary-hover: var(--neutral-30);
+
+  /* Validation States for Inputs */
+  --interaction-red-base: #AF4B4B;
+  /* Error state border */
+  --interaction-red-hover: #C85858;
+  /* Error state hover */
+  --interaction-red-text: #AF4B4B;
+  /* Error helper text */
+
+  --interaction-green-base: #589E67;
+  /* Success state border */
+  --interaction-green-hover: #6BB57A;
+  /* Success state hover */
+  --interaction-green-text: #589E67;
+  /* Success helper text */
+
+  /* ===================================
+     LEGACY COLORS - Bedrock Brand
+     =================================== */
+  --background: #ffffff;
+  --background-gradient: linear-gradient(180deg, #ffffff 0%, #ffffff 50%, #ffffff 100%);
+  --foreground: #1a1a2e;
+  --card: #ffffff;
+  --card-foreground: #1a1a2e;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a2e;
+  --primary: #F97316;
+  --primary-foreground: #ffffff;
+  --secondary: #ffffff;
+  --secondary-foreground: #1a1a2e;
+  --muted: #ffffff;
+  --muted-foreground: #6b7280;
+  --accent: #F59E0B;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --input-background: #ffffff;
+  --switch-background: #d1d5db;
+  --ring: #F97316;
+  --success: #4ade80;
+  --success-foreground: #ffffff;
+  --warning: #F59E0B;
+  --warning-foreground: #ffffff;
+  --info: #8b5cf6;
+  --info-foreground: #ffffff;
+  --teal: #14b8a6;
+  --teal-foreground: #ffffff;
+  --purple: #8b5cf6;
+  --purple-foreground: #ffffff;
+  --pink: #ec4899;
+  --pink-foreground: #ffffff;
+  --orange: #F97316;
+  --orange-foreground: #ffffff;
+
+  /* Meeting Type Colors */
+  --meeting-internal: #8b5cf6;
+  --meeting-internal-light: #f3f0ff;
+  --meeting-external: #F97316;
+  --meeting-external-light: #fff7ed;
+
+  /* Chart Colors */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Border Radius */
+  --radius: 0.625rem;
+
+  /* Sidebar Colors */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #ea580c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fff7ed;
+  --sidebar-accent-foreground: #ea580c;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #ea580c;
+  --sidebar-hover: #fff7ed;
+}
+
+
+
+@theme inline {
+  /* Typography */
+  --color-heading-1: var(--heading-1);
+  --color-heading-2: var(--heading-2);
+  --color-heading-3: var(--heading-3);
+  --color-heading-4: var(--heading-4);
+  --color-heading-5: var(--heading-5);
+
+  /* Content Tokens */
+  --color-content-dark-primary: var(--content-dark-primary);
+  --color-content-dark-secondary: var(--content-dark-secondary);
+  --color-content-dark-tertiary: var(--content-dark-tertiary);
+  --color-content-dark-disable: var(--content-dark-disable);
+  --color-content-dark-informative: var(--content-dark-informative);
+  --color-content-dark-positive: var(--content-dark-positive);
+  --color-content-dark-error: var(--content-dark-error);
+
+  --color-content-light-primary: var(--content-light-primary);
+  --color-content-light-secondary: var(--content-light-secondary);
+  --color-content-light-tertiary: var(--content-light-tertiary);
+  --color-content-light-disable: var(--content-light-disable);
+  --color-content-light-informative: var(--content-light-informative);
+  --color-content-light-positive: var(--content-light-positive);
+  --color-content-light-error: var(--content-light-error);
+
+  /* Border Tokens */
+  --color-border-primary: var(--border-primary);
+  --color-border-secondary: var(--border-secondary);
+  --color-border-tertiary: var(--border-tertiary);
+  --color-border-informative: var(--border-informative);
+  --color-border-positive: var(--border-positive);
+  --color-border-error: var(--border-error);
+  --color-border-warning: var(--border-warning);
+
+  /* Background Tokens */
+  --color-background-primary: var(--background-primary);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-tertiary: var(--background-tertiary);
+  --color-background-blue: var(--background-blue);
+  --color-background-green: var(--background-green);
+  --color-background-red: var(--background-red);
+  --color-background-orange: var(--background-orange);
+  --color-background-purple: var(--background-purple);
+  --color-background-yellow: var(--background-yellow);
+
+  /* Action Tokens */
+  --color-action-primary-base: var(--action-primary-base);
+  --color-action-primary-hover: var(--action-primary-hover);
+  --color-action-primary-active: var(--action-primary-active);
+  --color-action-primary-selected: var(--action-primary-selected);
+  --color-action-primary-disabled: var(--action-primary-disabled);
+
+  --color-action-secondary-base: var(--action-secondary-base);
+  --color-action-secondary-base-2: var(--action-secondary-base-2);
+  --color-action-secondary-hover: var(--action-secondary-hover);
+  --color-action-secondary-active: var(--action-secondary-active);
+  --color-action-secondary-selected: var(--action-secondary-selected);
+  --color-action-secondary-disabled: var(--action-secondary-disabled);
+
+  --color-action-outline-base: var(--action-outline-base);
+  --color-action-outline-hover: var(--action-outline-hover);
+  --color-action-outline-active: var(--action-outline-active);
+  --color-action-outline-selected: var(--action-outline-selected);
+  --color-action-outline-disabled: var(--action-outline-disabled);
+
+  --color-action-destructive-base: var(--action-destructive-base);
+  --color-action-destructive-hover: var(--action-destructive-hover);
+  --color-action-destructive-active: var(--action-destructive-active);
+  --color-action-destructive-selected: var(--action-destructive-selected);
+  --color-action-destructive-disabled: var(--action-destructive-disabled);
+
+  /* Legacy Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-teal: var(--teal);
+  --color-teal-foreground: var(--teal-foreground);
+  --color-purple: var(--purple);
+  --color-purple-foreground: var(--purple-foreground);
+  --color-pink: var(--pink);
+  --color-pink-foreground: var(--pink-foreground);
+  --color-orange: var(--orange);
+  --color-orange-foreground: var(--orange-foreground);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    color: var(--foreground);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Smooth transitions for all themed elements */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+  }
+
+  /* Prevent transition on page load */
+  .no-transition * {
+    transition: none !important;
+  }
+
+  /* Make SVG icons non-selectable to prevent highlight issues */
+  svg {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    pointer-events: none;
+  }
+
+  /* Allow pointer events on interactive SVG containers */
+  button svg,
+  a svg {
+    pointer-events: none;
+  }
+
+  /* Prevent selection highlighting from affecting icon visibility */
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Disable text selection in header for cleaner UX */
+  header * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
+
+  /* Ensure no selection highlight appears in header area */
+  header *::selection,
+  header *::-moz-selection {
+    background: transparent !important;
+    color: inherit !important;
+  }
+
+  /* Custom selection color for content areas - Bedrock Orange */
+  ::selection {
+    background-color: rgba(249, 115, 22, 0.2);
+  }
+
+  ::-moz-selection {
+    background-color: rgba(249, 115, 22, 0.2);
+  }
+
+  /* Protect logo/favicon from any selection or interaction effects */
+  header svg[viewBox="0 0 40 40"] {
+    cursor: default !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    pointer-events: none !important;
+    position: relative !important;
+    z-index: 9999 !important;
+    isolation: isolate !important;
+  }
+
+  /* Prevent drag selection from showing over logo area */
+  header svg[viewBox="0 0 40 40"]::before,
+  header svg[viewBox="0 0 40 40"]::after {
+    user-select: none !important;
+    pointer-events: none !important;
+  }
+
+  /* Ensure logo container is completely non-interactive */
+  header h1 {
+    cursor: default;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
+
+  /* Remove any hover/focus effects from logo area */
+  header svg[viewBox="0 0 40 40"]:hover,
+  header svg[viewBox="0 0 40 40"]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Prevent selection cursor and highlighting when dragging over logo */
+  header>div>div:first-child {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    -webkit-user-drag: none !important;
+    -khtml-user-drag: none !important;
+    -moz-user-drag: none !important;
+    -o-user-drag: none !important;
+
+    position: relative !important;
+    z-index: 9999 !important;
+    isolation: isolate !important;
+  }
+
+  /* Prevent any visual feedback during drag selection over logo */
+  header>div>div:first-child *::selection,
+  header>div>div:first-child *::-moz-selection {
+    background: transparent !important;
+    color: inherit !important;
+  }
+
+  /* Force cursor to remain default over logo area, never text selection cursor */
+  header>div>div:first-child,
+  header>div>div:first-child * {
+    cursor: default !important;
+  }
+
+  /* Prevent any active/pressed state effects on logo during selection */
+  header>div>div:first-child:active,
+  header>div>div:first-child *:active {
+    background: transparent !important;
+    outline: none !important;
+  }
+
+  /* Ensure logo area is completely immune to drag events */
+  header svg[viewBox="0 0 40 40"],
+  header svg[viewBox="0 0 40 40"] * {
+    -webkit-touch-callout: none !important;
+    -webkit-user-drag: none !important;
+  }
+
+  /* Create a protective overlay using pseudo-element to block selection visual */
+  header>div>div:first-child::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    pointer-events: none;
+    user-select: none;
+    background: transparent;
+  }
+
+  /* Ensure logo wrapper has proper positioning context */
+  header>div>div:first-child>div:first-child {
+    position: relative;
+    z-index: 10001;
+    isolation: isolate;
+  }
+
+  /* Block selection rendering specifically on logo container */
+  header>div>div:first-child {
+    -webkit-user-modify: read-only !important;
+  }
+
+  /* Force the logo SVG to render on its own layer */
+  header svg[viewBox="0 0 40 40"] {
+    transform: translateZ(0) !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+    filter: none !important;
+    will-change: transform;
+  }
+
+  /* Nuclear option: Completely isolate logo rendering from selection */
+  header>div>div:first-child>div:first-child {
+    contain: paint layout style;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Prevent selection pseudo-element from rendering over logo */
+  header>div>div:first-child *::selection {
+    background: transparent !important;
+    color: transparent !important;
+    text-shadow: none !important;
+  }
+
+  header>div>div:first-child *::-moz-selection {
+    background: transparent !important;
+    color: transparent !important;
+    text-shadow: none !important;
+  }
+
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  h1:not([class*="text-"]) {
+    font-size: var(--heading-1);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--leading-heading-1);
+  }
+
+  h2:not([class*="text-"]) {
+    font-size: var(--heading-2);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--leading-heading-2);
+  }
+
+  h3:not([class*="text-"]) {
+    font-size: var(--heading-3);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--leading-heading-3);
+  }
+
+  h4:not([class*="text-"]) {
+    font-size: var(--heading-4);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--leading-heading-4);
+  }
+
+  h5:not([class*="text-"]) {
+    font-size: var(--heading-5);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--leading-heading-5);
+  }
+
+  p:not([class*="text-"]) {
+    font-size: var(--body-md);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--leading-body-md);
+  }
+
+  label:not([class*="text-"]) {
+    font-size: var(--body-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--leading-body-sm);
+  }
+
+  button:not([class*="text-"]) {
+    font-size: var(--body-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--leading-body-sm);
+  }
+
+  input:not([class*="text-"]),
+  textarea:not([class*="text-"]),
+  select:not([class*="text-"]) {
+    font-size: var(--body-md);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--leading-body-md);
+  }
+
+  small:not([class*="text-"]) {
+    font-size: var(--body-xs);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--leading-body-xs);
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Mirror effect for local video preview */
+.mirror {
+  transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+}
+
+/* Spin animation for loading states */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Invisible Scrollbar - hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+/* Notification Badge - Force white text on orange background */
+.notification-badge {
+  background-color: #ea580c !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+}
+
+.notification-badge * {
+  color: #ffffff !important;
+}

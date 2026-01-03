@@ -1,0 +1,18 @@
+{
+  "name": "jitsi-test-server",
+  "version": "1.0.0",
+  "description": "Test server for Jitsi JWT token generation",
+  "main": "test-jitsi-server.js",
+  "scripts": {
+    "start": "node test-jitsi-server.js",
+    "dev": "nodemon test-jitsi-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
