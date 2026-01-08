@@ -40,7 +40,7 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
             if (isAutocompleteUpdate.current) {
                 console.log('✅ Skipping reset - autocomplete update');
                 onUpdate({ timezone });
-                isAutocompleteUpdate.current = false; // Reset flag
+                // Don't reset flag here - let timeout handle it to allow state effect to see it too
             } else if (lastCountry) {
                 // Manual change - reset dependent fields
                 console.log('🔄 Manual country change - resetting state and city');
@@ -127,6 +127,12 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
 
             // Set flag BEFORE calling onUpdate to prevent resets
             isAutocompleteUpdate.current = true;
+
+            // Reset flag after sufficient time for all effects to run
+            setTimeout(() => {
+                isAutocompleteUpdate.current = false;
+                console.log('🏁 Autocomplete update flag reset');
+            }, 1000);
 
             // Update all fields at once
             onUpdate({
