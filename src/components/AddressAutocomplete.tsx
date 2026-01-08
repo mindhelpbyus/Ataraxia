@@ -518,8 +518,8 @@ export function AddressAutocomplete({
         </div>
       )}
 
-      {/* Success indicator for configured API */}
-      {isScriptLoaded && isGoogleMapsConfigured() && (
+      {/* Success indicator for configured API - Only in DEV */}
+      {isScriptLoaded && isGoogleMapsConfigured() && import.meta.env.DEV && (
         <div className="flex items-start gap-2 p-2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded text-xs">
           <AlertCircle className="w-3.5 h-3.5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
           <p className="text-green-700 dark:text-green-300">
