@@ -98,9 +98,10 @@ export function AddressAutocomplete({
 
     try {
       // Use the NEW PlaceAutocompleteElement API (recommended as of March 2025)
+      // Note: 'fields' is NOT a valid property in the constructor for the web component.
+      // Fields are specified in the fetchFields() call in the event listener.
       const autocompleteElement = new google.maps.places.PlaceAutocompleteElement({
         componentRestrictions: { country: [] }, // Allow all countries
-        fields: ['address_components', 'formatted_address', 'geometry'],
       });
 
       // Store reference
@@ -110,6 +111,16 @@ export function AddressAutocomplete({
       if (containerRef.current && inputRef.current) {
         // Hide the original input and show the autocomplete element
         inputRef.current.style.display = 'none';
+
+        // Clear any existing children to avoid duplicates
+        while (containerRef.current.children.length > 1) {
+          if (containerRef.current.lastChild !== inputRef.current) {
+            containerRef.current.removeChild(containerRef.current.lastChild);
+          } else {
+            break;
+          }
+        }
+
         containerRef.current.appendChild(autocompleteElement);
 
         // Style the autocomplete element to match our input
