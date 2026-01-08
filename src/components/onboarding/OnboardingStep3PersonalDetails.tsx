@@ -12,6 +12,7 @@ import { Country, State, City } from 'country-state-city';
 import { UserCircle2 } from 'lucide-react';
 import { AvatarGalleryDialog } from '../AvatarGalleryDialog';
 import { AddressAutocomplete } from '../AddressAutocomplete';
+import { useAddressAutocomplete } from '../../hooks/useAddressAutocomplete';
 // @ts-ignore
 import { lookup } from 'india-pincode-lookup';
 
@@ -49,9 +50,19 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
     return null;
   });
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [availableStates, setAvailableStates] = useState<any[]>([]);
-  const [availableCities, setAvailableCities] = useState<any[]>([]);
-  const [showOtherCityInput, setShowOtherCityInput] = useState(false);
+  // Use the new centralized address hook
+  const {
+    availableStates,
+    availableCities,
+    showOtherCityInput,
+    handleAddressSelect
+  } = useAddressAutocomplete({
+    country: data.country,
+    state: data.state,
+    city: data.city,
+    onUpdate
+  });
+
   const [showAvatarGallery, setShowAvatarGallery] = useState(false);
 
   // Display priority: selectedAvatarUrl > photoPreview > camera icon
@@ -67,135 +78,6 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
       reader.readAsDataURL(data.profilePhoto);
     }
   }, []);
-
-  // Auto-populate states when country changes
-  useEffect(() => {
-    if (data.country) {
-      const states = State.getStatesOfCountry(data.country);
-      setAvailableStates(states);
-
-      // Reset state and city when country changes
-      // Don't reset if the current state is valid for the new country (rare but possible during initial load)
-      /* 
-      const currentStateValid = states.some(s => s.isoCode === data.state);
-      if (!currentStateValid) {
-         // COMMENTED OUT: PREVENT OVERRIDE OF GOOGLE MAPS DATA
-         // onUpdate({ state: '', city: '' });
-         // setAvailableCities([]);
-      }
-      */
-      setShowOtherCityInput(false);
-    }
-  }, [data.country]);
-
-  // Auto-populate cities when state changes
-  useEffect(() => {
-    if (data.country && data.state) {
-      const cities = City.getCitiesOfState(data.country, data.state);
-      setAvailableCities(cities);
-
-      // Reset city when state changes
-      /*
-      const currentCityValid = cities.some(c => c.name === data.city);
-      if (!currentCityValid) {
-        // COMMENTED OUT: PREVENT OVERRIDE OF GOOGLE MAPS DATA
-        // onUpdate({ city: '' });
-      }
-      */
-      setShowOtherCityInput(false);
-    }
-  }, [data.state]);
-
-  // Handle city change
-  useEffect(() => {
-    if (data.city === 'Other') {
-      setShowOtherCityInput(true);
-    } else {
-      setShowOtherCityInput(false);
-    }
-  }, [data.city]);
-
-  // Auto-detect timezone based on location
-  useEffect(() => {
-    if (data.country && data.state && data.city && data.city !== 'Other') {
-      // Try to find city data to get lat/long for timezone, or use library defaults if available
-      // country-state-city doesn't provide timezone directly, but we can approximate or leave it to the user/browser default
-      // For now, we'll keep the browser default or existing logic if we had a timezone library
-      // Since we removed locationData.ts which had timezones, we might rely on browser default
-      // or implement a lookup if critical.
-      // For this implementation, we'll skip overwriting timezone to avoid clearing user selection
-      // unless we have a better source.
-    }
-  }, [data.country, data.state, data.city]);
-
-  // India Pincode Lookup
-  useEffect(() => {
-    if (data.country === 'IN' && data.zipCode?.length === 6) {
-      try {
-        const results = lookup(data.zipCode);
-        if (results && results.length > 0) {
-          const firstResult = results[0];
-          // Format: { officeName, pincode, taluk, districtName, stateName }
-          const stateName = firstResult.stateName;
-          const districtName = firstResult.districtName;
-
-          // Map Name to ISO for State
-          const states = State.getStatesOfCountry('IN');
-          const matchedState = states.find(s => s.name.toLowerCase() === stateName.toLowerCase());
-
-          if (matchedState) {
-            // Get cities for this state to find correct city name match
-            const cities = City.getCitiesOfState('IN', matchedState.isoCode);
-            const matchedCity = cities.find(c => c.name.toLowerCase() === districtName.toLowerCase());
-
-            // ONLY Auto-populate if City/State are empty to avoid overriding Google Maps selections
-            // verifying that we don't overwrite explicit user/map selection with potentially generic district data
-            if (!data.city || !data.state) {
-              onUpdate({
-                state: matchedState.isoCode,
-                city: matchedCity ? matchedCity.name : districtName
-              });
-            }
-          }
-        }
-      } catch (e) {
-        console.error("Pincode lookup error", e);
-      }
-    } else if (data.country === 'US' && data.zipCode?.length === 5) {
-      // Google Geocoder for US Zip Codes
-      const google = (window as any).google;
-      if (google && google.maps && google.maps.Geocoder) {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({
-          componentRestrictions: { country: 'US', postalCode: data.zipCode }
-        }, (results: any, status: any) => {
-          if (status === 'OK' && results && results[0]) {
-            const components = results[0].address_components;
-            let city = '';
-            let stateCode = '';
-
-            for (const component of components) {
-              // @ts-ignore
-              if (component.types.includes('locality')) {
-                city = component.longText;
-              }
-              // @ts-ignore
-              if (component.types.includes('administrative_area_level_1')) {
-                stateCode = component.shortText; // e.g. CA
-              }
-            }
-
-            if (city && stateCode) {
-              onUpdate({
-                state: stateCode,
-                city: city
-              });
-            }
-          }
-        });
-      }
-    }
-  }, [data.zipCode, data.country]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -389,28 +271,7 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
                 id="address1"
                 label="Street Address Line 1 *"
                 value={data.address1 || ''}
-                onChange={(value, components) => {
-                  // Prefer parsed street address for Line 1 if available and not empty, otherwise fallback to formatted value
-                  const streetAddress = (components?.street && components.street.trim().length > 0)
-                    ? components.street
-                    : value.split(',')[0]; // Try to take first part of formatted address as fallback if parsing failed
-
-                  const updates: any = {
-                    address1: streetAddress
-                  };
-
-                  if (components) {
-                    if (components.city) updates.city = components.city;
-                    if (components.state) updates.state = components.state;
-                    if (components.countryCode) updates.country = components.countryCode;
-                    if (components.zip) updates.zipCode = components.zip;
-
-                    console.log('📍 Applying consolidated address updates:', updates);
-                    onUpdate(updates);
-                  } else {
-                    onUpdate({ address1: value });
-                  }
-                }}
+                onChange={handleAddressSelect}
                 placeholder="123 Main Street"
               />
             </div>
