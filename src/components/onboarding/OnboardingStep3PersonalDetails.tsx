@@ -308,6 +308,7 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
                 value={data.address1 || ''}
                 onChange={handleAddressSelect}
                 placeholder="123 Main Street"
+                userCountryCode={data.country} // Use country from phone number
               />
             </div>
             <div className="space-y-2">
