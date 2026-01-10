@@ -124,6 +124,9 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
     const handleAddressSelect = (value: string, components?: AddressComponents) => {
         if (components) {
             console.log('📍 Autocomplete selected:', components);
+            console.log('🔑 Country code from autocomplete:', components.countryCode);
+            console.log('🏙️ State code from autocomplete:', components.state);
+            console.log('🌆 City from autocomplete:', components.city);
 
             // Set flag BEFORE calling onUpdate to prevent resets
             isAutocompleteUpdate.current = true;
@@ -134,17 +137,23 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
                 console.log('🏁 Autocomplete update flag reset');
             }, 1000);
 
-            // Update all fields at once
-            onUpdate({
+            // Prepare update object
+            const updateData = {
                 address1: components.street || value,
                 city: components.city,
                 state: components.state,
-                zip: components.zip, // Use 'zip' as key to match forms even if they map it to zipCode later
-                zipCode: components.zip, // Providing both keys to be safe
-                country: components.countryCode || components.country // Use code if available
-            });
+                zip: components.zip,
+                zipCode: components.zip,
+                country: components.countryCode || components.country
+            };
+
+            console.log('📤 Sending update to form:', updateData);
+
+            // Update all fields at once
+            onUpdate(updateData);
         } else {
             // Manual typing - just update address1
+            console.log('⌨️ Manual typing - updating address1 only:', value);
             onUpdate({ address1: value });
         }
     };
