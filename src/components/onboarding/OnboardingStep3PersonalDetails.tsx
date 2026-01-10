@@ -454,11 +454,49 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
               <Input
                 id="zipCode"
                 value={data.zipCode || ''}
-                onChange={(e) => onUpdate({ zipCode: e.target.value })}
-                placeholder="10001"
+                onChange={(e) => {
+                  const zipCode = e.target.value;
+                  onUpdate({ zipCode });
+
+                  // Auto-populate city/state for Indian pincodes
+                  if (data.country === 'IN' && zipCode.length === 6 && /^\d{6}$/.test(zipCode)) {
+                    try {
+                      const pincodeData = lookup(zipCode);
+                      if (pincodeData && pincodeData.length > 0) {
+                        const location = pincodeData[0];
+                        console.log('📍 Pincode lookup result:', location);
+
+                        // Find matching state from country-state-city library
+                        const states = State.getStatesOfCountry('IN');
+                        const matchingState = states.find(s =>
+                          s.name.toLowerCase() === location.stateName.toLowerCase()
+                        );
+
+                        if (matchingState) {
+                          onUpdate({
+                            state: matchingState.isoCode,
+                            city: location.districtName || location.taluk
+                          });
+                          console.log('✅ Auto-populated from pincode:', {
+                            state: matchingState.name,
+                            city: location.districtName || location.taluk
+                          });
+                        }
+                      }
+                    } catch (error) {
+                      console.log('ℹ️ Pincode not found or invalid');
+                    }
+                  }
+                }}
+                placeholder={data.country === 'IN' ? '600001' : '10001'}
                 className={errors.zipCode ? 'border-red-500' : ''}
               />
               {errors.zipCode && <p className="text-xs text-red-500">{errors.zipCode}</p>}
+              {data.country === 'IN' && (
+                <p className="text-xs text-gray-500">
+                  💡 Enter 6-digit pincode to auto-fill city/state
+                </p>
+              )}
             </div>
 
             {/* Timezone (Auto-populated, read-only) */}
