@@ -11,8 +11,6 @@ import { LANGUAGES } from '../../types/onboarding';
 import { Country, State, City } from 'country-state-city';
 import { UserCircle2 } from 'lucide-react';
 import { AvatarGalleryDialog } from '../AvatarGalleryDialog';
-import { AddressAutocomplete } from '../AddressAutocomplete';
-import { useAddressAutocomplete } from '../../hooks/useAddressAutocomplete';
 // @ts-ignore
 import { lookup } from 'india-pincode-lookup';
 
@@ -50,18 +48,6 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
     return null;
   });
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  // Use the new centralized address hook
-  const {
-    availableStates,
-    availableCities,
-    showOtherCityInput,
-    handleAddressSelect
-  } = useAddressAutocomplete({
-    country: data.country,
-    state: data.state,
-    city: data.city,
-    onUpdate
-  });
 
   const [showAvatarGallery, setShowAvatarGallery] = useState(false);
 
@@ -302,13 +288,12 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
           {/* Street Address */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <AddressAutocomplete
+              <Label htmlFor="address1">Street Address Line 1 *</Label>
+              <Input
                 id="address1"
-                label="Street Address Line 1 *"
                 value={data.address1 || ''}
-                onChange={handleAddressSelect}
+                onChange={(e) => onUpdate({ address1: e.target.value })}
                 placeholder="123 Main Street"
-                userCountryCode={data.country} // Use country from phone number
               />
             </div>
             <div className="space-y-2">
@@ -366,60 +351,28 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
             {/* State */}
             <div className="space-y-2">
               <Label htmlFor="state">State / Province *</Label>
-              {availableStates.length > 0 && (!data.state || availableStates.some(s => s.isoCode === data.state)) ? (
-                <Select value={data.state} onValueChange={(value) => onUpdate({ state: value })}>
-                  <SelectTrigger className={errors.state ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableStates.map((state) => (
-                      <SelectItem key={state.isoCode} value={state.isoCode}>
-                        {state.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id="state"
-                  type="text"
-                  placeholder="e.g., California"
-                  className={errors.state ? 'border-red-500' : ''}
-                  value={data.state}
-                  onChange={(e) => onUpdate({ state: e.target.value })}
-                  disabled={!data.country}
-                />
-              )}
+              <Input
+                id="state"
+                type="text"
+                placeholder="e.g., California"
+                className={errors.state ? 'border-red-500' : ''}
+                value={data.state}
+                onChange={(e) => onUpdate({ state: e.target.value })}
+              />
               {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
             </div>
 
             {/* City */}
             <div className="space-y-2">
               <Label htmlFor="city">City *</Label>
-              {availableCities.length > 0 && !showOtherCityInput && (!data.city || availableCities.some(c => c.name === data.city)) ? (
-                <Select value={data.city} onValueChange={(value) => onUpdate({ city: value })}>
-                  <SelectTrigger className={errors.city ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select city" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableCities.map((city) => (
-                      <SelectItem key={city.name} value={city.name}>
-                        {city.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id="city"
-                  type="text"
-                  placeholder="e.g., Los Angeles"
-                  className={errors.city ? 'border-red-500' : ''}
-                  value={data.city === 'Other' ? '' : data.city}
-                  onChange={(e) => onUpdate({ city: e.target.value })}
-                  disabled={!data.state}
-                />
-              )}
+              <Input
+                id="city"
+                type="text"
+                placeholder="e.g., Los Angeles"
+                className={errors.city ? 'border-red-500' : ''}
+                value={data.city}
+                onChange={(e) => onUpdate({ city: e.target.value })}
+              />
               {errors.city && <p className="text-xs text-red-500">{errors.city}</p>}
             </div>
           </div>
