@@ -1,11 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-    getStatesForCountry,
-    getCitiesForState,
-    getTimezoneForCountry,
-    getTimezoneForState,
-    getTimezoneForCity
-} from '../data/locationData';
+import { Country, State, City } from 'country-state-city';
 
 // AddressAutocomplete uses components with countryCode
 import { AddressComponents } from '../components/AddressAutocomplete';
@@ -30,10 +24,11 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
         if (country && country !== lastCountry) {
             console.log('🌍 Country changed:', { country, lastCountry, isAutocomplete: isAutocompleteUpdate.current });
 
-            const states = getStatesForCountry(country);
+            // Use country-state-city library for comprehensive data
+            const states = State.getStatesOfCountry(country);
             setAvailableStates(states);
 
-            // Auto-populate timezone based on country
+            // Get timezone from Intl API based on country
             const timezone = getTimezoneForCountry(country);
 
             // DON'T reset if this is from autocomplete
@@ -62,23 +57,20 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
         if (country && state && state !== lastState) {
             console.log('🏙️ State changed:', { state, lastState, isAutocomplete: isAutocompleteUpdate.current });
 
-            const cities = getCitiesForState(country, state);
+            // Use country-state-city library for comprehensive data
+            const cities = City.getCitiesOfState(country, state);
             setAvailableCities(cities);
 
-            // Auto-populate timezone based on state
+            // Get timezone from Intl API
             const timezone = getTimezoneForState(country, state);
 
             // DON'T reset if this is from autocomplete
             if (isAutocompleteUpdate.current) {
                 console.log('✅ Skipping city reset - autocomplete update');
+                console.log('📍 Accepting Google Maps data as-is (prioritizing over library)');
 
-                // Check if the current city is in the available cities list
-                const cityExists = cities.some(c => c.name === city);
-                if (!cityExists && city) {
-                    console.log('⚠️ City from autocomplete not in list - enabling custom input:', city);
-                    setShowOtherCityInput(true);
-                }
-
+                // Google Maps data takes priority - don't validate against library
+                // The city from Google Maps might not be in country-state-city library, but that's OK
                 onUpdate({ timezone });
             } else if (lastState) {
                 // Manual change - reset city
@@ -112,10 +104,42 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
             }
 
             setShowOtherCityInput(false);
-            const timezone = getTimezoneForCity(country, state, city);
-            onUpdate({ timezone });
+            // Timezone is already set by state, no need to update again
         }
     }, [city]);
+
+    // Helper function to get timezone for country
+    const getTimezoneForCountry = (countryCode: string): string => {
+        // Use Intl API to get timezone based on country
+        const timezoneMap: Record<string, string> = {
+            'IN': 'Asia/Kolkata',
+            'US': 'America/New_York',
+            'GB': 'Europe/London',
+            'CA': 'America/Toronto',
+            'AU': 'Australia/Sydney',
+        };
+        return timezoneMap[countryCode] || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    };
+
+    // Helper function to get timezone for state
+    const getTimezoneForState = (countryCode: string, stateCode: string): string => {
+        // For US, we can be more specific
+        if (countryCode === 'US') {
+            const usTimezones: Record<string, string> = {
+                'CA': 'America/Los_Angeles',
+                'NY': 'America/New_York',
+                'TX': 'America/Chicago',
+                'FL': 'America/New_York',
+                'IL': 'America/Chicago',
+                'WA': 'America/Los_Angeles',
+                'AZ': 'America/Phoenix',
+                'HI': 'Pacific/Honolulu',
+                'AK': 'America/Anchorage',
+            };
+            return usTimezones[stateCode] || 'America/New_York';
+        }
+        return getTimezoneForCountry(countryCode);
+    };
 
     /**
      * Handler for AddressAutocomplete onChange
