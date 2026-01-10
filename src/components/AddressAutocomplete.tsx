@@ -97,7 +97,26 @@ export function AddressAutocomplete({
     script.defer = true;
     script.onload = () => {
       console.log('✅ Google Maps script loaded successfully');
-      setIsScriptLoaded(true);
+
+      // Wait for PlaceAutocompleteElement to be available
+      const checkPlacesReady = setInterval(() => {
+        if (window.google?.maps?.places?.PlaceAutocompleteElement) {
+          console.log('✅ PlaceAutocompleteElement is now available');
+          setIsScriptLoaded(true);
+          clearInterval(checkPlacesReady);
+        } else {
+          console.log('⏳ Waiting for PlaceAutocompleteElement...');
+        }
+      }, 100);
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        clearInterval(checkPlacesReady);
+        if (!window.google?.maps?.places?.PlaceAutocompleteElement) {
+          console.error('❌ PlaceAutocompleteElement failed to load after 10 seconds');
+          setShowConfigWarning(true);
+        }
+      }, 10000);
     };
     script.onerror = () => {
       console.error('❌ Failed to load Google Places API');
