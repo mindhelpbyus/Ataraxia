@@ -48,6 +48,8 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
     return null;
   });
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [availableStates, setAvailableStates] = useState<any[]>([]);
+  const [availableCities, setAvailableCities] = useState<any[]>([]);
 
   const [showAvatarGallery, setShowAvatarGallery] = useState(false);
 
@@ -71,6 +73,44 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
       onUpdate({ country: 'IN' });
     }
   }, []);
+
+  // Populate states when country changes
+  useEffect(() => {
+    if (data.country) {
+      const states = State.getStatesOfCountry(data.country);
+      setAvailableStates(states);
+
+      // Reset state and city if country changes
+      if (data.state) {
+        const stateExists = states.some(s => s.isoCode === data.state);
+        if (!stateExists) {
+          onUpdate({ state: '', city: '' });
+          setAvailableCities([]);
+        }
+      }
+    } else {
+      setAvailableStates([]);
+      setAvailableCities([]);
+    }
+  }, [data.country]);
+
+  // Populate cities when state changes
+  useEffect(() => {
+    if (data.country && data.state) {
+      const cities = City.getCitiesOfState(data.country, data.state);
+      setAvailableCities(cities);
+
+      // Reset city if state changes
+      if (data.city) {
+        const cityExists = cities.some(c => c.name === data.city);
+        if (!cityExists) {
+          onUpdate({ city: '' });
+        }
+      }
+    } else {
+      setAvailableCities([]);
+    }
+  }, [data.state]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -351,28 +391,58 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
             {/* State */}
             <div className="space-y-2">
               <Label htmlFor="state">State / Province *</Label>
-              <Input
-                id="state"
-                type="text"
-                placeholder="e.g., California"
-                className={errors.state ? 'border-red-500' : ''}
-                value={data.state}
-                onChange={(e) => onUpdate({ state: e.target.value })}
-              />
+              {availableStates.length > 0 ? (
+                <Select value={data.state} onValueChange={(value) => onUpdate({ state: value })}>
+                  <SelectTrigger className={errors.state ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStates.map((state) => (
+                      <SelectItem key={state.isoCode} value={state.isoCode}>
+                        {state.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="state"
+                  type="text"
+                  placeholder="e.g., California"
+                  className={errors.state ? 'border-red-500' : ''}
+                  value={data.state}
+                  onChange={(e) => onUpdate({ state: e.target.value })}
+                />
+              )}
               {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
             </div>
 
             {/* City */}
             <div className="space-y-2">
               <Label htmlFor="city">City *</Label>
-              <Input
-                id="city"
-                type="text"
-                placeholder="e.g., Los Angeles"
-                className={errors.city ? 'border-red-500' : ''}
-                value={data.city}
-                onChange={(e) => onUpdate({ city: e.target.value })}
-              />
+              {availableCities.length > 0 ? (
+                <Select value={data.city} onValueChange={(value) => onUpdate({ city: value })}>
+                  <SelectTrigger className={errors.city ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCities.map((city) => (
+                      <SelectItem key={city.name} value={city.name}>
+                        {city.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="city"
+                  type="text"
+                  placeholder="e.g., Los Angeles"
+                  className={errors.city ? 'border-red-500' : ''}
+                  value={data.city}
+                  onChange={(e) => onUpdate({ city: e.target.value })}
+                />
+              )}
               {errors.city && <p className="text-xs text-red-500">{errors.city}</p>}
             </div>
           </div>
