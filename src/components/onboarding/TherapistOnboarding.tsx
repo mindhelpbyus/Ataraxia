@@ -400,70 +400,157 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         throw new Error('User not authenticated');
       }
 
-      // Prepare registration data for verification service
-      const registrationData = {
-        firebase_uid: user.uid,
-        email: onboardingData.email || user.email || '',
-        phone_number: onboardingData.phoneNumber,
-        first_name: onboardingData.firstName || onboardingData.fullName?.split(' ')[0] || '',
-        last_name: onboardingData.lastName || onboardingData.fullName?.split(' ').slice(1).join(' ') || '',
-        date_of_birth: onboardingData.dateOfBirth,
-        license_number: onboardingData.licenseNumber,
-        license_state: onboardingData.issuingStates?.[0] || '',
-        license_type: onboardingData.licenseType,
-        license_expiry: onboardingData.licenseExpiryDate,
-        degree: onboardingData.highestDegree,
-        specializations: onboardingData.specializations || [],
-        years_of_experience: onboardingData.yearsOfExperience || 0,
-        practice_name: '',
-        practice_type: '',
-        npi_number: onboardingData.npiNumber,
-        malpractice_insurance_provider: onboardingData.malpracticeInsurance,
-        malpractice_policy_number: '',
-        malpractice_expiry: '',
-        background_check_consent: true,
-        org_invite_code: orgCode,
-        profile_image_url: (typeof onboardingData.headshot === 'string' ? onboardingData.headshot : '') || (typeof onboardingData.profilePhoto === 'string' ? onboardingData.profilePhoto : '') || '',
-        signup_method: (onboardingData as any).authMethod || 'email'
+      // Map session formats
+      const sessionFormats = {
+        video: onboardingData.video,
+        inPerson: onboardingData.inPerson,
+        phone: onboardingData.phone,
+        messaging: onboardingData.messaging
       };
 
-      logger.info('Submitting therapist registration:', {
-        has_org_code: !!orgCode,
-        email: registrationData.email
+      // Construct detailed payload for Backend API
+      const payload = {
+        firebaseUid: user.uid,
+        email: onboardingData.email || user.email,
+        firstName: onboardingData.firstName || onboardingData.fullName?.split(' ')[0],
+        lastName: onboardingData.lastName || onboardingData.fullName?.split(' ').slice(1).join(' '),
+
+        // Address & Contact
+        countryCode: onboardingData.countryCode,
+        phoneNumber: onboardingData.phoneNumber,
+        address1: onboardingData.address1,
+        address2: onboardingData.address2,
+        city: onboardingData.city,
+        state: onboardingData.state,
+        zipCode: onboardingData.zipCode,
+        country: onboardingData.country,
+
+        // Profile
+        timezone: onboardingData.timezone,
+        languages: onboardingData.languagesSpokenFluently,
+        // Send strings for URLs if they exist (file uploads handled separately usually, but assuming strings here for now or pre-signed URLs)
+        profilePhotoUrl: typeof onboardingData.profilePhoto === 'string' ? onboardingData.profilePhoto : undefined,
+        headshotUrl: typeof onboardingData.headshot === 'string' ? onboardingData.headshot : undefined,
+
+        // Step 4 Attributes
+        degree: onboardingData.highestDegree,
+        institutionName: onboardingData.institutionName,
+        graduationYear: onboardingData.graduationYear,
+        yearsOfExperience: onboardingData.yearsOfExperience,
+        bio: onboardingData.bio,
+        specializations: onboardingData.specializations, // Legacy list
+        clinicalSpecialties: onboardingData.clinicalSpecialties, // Enhanced object
+        lifeContextSpecialties: onboardingData.lifeContextSpecialties,
+
+        // Group Flattened Modalities
+        therapeuticModalities: {
+          cbt: onboardingData.cbt,
+          dbt: onboardingData.dbt,
+          act: onboardingData.act,
+          emdr: onboardingData.emdr,
+          humanistic: onboardingData.humanistic,
+          psychodynamic: onboardingData.psychodynamic,
+          gottman: onboardingData.gottman,
+          eft: onboardingData.eft,
+          exposureTherapy: onboardingData.exposureTherapy,
+          somaticTherapies: onboardingData.somaticTherapies,
+          ifs: onboardingData.ifs,
+          mindfulnessBased: onboardingData.mindfulnessBased,
+          motivationalInterviewing: onboardingData.motivationalInterviewing,
+          traumaInformedCare: onboardingData.traumaInformedCare,
+          playTherapy: onboardingData.playTherapy,
+          artTherapy: onboardingData.artTherapy,
+          narrativeTherapy: onboardingData.narrativeTherapy,
+          solutionFocused: onboardingData.solutionFocused
+        },
+
+        // Group Flattened Personal Style
+        personalStyle: {
+          warmCompassionate: onboardingData.warmCompassionate,
+          structuredGoalOriented: onboardingData.structuredGoalOriented,
+          skillsBased: onboardingData.skillsBased,
+          directHonest: onboardingData.directHonest,
+          insightOriented: onboardingData.insightOriented,
+          culturallySensitive: onboardingData.culturallySensitive,
+          faithBased: onboardingData.faithBased,
+          lgbtqAffirming: onboardingData.lgbtqAffirming
+        },
+
+        // Group Demographic Preferences (Step 8)
+        demographicPreferences: {
+          kids: onboardingData.kids,
+          teens: onboardingData.teens,
+          adults: onboardingData.adults,
+          seniors: onboardingData.seniors,
+          couples: onboardingData.couples,
+          families: onboardingData.families,
+          lgbtqPlus: onboardingData.lgbtqPlus,
+          highRiskClients: onboardingData.highRiskClients,
+          adhdClients: onboardingData.adhdClients,
+          neurodivergentGroups: onboardingData.neurodivergentGroups,
+          courtOrderedClients: onboardingData.courtOrderedClients,
+          bipocCommunities: onboardingData.bipocCommunities,
+          immigrants: onboardingData.immigrants,
+          veteransCommunity: onboardingData.veteransCommunity
+        },
+
+        // Step 5 License
+        licenseNumber: onboardingData.licenseNumber,
+        licenseState: onboardingData.issuingStates?.[0] || '', // Single select now
+        licenseType: onboardingData.licenseType,
+        licenseExpiry: onboardingData.licenseExpiryDate,
+        malpracticeInsuranceProvider: onboardingData.malpracticeInsurance,
+        npiNumber: onboardingData.npiNumber,
+        licensingAuthority: onboardingData.licensingAuthority,
+
+        // Step 6 Availability & Preferences
+        sessionFormats,
+        newClientsCapacity: onboardingData.newClientsCapacity,
+        maxCaseloadCapacity: onboardingData.maxCaseloadCapacity,
+        clientIntakeSpeed: onboardingData.clientIntakeSpeed,
+        emergencySameDayCapacity: onboardingData.emergencySameDayCapacity,
+        weeklySchedule: onboardingData.weeklySchedule,
+        sessionLengthsOffered: onboardingData.sessionLengthsOffered,
+        preferredSchedulingDensity: onboardingData.preferredSchedulingDensity,
+      };
+
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      logger.info('Submitting therapist registration to API:', { url: `${API_URL}/api/auth/therapist/register` });
+
+      const token = await user.getIdToken();
+      const response = await fetch(`${API_URL}/api/auth/therapist/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
       });
 
-      // Call verification service
-      const result = await verificationService.registerTherapist(registrationData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Registration failed');
+      }
+
+      const result = await response.json();
 
       if (result.success) {
         // Clear localStorage after successful submission
         clearLocalStorage();
 
-        // Also save to Firestore for backup
+        // Also save to Firestore for backup/legacy compatibility if needed
         await completeOnboarding(user.uid, onboardingData);
 
-        if (result.can_login) {
-          // Organization therapist - can login immediately
-          logger.info('Organization therapist registered successfully', {
-            user_id: result.user?.id,
-            organization: result.organization
-          });
+        logger.info('Therapist registration submitted successfully', {
+          registrationId: result.registrationId
+        });
 
-          // Show success message and redirect to login
-          alert(`Registration complete! Welcome to ${result.organization}. You can now login.`);
-          window.location.href = '/login';
-        } else {
-          // Solo therapist - needs verification
-          logger.info('Solo therapist registration submitted for verification', {
-            registration_id: result.registration?.id
-          });
-
-          // Redirect to verification pending page
-          window.location.href = '/verification-pending';
-        }
+        // Redirect to verification pending page
+        window.location.href = '/verification-pending';
       } else {
         throw new Error(result.message || 'Registration failed');
       }
+
     } catch (error: any) {
       logger.error('Registration submission failed:', error);
       alert(`Registration failed: ${error.message}. Please try again or contact support.`);
@@ -743,6 +830,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
               licensingAuthority: onboardingData.licensingAuthority,
               governmentId: onboardingData.governmentId,
               informationAccurate: onboardingData.informationAccurate,
+              country: onboardingData.country,
             }}
             onUpdate={updateData}
             onNext={goToNextStep}

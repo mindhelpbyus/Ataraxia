@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -8,7 +8,8 @@ import { Checkbox } from '../ui/checkbox';
 import { Badge } from '../ui/badge';
 import { ArrowLeft, Shield, Upload, X } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
-import { LICENSE_TYPES, US_STATES } from '../../types/onboarding';
+import { LICENSE_TYPES } from '../../types/onboarding';
+import { State } from 'country-state-city';
 
 interface OnboardingStep5Props {
   data: {
@@ -28,6 +29,9 @@ interface OnboardingStep5Props {
     licensingAuthority: string;
     governmentId?: File | string;
     informationAccurate: boolean;
+
+    // Country from previous step
+    country?: string;
   };
   onUpdate: (data: any) => void;
   onNext: () => void;
@@ -36,9 +40,18 @@ interface OnboardingStep5Props {
 
 export function OnboardingStep5LicenseEnhanced({ data, onUpdate, onNext, onBack }: OnboardingStep5Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [currentIssuingState, setCurrentIssuingState] = useState('');
+  // const [currentIssuingState, setCurrentIssuingState] = useState('');
   const [currentPracticeState, setCurrentPracticeState] = useState('');
+  const [availableStates, setAvailableStates] = useState<any[]>([]);
 
+  // Load states based on country
+  useEffect(() => {
+    const countryCode = data.country || 'US'; // Default to US if not provided
+    const states = State.getStatesOfCountry(countryCode);
+    setAvailableStates(states);
+  }, [data.country]);
+
+  /*
   const addIssuingState = () => {
     if (currentIssuingState && !data.issuingStates.includes(currentIssuingState)) {
       onUpdate({
@@ -53,6 +66,7 @@ export function OnboardingStep5LicenseEnhanced({ data, onUpdate, onNext, onBack 
       issuingStates: data.issuingStates.filter(s => s !== state)
     });
   };
+  */
 
   const addPracticeState = () => {
     if (currentPracticeState && !data.additionalPracticeStates.includes(currentPracticeState)) {
@@ -94,8 +108,8 @@ export function OnboardingStep5LicenseEnhanced({ data, onUpdate, onNext, onBack 
 
     if (!data.licenseType) newErrors.licenseType = 'License type is required';
     if (!data.licenseNumber.trim()) newErrors.licenseNumber = 'License number is required';
-    if (data.issuingStates.length === 0) newErrors.issuingStates = 'At least one issuing state is required';
-    if (!data.licenseExpiryDate) newErrors.licenseExpiryDate = 'License expiry date is required';
+    // if (data.issuingStates.length === 0) newErrors.issuingStates = 'At least one issuing state is required';
+    // if (!data.licenseExpiryDate) newErrors.licenseExpiryDate = 'License expiry date is required';
 
     // Check if expiry date is in the future
     if (data.licenseExpiryDate) {
@@ -106,7 +120,7 @@ export function OnboardingStep5LicenseEnhanced({ data, onUpdate, onNext, onBack 
       }
     }
 
-    if (!data.malpracticeInsurance.trim()) newErrors.malpracticeInsurance = 'Malpractice insurance information is required';
+    // if (!data.malpracticeInsurance.trim()) newErrors.malpracticeInsurance = 'Malpractice insurance information is required';
     if (!data.informationAccurate) newErrors.informationAccurate = 'You must certify the accuracy of this information';
 
     setErrors(newErrors);
@@ -193,45 +207,27 @@ export function OnboardingStep5LicenseEnhanced({ data, onUpdate, onNext, onBack 
 
           {/* Issuing States (AI Match Required) */}
           <div className="space-y-3">
-            <Label>Issuing State(s) <span className="text-red-500">*</span></Label>
-            <div className="flex gap-2">
-              <Select value={currentIssuingState} onValueChange={setCurrentIssuingState}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select state where licensed..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {US_STATES.map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
+            <Label>Issuing State / Province ({data.country || 'US'})</Label>
+            <Select
+              value={data.issuingStates[0] || ''}
+              onValueChange={(value) => onUpdate({ issuingStates: [value] })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select state where licensed..." />
+              </SelectTrigger>
+              <SelectContent>
+                {availableStates.length > 0 ? (
+                  availableStates.map((state) => (
+                    <SelectItem key={state.isoCode} value={state.isoCode}>
+                      {state.name}
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                type="button"
-                onClick={addIssuingState}
-                disabled={!currentIssuingState}
-                variant="outline"
-              >
-                Add
-              </Button>
-            </div>
-
-            {data.issuingStates.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {data.issuingStates.map((state) => (
-                  <Badge key={state} variant="secondary" className="px-3 py-1">
-                    {state}
-                    <button
-                      onClick={() => removeIssuingState(state)}
-                      className="ml-2 hover:text-red-600"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
+                  ))
+                ) : (
+                  // Fallback if no states found (unlikely for major countries, but good practice)
+                  <div className="p-2 text-sm text-gray-500">No states found for selected country</div>
+                )}
+              </SelectContent>
+            </Select>
             {errors.issuingStates && <p className="text-sm text-red-600">{errors.issuingStates}</p>}
           </div>
 
@@ -247,11 +243,13 @@ export function OnboardingStep5LicenseEnhanced({ data, onUpdate, onNext, onBack 
                   <SelectValue placeholder="Select additional practice state..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {US_STATES.filter(s => !data.issuingStates.includes(s) && !data.additionalPracticeStates.includes(s)).map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
-                    </SelectItem>
-                  ))}
+                  {availableStates
+                    .filter(s => !data.issuingStates.includes(s.isoCode) && !data.additionalPracticeStates.includes(s.isoCode))
+                    .map((state) => (
+                      <SelectItem key={state.isoCode} value={state.isoCode}>
+                        {state.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
               <Button
@@ -266,24 +264,29 @@ export function OnboardingStep5LicenseEnhanced({ data, onUpdate, onNext, onBack 
 
             {data.additionalPracticeStates.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
-                {data.additionalPracticeStates.map((state) => (
-                  <Badge key={state} variant="outline" className="px-3 py-1">
-                    {state}
-                    <button
-                      onClick={() => removePracticeState(state)}
-                      className="ml-2 hover:text-red-600"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
+                {data.additionalPracticeStates.map((state) => {
+                  const stateObj = availableStates.find(s => s.isoCode === state);
+                  const displayName = stateObj ? stateObj.name : state;
+
+                  return (
+                    <Badge key={state} variant="outline" className="px-3 py-1">
+                      {displayName}
+                      <button
+                        onClick={() => removePracticeState(state)}
+                        className="ml-2 hover:text-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  );
+                })}
               </div>
             )}
           </div>
 
           {/* License Expiry Date */}
           <div className="space-y-2">
-            <Label>License Expiry Date <span className="text-red-500">*</span></Label>
+            <Label>License Expiry Date</Label>
             <Input
               type="date"
               value={data.licenseExpiryDate}
@@ -311,7 +314,7 @@ export function OnboardingStep5LicenseEnhanced({ data, onUpdate, onNext, onBack 
 
           {/* Malpractice Insurance (Compliance) */}
           <div className="space-y-2">
-            <Label>Malpractice Insurance Provider <span className="text-red-500">*</span></Label>
+            <Label>Malpractice Insurance Provider</Label>
             <Input
               placeholder="e.g., HPSO, CPH & Associates"
               value={data.malpracticeInsurance}
