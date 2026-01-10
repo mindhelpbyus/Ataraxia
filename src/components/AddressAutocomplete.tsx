@@ -26,6 +26,7 @@ interface AddressAutocompleteProps {
   success?: boolean;
   className?: string;
   showIcon?: boolean;
+  userCountryCode?: string; // ISO country code from phone number (e.g., 'IN', 'US')
 }
 
 export function AddressAutocomplete({
@@ -41,6 +42,7 @@ export function AddressAutocomplete({
   success = false,
   className = '',
   showIcon = true,
+  userCountryCode = 'IN', // Default to India (primary market)
 }: AddressAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteElementRef = useRef<any>(null);
@@ -100,9 +102,33 @@ export function AddressAutocomplete({
       // Use the NEW PlaceAutocompleteElement API (recommended as of March 2025)
       // Note: 'fields' is NOT a valid property in the constructor for the web component.
       // Fields are specified in the fetchFields() call in the event listener.
+
+      // Determine country restrictions based on user's phone country code
+      // Prioritize user's country first, then India (primary market), then USA (secondary)
+      const getCountryPriority = (userCountry: string): string[] => {
+        const countries = new Set<string>();
+
+        // Add user's country first
+        if (userCountry) {
+          countries.add(userCountry.toLowerCase());
+        }
+
+        // Add India (primary market) if not already added
+        countries.add('in');
+
+        // Add USA (secondary market) if not already added
+        countries.add('us');
+
+        return Array.from(countries);
+      };
+
+      const prioritizedCountries = getCountryPriority(userCountryCode);
+
+      console.log('🌍 Google Maps country priority:', prioritizedCountries);
+
       const autocompleteElement = new google.maps.places.PlaceAutocompleteElement({
-        // Prioritize India (primary market) but allow global addresses
-        componentRestrictions: { country: ['in', 'us'] }, // India first, USA second
+        // Prioritize based on user's phone country code, but allow multiple countries
+        componentRestrictions: { country: prioritizedCountries },
       });
 
       // Store reference
