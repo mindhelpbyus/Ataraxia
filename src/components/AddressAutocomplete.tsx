@@ -65,21 +65,42 @@ export function AddressAutocomplete({
     }
 
     // Check if already loaded
-    if (window.google?.maps?.places) {
+    if (window.google?.maps?.places?.PlaceAutocompleteElement) {
+      console.log('✅ Google Maps already loaded');
       setIsScriptLoaded(true);
       return;
     }
 
+    // Check if script tag already exists
+    const existingScript = document.querySelector(`script[src*="maps.googleapis.com"]`);
+    if (existingScript) {
+      console.log('⏳ Google Maps script already loading...');
+      // Wait for it to load
+      const checkInterval = setInterval(() => {
+        if (window.google?.maps?.places?.PlaceAutocompleteElement) {
+          console.log('✅ Google Maps loaded from existing script');
+          setIsScriptLoaded(true);
+          clearInterval(checkInterval);
+        }
+      }, 100);
+
+      // Timeout after 10 seconds
+      setTimeout(() => clearInterval(checkInterval), 10000);
+      return;
+    }
+
+    console.log('📥 Loading Google Maps script...');
     const script = document.createElement('script');
     // NEW API: Use loading=async and libraries=places
     script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_CONFIG.apiKey}&libraries=places&loading=async`;
     script.async = true;
     script.defer = true;
     script.onload = () => {
+      console.log('✅ Google Maps script loaded successfully');
       setIsScriptLoaded(true);
     };
     script.onerror = () => {
-      console.error('Failed to load Google Places API');
+      console.error('❌ Failed to load Google Places API');
       setShowConfigWarning(true);
     };
     document.head.appendChild(script);
@@ -90,7 +111,7 @@ export function AddressAutocomplete({
         document.head.removeChild(script);
       }
     };
-  }, [isScriptLoaded]);
+  }, []);
 
   // Initialize Google Places Autocomplete using the NEW API (PlaceAutocompleteElement)
   useEffect(() => {
@@ -99,6 +120,12 @@ export function AddressAutocomplete({
     }
 
     try {
+      // Verify PlaceAutocompleteElement is available
+      if (!window.google?.maps?.places?.PlaceAutocompleteElement) {
+        console.error('❌ PlaceAutocompleteElement not available yet');
+        return;
+      }
+
       // Use the NEW PlaceAutocompleteElement API (recommended as of March 2025)
       // Note: 'fields' is NOT a valid property in the constructor for the web component.
       // Fields are specified in the fetchFields() call in the event listener.
