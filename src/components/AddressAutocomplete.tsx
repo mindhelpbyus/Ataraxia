@@ -101,7 +101,8 @@ export function AddressAutocomplete({
       // Note: 'fields' is NOT a valid property in the constructor for the web component.
       // Fields are specified in the fetchFields() call in the event listener.
       const autocompleteElement = new google.maps.places.PlaceAutocompleteElement({
-        componentRestrictions: { country: [] }, // Allow all countries
+        // Prioritize India (primary market) but allow global addresses
+        componentRestrictions: { country: ['in', 'us'] }, // India first, USA second
       });
 
       // Store reference
