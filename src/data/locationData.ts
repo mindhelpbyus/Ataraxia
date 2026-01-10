@@ -339,45 +339,47 @@ export const COUNTRIES: CountryData[] = [
 ];
 
 /**
- * Get states for a country
+ * Get states for a country (supports both ISO code and full name)
  */
-export function getStatesForCountry(countryName: string): StateData[] {
-  const country = COUNTRIES.find(c => c.name === countryName);
+export function getStatesForCountry(countryNameOrCode: string): StateData[] {
+  // Try to find by code first (e.g., "US"), then by name (e.g., "United States")
+  const country = COUNTRIES.find(c => c.code === countryNameOrCode || c.name === countryNameOrCode);
   return country?.states || [];
 }
 
 /**
- * Get cities for a state
+ * Get cities for a state (supports both ISO code and full name for country and state)
  */
-export function getCitiesForState(countryName: string, stateName: string): CityData[] {
-  const country = COUNTRIES.find(c => c.name === countryName);
-  const state = country?.states.find(s => s.name === stateName);
+export function getCitiesForState(countryNameOrCode: string, stateNameOrCode: string): CityData[] {
+  // Try to find by code first, then by name
+  const country = COUNTRIES.find(c => c.code === countryNameOrCode || c.name === countryNameOrCode);
+  const state = country?.states.find(s => s.code === stateNameOrCode || s.name === stateNameOrCode);
   return state?.cities || [];
 }
 
 /**
- * Get timezone for a country
+ * Get timezone for a country (supports both ISO code and full name)
  */
-export function getTimezoneForCountry(countryName: string): string {
-  const country = COUNTRIES.find(c => c.name === countryName);
+export function getTimezoneForCountry(countryNameOrCode: string): string {
+  const country = COUNTRIES.find(c => c.code === countryNameOrCode || c.name === countryNameOrCode);
   return country?.defaultTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
 /**
- * Get timezone for a state
+ * Get timezone for a state (supports both ISO code and full name)
  */
-export function getTimezoneForState(countryName: string, stateName: string): string {
-  const country = COUNTRIES.find(c => c.name === countryName);
-  const state = country?.states.find(s => s.name === stateName);
+export function getTimezoneForState(countryNameOrCode: string, stateNameOrCode: string): string {
+  const country = COUNTRIES.find(c => c.code === countryNameOrCode || c.name === countryNameOrCode);
+  const state = country?.states.find(s => s.code === stateNameOrCode || s.name === stateNameOrCode);
   return state?.timezone || country?.defaultTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
 /**
- * Get timezone for a city
+ * Get timezone for a city (supports both ISO code and full name)
  */
-export function getTimezoneForCity(countryName: string, stateName: string, cityName: string): string {
-  const country = COUNTRIES.find(c => c.name === countryName);
-  const state = country?.states.find(s => s.name === stateName);
+export function getTimezoneForCity(countryNameOrCode: string, stateNameOrCode: string, cityName: string): string {
+  const country = COUNTRIES.find(c => c.code === countryNameOrCode || c.name === countryNameOrCode);
+  const state = country?.states.find(s => s.code === stateNameOrCode || s.name === stateNameOrCode);
   const city = state?.cities.find(c => c.name === cityName);
   return city?.timezone || state?.timezone || country?.defaultTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
