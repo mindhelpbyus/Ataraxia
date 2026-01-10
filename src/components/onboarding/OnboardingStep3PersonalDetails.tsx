@@ -79,6 +79,13 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
     }
   }, []);
 
+  // Set India as default country on mount (primary market)
+  useEffect(() => {
+    if (!data.country) {
+      onUpdate({ country: 'IN' });
+    }
+  }, []);
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -126,6 +133,34 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
   const removeLanguage = (language: string) => {
     onUpdate({ languages: (data.languages || []).filter((l) => l !== language) });
   };
+
+  // Get country-specific languages (prioritized)
+  const getLanguagesForCountry = (countryCode: string): string[] => {
+    const indiaLanguages = ['Hindi', 'Bengali', 'Tamil', 'Telugu', 'Marathi', 'Gujarati', 'Kannada', 'Malayalam', 'Punjabi', 'Urdu', 'English'];
+    const usLanguages = ['English', 'Spanish'];
+    const ukLanguages = ['English'];
+    const allLanguages = LANGUAGES;
+
+    let prioritizedLanguages: string[] = [];
+    let otherLanguages: string[] = [];
+
+    if (countryCode === 'IN') {
+      prioritizedLanguages = indiaLanguages;
+      otherLanguages = allLanguages.filter(lang => !indiaLanguages.includes(lang));
+    } else if (countryCode === 'US') {
+      prioritizedLanguages = usLanguages;
+      otherLanguages = allLanguages.filter(lang => !usLanguages.includes(lang));
+    } else if (countryCode === 'GB') {
+      prioritizedLanguages = ukLanguages;
+      otherLanguages = allLanguages.filter(lang => !ukLanguages.includes(lang));
+    } else {
+      return allLanguages;
+    }
+
+    return [...prioritizedLanguages, ...otherLanguages];
+  };
+
+  const displayLanguages = data.country ? getLanguagesForCountry(data.country) : LANGUAGES;
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -265,7 +300,7 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
           </div>
 
           {/* Street Address */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
             <div className="space-y-2">
               <AddressAutocomplete
                 id="address1"
@@ -294,11 +329,33 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent>
-                {Country.getAllCountries().map((country) => (
-                  <SelectItem key={country.isoCode} value={country.isoCode}>
-                    {country.name}
-                  </SelectItem>
-                ))}
+                {/* India first (primary market) */}
+                {Country.getAllCountries()
+                  .filter(c => c.isoCode === 'IN')
+                  .map((country) => (
+                    <SelectItem key={country.isoCode} value={country.isoCode}>
+                      🇮🇳 {country.name}
+                    </SelectItem>
+                  ))}
+                {/* USA second (secondary market) */}
+                {Country.getAllCountries()
+                  .filter(c => c.isoCode === 'US')
+                  .map((country) => (
+                    <SelectItem key={country.isoCode} value={country.isoCode}>
+                      🇺🇸 {country.name}
+                    </SelectItem>
+                  ))}
+                {/* Separator */}
+                <SelectItem disabled value="separator" className="text-xs text-gray-400">───────────</SelectItem>
+                {/* All other countries alphabetically */}
+                {Country.getAllCountries()
+                  .filter(c => c.isoCode !== 'IN' && c.isoCode !== 'US')
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((country) => (
+                    <SelectItem key={country.isoCode} value={country.isoCode}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             {errors.country && <p className="text-xs text-red-500">{errors.country}</p>}
@@ -408,7 +465,7 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
                   <SelectValue placeholder="Select languages" />
                 </SelectTrigger>
                 <SelectContent>
-                  {LANGUAGES.map((language) => (
+                  {displayLanguages.map((language) => (
                     <div
                       key={language}
                       className="flex items-center gap-2 px-2 py-2 cursor-pointer hover:bg-gray-100"
