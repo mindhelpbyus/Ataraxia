@@ -77,15 +77,20 @@ export default function App() {
       setUserRole('therapist');
 
       // Strict Onboarding Status Check
-      if (onboardingStatus === 'pending') {
+      const pendingStatuses = ['pending', 'onboarding_pending', 'pending_verification', 'documents_review', 'background_check', 'final_review', 'account_created'];
+
+      if (pendingStatuses.includes(onboardingStatus || '')) {
         setCurrentView('verification-pending');
       } else if (onboardingStatus === 'active' || onboardingStatus === 'approved') {
         setCurrentView('dashboard');
       } else if (onboardingStatus === 'draft' || onboardingStatus === 'incomplete') {
         setCurrentView('register'); // Resume onboarding
       } else {
-        // Fallback for legacy users or undefined status
-        setCurrentView('dashboard');
+        // Fallback: If status is unknown but role is therapist, safer to show pending than dashboard
+        // unless we know for sure it's legacy active. 
+        // For now, let's log warning and default to pending if it looks like a verification flow
+        console.warn(`Unknown status for therapist: ${onboardingStatus}`);
+        setCurrentView('verification-pending');
       }
     } else if (role === 'super_admin' || role === 'superadmin') {
       setUserRole('super_admin'); // Use snake_case internally
