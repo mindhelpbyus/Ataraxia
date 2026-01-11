@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, User, MoreVertical, Search, Filter, Plus, Award, TrendingUp, UserCheck, Clock, Building2, Check, X, ShieldAlert } from 'lucide-react';
+import { Phone, Mail, MapPin, User, MoreVertical, Search, Filter, Plus, Award, TrendingUp, UserCheck, Clock, Building2, Check, X, ShieldAlert, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { AvailabilityModal } from './AvailabilityModal';
+import { TherapistVerificationDetailModal } from './TherapistVerificationDetailModal';
 import { dataService } from '../api';
 import { UserRole } from '../types/appointment';
 import { Badge } from './ui/badge';
@@ -62,6 +63,7 @@ interface EnhancedTherapistsTableProps {
 
 export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTherapistsTableProps) {
   const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -200,6 +202,12 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
   const handleViewSchedule = (id: string) => {
     setSelectedTherapistId(id);
     setAvailabilityModalOpen(true);
+  };
+
+
+  const handleOpenVerification = (id: string) => {
+    setSelectedTherapistId(id);
+    setVerificationModalOpen(true);
   };
 
   const filteredByOrg = userRole === 'admin' && organizationId
@@ -530,7 +538,10 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
                             {therapist.status === 'pending' && (
                               <>
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'active')} className="text-green-600 focus:text-green-700 focus:bg-green-50">
-                                  <Check className="mr-2 h-4 w-4" /> Approve
+                                  <Check className="mr-2 h-4 w-4" /> Quick Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleOpenVerification(therapist.id)} className="text-blue-600 focus:text-blue-700 focus:bg-blue-50">
+                                  <Shield className="mr-2 h-4 w-4" /> Verify Application
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'inactive')} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                   <X className="mr-2 h-4 w-4" /> Reject
@@ -616,6 +627,11 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
         therapistId={selectedTherapistId}
         isOpen={availabilityModalOpen}
         onClose={() => setAvailabilityModalOpen(false)}
+      />
+      <TherapistVerificationDetailModal
+        therapistId={selectedTherapistId}
+        isOpen={verificationModalOpen}
+        onClose={() => setVerificationModalOpen(false)}
       />
     </div>
   );
