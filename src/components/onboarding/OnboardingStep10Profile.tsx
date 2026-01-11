@@ -78,19 +78,15 @@ export function OnboardingStep10Profile({ data, onUpdate, onNext, onBack }: Onbo
       newErrors.extendedBio = 'Extended bio must be 700 characters or less';
     }
 
-    // What clients can expect
-    if (!data.whatClientsCanExpect.trim()) {
-      newErrors.whatClientsCanExpect = 'Please describe what clients can expect';
-    } else if (data.whatClientsCanExpect.length < 50) {
-      newErrors.whatClientsCanExpect = 'Please provide at least 50 characters';
-    }
+    // What clients can expect (Optional per user request)
+    // if (!data.whatClientsCanExpect.trim()) {
+    //   newErrors.whatClientsCanExpect = 'Please describe what clients can expect';
+    // } 
 
-    // My approach to therapy
-    if (!data.myApproachToTherapy.trim()) {
-      newErrors.myApproachToTherapy = 'Please describe your approach to therapy';
-    } else if (data.myApproachToTherapy.length < 50) {
-      newErrors.myApproachToTherapy = 'Please provide at least 50 characters';
-    }
+    // My approach to therapy (Optional per user request)
+    // if (!data.myApproachToTherapy.trim()) {
+    //   newErrors.myApproachToTherapy = 'Please describe your approach to therapy';
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -248,7 +244,7 @@ export function OnboardingStep10Profile({ data, onUpdate, onNext, onBack }: Onbo
           {/* What Clients Can Expect */}
           <div className="space-y-3">
             <Label>
-              What Clients Can Expect From Me <span className="text-red-500">*</span>
+              What Clients Can Expect From Me <span className="text-sm text-gray-500 ml-2">(Optional)</span>
             </Label>
             <Textarea
               placeholder="Describe your therapeutic style, what a typical session looks like, and what clients can expect when working with you..."
@@ -272,7 +268,7 @@ export function OnboardingStep10Profile({ data, onUpdate, onNext, onBack }: Onbo
           {/* My Approach to Therapy */}
           <div className="space-y-3">
             <Label>
-              My Approach to Therapy <span className="text-red-500">*</span>
+              My Approach to Therapy <span className="text-sm text-gray-500 ml-2">(Optional)</span>
             </Label>
             <Textarea
               placeholder="Share your therapeutic philosophy, the modalities you use, and how you work with clients to achieve their goals..."

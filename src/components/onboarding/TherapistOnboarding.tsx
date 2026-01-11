@@ -184,7 +184,7 @@ const initialOnboardingData: OnboardingData = {
   supportedLanguages: [],
 
   // SECTION K — COMPLIANCE
-  backgroundCheckResults: '',
+  backgroundCheckResults: 'pending',
   backgroundCheckDocument: '',
   hipaaTrainingCompleted: false,
   hipaaTrainingDocument: '',
@@ -400,6 +400,9 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         throw new Error('User not authenticated');
       }
 
+      // Save Firebase UID to localStorage for verification page
+      localStorage.setItem('therapistFirebaseUid', user.uid);
+
       // Map session formats
       const sessionFormats = {
         video: onboardingData.video,
@@ -494,6 +497,31 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
           veteransCommunity: onboardingData.veteransCommunity
         },
 
+        // Step 9 Insurance & Compliance
+        insurancePanelsAccepted: onboardingData.insurancePanelsAccepted,
+        medicaidAcceptance: onboardingData.medicaidAcceptance,
+        medicareAcceptance: onboardingData.medicareAcceptance,
+        selfPayAccepted: onboardingData.selfPayAccepted,
+        slidingScale: onboardingData.slidingScale,
+        employerEaps: onboardingData.employerEaps,
+
+        backgroundCheckStatus: onboardingData.backgroundCheckResults || 'pending',
+        hipaaTrainingCompleted: onboardingData.hipaaTrainingCompleted,
+        ethicsCertification: onboardingData.ethicsCertification,
+        signedBaa: onboardingData.signedBaa,
+
+        // Document URLs (assuming pre-signed URL strings if handled, otherwise undefined)
+        hipaaDocumentUrl: typeof onboardingData.hipaaTrainingDocument === 'string' ? onboardingData.hipaaTrainingDocument : undefined,
+        ethicsDocumentUrl: typeof onboardingData.ethicsCertificationDocument === 'string' ? onboardingData.ethicsCertificationDocument : undefined,
+        backgroundCheckDocumentUrl: typeof onboardingData.backgroundCheckDocument === 'string' ? onboardingData.backgroundCheckDocument : undefined,
+        w9DocumentUrl: typeof onboardingData.w9Document === 'string' ? onboardingData.w9Document : undefined,
+
+        // Step 10 Profile (New)
+        shortBio: onboardingData.shortBio,
+        extendedBio: onboardingData.extendedBio,
+        whatClientsCanExpect: onboardingData.whatClientsCanExpect,
+        myApproachToTherapy: onboardingData.myApproachToTherapy,
+
         // Step 5 License
         licenseNumber: onboardingData.licenseNumber,
         licenseState: onboardingData.issuingStates?.[0] || '', // Single select now
@@ -514,7 +542,10 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         preferredSchedulingDensity: onboardingData.preferredSchedulingDensity,
       };
 
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+      // Normalize URL: remove trailing slash and optional trailing /api to avoid double /api/api
+      API_URL = API_URL.replace(/\/$/, '').replace(/\/api$/, '');
+
       logger.info('Submitting therapist registration to API:', { url: `${API_URL}/api/auth/therapist/register` });
 
       const token = await user.getIdToken();
@@ -535,7 +566,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       const result = await response.json();
 
       if (result.success) {
-        // Clear localStorage after successful submission
+        // Clear onboarding data from localStorage
         clearLocalStorage();
 
         // Also save to Firestore for backup/legacy compatibility if needed
@@ -545,15 +576,64 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
           registrationId: result.registrationId
         });
 
-        // Redirect to verification pending page
-        window.location.href = '/verification-pending';
+        // Show success message
+        alert('✅ Registration Submitted Successfully!\n\nYour application has been received and is under review.\n\nYou will receive an email notification once your application is approved (typically 2-5 business days).\n\nYou can now log in to check your application status.');
+
+        // Sign out the user
+        await signOut();
+
+        // Redirect to login page
+        window.location.href = '/';
       } else {
         throw new Error(result.message || 'Registration failed');
       }
 
+
     } catch (error: any) {
       logger.error('Registration submission failed:', error);
-      alert(`Registration failed: ${error.message}. Please try again or contact support.`);
+
+      // Parse error response
+      let errorMessage = 'Registration failed. Please try again or contact support.';
+      let errorTitle = 'Registration Error';
+
+      try {
+        // Try to parse JSON error from backend
+        const errorData = typeof error === 'string' ? JSON.parse(error) : error;
+
+        if (errorData.error === 'DUPLICATE_ACCOUNT') {
+          errorTitle = 'Account Already Exists';
+          errorMessage = errorData.message || 'This email or phone number is already registered. Please login instead.';
+
+          // Show login option
+          if (confirm(`${errorMessage}\n\nWould you like to go to the login page?`)) {
+            window.location.href = '/';
+            return;
+          }
+        } else if (errorData.error === 'ALREADY_REGISTERED') {
+          errorTitle = 'Application Already Submitted';
+          errorMessage = errorData.message || 'You have already submitted a registration. Please login to check your application status.';
+
+          // Redirect to login
+          alert(errorMessage);
+          window.location.href = '/';
+          return;
+        } else if (errorData.error === 'ALREADY_APPROVED') {
+          errorTitle = 'Account Already Approved';
+          errorMessage = errorData.message || 'Your account is already approved! Please login to access your dashboard.';
+
+          // Redirect to login
+          alert(errorMessage);
+          window.location.href = '/';
+          return;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (parseError) {
+        // Use default error message
+        errorMessage = error.message || errorMessage;
+      }
+
+      alert(`${errorTitle}\n\n${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -917,6 +997,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
               ethicsCertificationDocument: onboardingData.ethicsCertificationDocument,
               signedBaa: onboardingData.signedBaa,
               w9Document: onboardingData.w9Document,
+              country: onboardingData.country,
             }}
             onUpdate={updateData}
             onNext={goToNextStep}

@@ -65,12 +65,14 @@ export default function App() {
   };
 
   // Handle login
-  const handleLogin = (emailOrIdentifier: string, passwordOrName: string, role: 'admin' | 'therapist' | 'superadmin', userId: string, onboardingStatus?: string) => {
+  const handleLogin = (emailOrIdentifier: string, passwordOrName: string, role: string, userId: string, onboardingStatus?: string) => {
     setUserEmail(emailOrIdentifier);
     setUserName(passwordOrName);
     setCurrentUserId(userId);
 
     // Convert role to UserRole type and go directly to dashboard
+    // Convert backend role to frontend state
+    // We now support direct mapping of super_admin and org_admin
     if (role === 'therapist') {
       setUserRole('therapist');
 
@@ -85,11 +87,11 @@ export default function App() {
         // Fallback for legacy users or undefined status
         setCurrentView('dashboard');
       }
-    } else if (role === 'admin') {
-      setUserRole('admin');
+    } else if (role === 'super_admin' || role === 'superadmin') {
+      setUserRole('super_admin'); // Use snake_case internally
       setCurrentView('dashboard');
-    } else if (role === 'superadmin') {
-      setUserRole('superadmin');
+    } else if (role === 'org_admin' || role === 'admin') {
+      setUserRole('org_admin'); // Use snake_case internally
       setCurrentView('dashboard');
     } else {
       // Fallback for any other roles

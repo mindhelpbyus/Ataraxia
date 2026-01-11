@@ -29,6 +29,7 @@ interface OnboardingStep9Props {
     ethicsCertificationDocument?: File | string;
     signedBaa: boolean;
     w9Document?: File | string;
+    country?: string;
   };
   onUpdate: (data: any) => void;
   onNext: () => void;
@@ -93,10 +94,10 @@ export function OnboardingStep9Insurance({ data, onUpdate, onNext, onBack }: Onb
       newErrors.payment = 'Please select at least one payment method (insurance, self-pay, etc.)';
     }
 
-    // HIPAA training is required
-    if (!data.hipaaTrainingCompleted) {
-      newErrors.hipaa = 'HIPAA training completion is required';
-    }
+    // HIPAA training is no longer mandatory per user request
+    // if (!data.hipaaTrainingCompleted) {
+    //   newErrors.hipaa = 'HIPAA training completion is required';
+    // }
 
     // BAA signature is required
     if (!data.signedBaa) {
@@ -157,68 +158,74 @@ export function OnboardingStep9Insurance({ data, onUpdate, onNext, onBack }: Onb
               <h3 className="text-lg font-medium">Payment & Insurance</h3>
             </div>
 
-            {/* Insurance Panels */}
-            <div className="space-y-3">
-              <Label>Insurance Panels Accepted</Label>
-              <div className="flex gap-2">
-                <Select value={currentInsurance} onValueChange={setCurrentInsurance}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select insurance provider..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INSURANCE_PROVIDERS.map((provider) => (
-                      <SelectItem key={provider} value={provider}>
-                        {provider}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  type="button"
-                  onClick={() => addInsurancePanel(currentInsurance)}
-                  disabled={!currentInsurance}
-                  variant="outline"
-                >
-                  Add
-                </Button>
-              </div>
-
-              {data.insurancePanelsAccepted.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {data.insurancePanelsAccepted.map((insurance) => (
-                    <Badge key={insurance} variant="secondary" className="px-3 py-1">
-                      {insurance}
-                      <button
-                        onClick={() => removeInsurancePanel(insurance)}
-                        className="ml-2 hover:text-red-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
+            {/* Insurance Panels (US Only) */}
+            {(data.country === 'US' || !data.country) && (
+              <div className="space-y-3">
+                <Label>Insurance Panels Accepted</Label>
+                <div className="flex gap-2">
+                  <Select value={currentInsurance} onValueChange={setCurrentInsurance}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select insurance provider..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INSURANCE_PROVIDERS.map((provider) => (
+                        <SelectItem key={provider} value={provider}>
+                          {provider}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    onClick={() => addInsurancePanel(currentInsurance)}
+                    disabled={!currentInsurance}
+                    variant="outline"
+                  >
+                    Add
+                  </Button>
                 </div>
-              )}
-            </div>
+
+                {data.insurancePanelsAccepted.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {data.insurancePanelsAccepted.map((insurance) => (
+                      <Badge key={insurance} variant="secondary" className="px-3 py-1">
+                        {insurance}
+                        <button
+                          onClick={() => removeInsurancePanel(insurance)}
+                          className="ml-2 hover:text-red-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Payment Options */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-4 border rounded-lg">
-                <Checkbox
-                  id="medicaid"
-                  checked={data.medicaidAcceptance}
-                  onCheckedChange={(checked) => handleCheckboxChange('medicaidAcceptance', checked as boolean)}
-                />
-                <Label htmlFor="medicaid" className="cursor-pointer">Accept Medicaid</Label>
-              </div>
+              {(data.country === 'US' || !data.country) && (
+                <>
+                  <div className="flex items-center gap-3 p-4 border rounded-lg">
+                    <Checkbox
+                      id="medicaid"
+                      checked={data.medicaidAcceptance}
+                      onCheckedChange={(checked) => handleCheckboxChange('medicaidAcceptance', checked as boolean)}
+                    />
+                    <Label htmlFor="medicaid" className="cursor-pointer">Accept Medicaid</Label>
+                  </div>
 
-              <div className="flex items-center gap-3 p-4 border rounded-lg">
-                <Checkbox
-                  id="medicare"
-                  checked={data.medicareAcceptance}
-                  onCheckedChange={(checked) => handleCheckboxChange('medicareAcceptance', checked as boolean)}
-                />
-                <Label htmlFor="medicare" className="cursor-pointer">Accept Medicare</Label>
-              </div>
+                  <div className="flex items-center gap-3 p-4 border rounded-lg">
+                    <Checkbox
+                      id="medicare"
+                      checked={data.medicareAcceptance}
+                      onCheckedChange={(checked) => handleCheckboxChange('medicareAcceptance', checked as boolean)}
+                    />
+                    <Label htmlFor="medicare" className="cursor-pointer">Accept Medicare</Label>
+                  </div>
+                </>
+              )}
 
               <div className="flex items-center gap-3 p-4 border rounded-lg">
                 <Checkbox
@@ -239,42 +246,44 @@ export function OnboardingStep9Insurance({ data, onUpdate, onNext, onBack }: Onb
               </div>
             </div>
 
-            {/* Employer EAPs */}
-            <div className="space-y-3">
-              <Label>Employer EAP Programs (Optional)</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="e.g., Company ABC EAP"
-                  value={currentEap}
-                  onChange={(e) => setCurrentEap(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEap())}
-                />
-                <Button
-                  type="button"
-                  onClick={addEap}
-                  disabled={!currentEap.trim()}
-                  variant="outline"
-                >
-                  Add
-                </Button>
-              </div>
-
-              {data.employerEaps.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {data.employerEaps.map((eap) => (
-                    <Badge key={eap} variant="secondary" className="px-3 py-1">
-                      {eap}
-                      <button
-                        onClick={() => removeEap(eap)}
-                        className="ml-2 hover:text-red-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
+            {/* Employer EAPs (US Only) */}
+            {(data.country === 'US' || !data.country) && (
+              <div className="space-y-3">
+                <Label>Employer EAP Programs (Optional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="e.g., Company ABC EAP"
+                    value={currentEap}
+                    onChange={(e) => setCurrentEap(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEap())}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addEap}
+                    disabled={!currentEap.trim()}
+                    variant="outline"
+                  >
+                    Add
+                  </Button>
                 </div>
-              )}
-            </div>
+
+                {data.employerEaps.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {data.employerEaps.map((eap) => (
+                      <Badge key={eap} variant="secondary" className="px-3 py-1">
+                        {eap}
+                        <button
+                          onClick={() => removeEap(eap)}
+                          className="ml-2 hover:text-red-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* SECTION K: COMPLIANCE */}
@@ -299,7 +308,7 @@ export function OnboardingStep9Insurance({ data, onUpdate, onNext, onBack }: Onb
                   onCheckedChange={(checked) => handleCheckboxChange('hipaaTrainingCompleted', checked as boolean)}
                 />
                 <Label htmlFor="hipaa" className="cursor-pointer">
-                  I have completed HIPAA training <span className="text-red-500">*</span>
+                  I have completed HIPAA training
                 </Label>
               </div>
 

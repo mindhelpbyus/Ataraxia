@@ -8,11 +8,17 @@ export interface User {
     avatar?: string;
     onboardingStatus?: string; // e.g. 'active', 'pending', 'draft'
     onboardingStep?: number;
+    account_status?: string; // Option A: 'pending_verification', 'documents_review', 'background_check', 'active', 'suspended', 'rejected'
+    verification_stage?: string; // Option A: workflow stage
+    is_active?: boolean;
 }
 
 export interface AuthResponse {
     user: User;
     token: string;
+    pending_registration?: boolean;
+    registration_status?: string;
+    message?: string;
 }
 
 export interface ApiError {

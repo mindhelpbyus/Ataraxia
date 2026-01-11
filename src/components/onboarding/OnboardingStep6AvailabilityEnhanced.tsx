@@ -67,7 +67,7 @@ const TIMEZONES = [
   'Asia/Tokyo'
 ];
 
-export function OnboardingStep6AvailabilityEnhanced({ data, spokenLanguages, onUpdate, onNext, onBack }: OnboardingStep6Props) {
+export function OnboardingStep6AvailabilityEnhanced({ data, spokenLanguages, onUpdate, onNext, onBack, hideNavigation }: OnboardingStep6Props & { hideNavigation?: boolean }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedDay, setSelectedDay] = useState<keyof WeeklySchedule>('monday');
 
@@ -452,24 +452,26 @@ export function OnboardingStep6AvailabilityEnhanced({ data, spokenLanguages, onU
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between gap-4 mt-8 pt-6 border-t">
-          <Button
-            type="button"
-            onClick={onBack}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-          <Button
-            onClick={handleNext}
-            disabled={isSubmitting}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8"
-          >
-            {isSubmitting ? 'Processing...' : 'Continue'}
-          </Button>
-        </div>
+        {!hideNavigation && (
+          <div className="flex justify-between gap-4 mt-8 pt-6 border-t">
+            <Button
+              type="button"
+              onClick={onBack}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={isSubmitting}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-8"
+            >
+              {isSubmitting ? 'Processing...' : 'Continue'}
+            </Button>
+          </div>
+        )}
       </Card>
     </div>
   );

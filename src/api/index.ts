@@ -10,8 +10,9 @@ import { IAuthService, IDataService } from './types';
 const USE_MOCK = true;
 
 import { RealAuthService } from './services/auth';
+import { RealDataService } from './services/data';
 export const authService: IAuthService = RealAuthService;
-export const dataService: IDataService = MockDataService;
+export const dataService: IDataService = RealDataService;
 export const chatService = MockChatService;
 export const callService = MockCallService;
 export const appointmentService = MockAppointmentService;

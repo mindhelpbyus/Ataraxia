@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, User, MoreVertical, Search, Filter, Plus, Award, TrendingUp, UserCheck, Clock, Building2 } from 'lucide-react';
+import { Phone, Mail, MapPin, User, MoreVertical, Search, Filter, Plus, Award, TrendingUp, UserCheck, Clock, Building2, Check, X, ShieldAlert } from 'lucide-react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { AvailabilityModal } from './AvailabilityModal';
+import { dataService } from '../api';
+import { UserRole } from '../types/appointment';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
@@ -35,8 +39,7 @@ import {
   TableRow,
 } from './ui/table';
 import { Card, CardContent } from './ui/card';
-import { UserRole } from '../types/appointment';
-import { dataService } from '../api';
+
 
 interface Therapist {
   id: string;
@@ -58,12 +61,15 @@ interface EnhancedTherapistsTableProps {
 }
 
 export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTherapistsTableProps) {
+  const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
+  const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(10);
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadTherapists();
@@ -178,6 +184,22 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStatusUpdate = async (therapistId: string, newStatus: string) => {
+    try {
+      await dataService.update('therapists', therapistId, { status: newStatus });
+      toast.success(`Therapist status updated to ${newStatus}`);
+      loadTherapists();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      toast.error('Failed to update therapist status');
+    }
+  };
+
+  const handleViewSchedule = (id: string) => {
+    setSelectedTherapistId(id);
+    setAvailabilityModalOpen(true);
   };
 
   const filteredByOrg = userRole === 'admin' && organizationId
@@ -503,8 +525,30 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem>View Profile</DropdownMenuItem>
                             <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                            <DropdownMenuItem>View Schedule</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Deactivate</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewSchedule(therapist.id)}>View Schedule</DropdownMenuItem>
+
+                            {therapist.status === 'pending' && (
+                              <>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'active')} className="text-green-600 focus:text-green-700 focus:bg-green-50">
+                                  <Check className="mr-2 h-4 w-4" /> Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'inactive')} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                  <X className="mr-2 h-4 w-4" /> Reject
+                                </DropdownMenuItem>
+                              </>
+                            )}
+
+                            {therapist.status === 'active' && (
+                              <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'inactive')} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                <ShieldAlert className="mr-2 h-4 w-4" /> Deactivate
+                              </DropdownMenuItem>
+                            )}
+
+                            {therapist.status === 'inactive' && (
+                              <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'active')} className="text-green-600 focus:text-green-700 focus:bg-green-50">
+                                <Check className="mr-2 h-4 w-4" /> Reactivate
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -568,6 +612,11 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
           </div>
         </CardContent>
       </Card>
+      <AvailabilityModal
+        therapistId={selectedTherapistId}
+        isOpen={availabilityModalOpen}
+        onClose={() => setAvailabilityModalOpen(false)}
+      />
     </div>
   );
 }
