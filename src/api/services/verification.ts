@@ -74,7 +74,7 @@ export interface RegistrationStatus {
 /**
  * Register therapist (solo or organization)
  */
-const VERIFICATION_API_URL = import.meta.env.VITE_VERIFICATION_API_URL || 'http://localhost:3004';
+const VERIFICATION_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
 // Use local constant instead of config.api.baseUrl for all calls
 export const registerTherapist = async (data: TherapistRegistrationData): Promise<RegistrationResponse> => {
@@ -104,7 +104,11 @@ export const registerTherapist = async (data: TherapistRegistrationData): Promis
  */
 export const getRegistrationStatus = async (firebase_uid: string): Promise<RegistrationStatus> => {
     try {
-        const response = await fetch(`${VERIFICATION_API_URL}/api/verification/status/${firebase_uid}`);
+        // Normalize URL to handle .env misconfiguration
+        let apiUrl = VERIFICATION_API_URL;
+        apiUrl = apiUrl.replace(/\/$/, '').replace(/\/api$/, ''); // Remove trailing /api or /
+
+        const response = await fetch(`${apiUrl}/api/auth/therapist/status/${firebase_uid}`);
 
         if (!response.ok) {
             const error = await response.json();

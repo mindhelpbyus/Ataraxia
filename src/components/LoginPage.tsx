@@ -126,7 +126,31 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
       }
 
       const response = await authService.login(email, password);
-      onLogin(email, response.user.name || email, response.user.role as 'therapist' | 'admin', response.user.id, response.user.onboardingStatus);
+
+      // Option A: Check account_status (single source of truth)
+      const accountStatus = response.user.account_status || 'active';
+
+      // Map account_status to onboardingStatus for App.tsx routing
+      let onboardingStatus = 'active';
+      if (accountStatus === 'pending_verification' ||
+        accountStatus === 'documents_review' ||
+        accountStatus === 'background_check') {
+        onboardingStatus = 'pending';
+      } else if (accountStatus === 'rejected') {
+        onboardingStatus = 'rejected';
+      } else if (accountStatus === 'suspended') {
+        onboardingStatus = 'suspended';
+      } else if (accountStatus === 'onboarding_pending' || accountStatus === 'incomplete_registration') {
+        onboardingStatus = 'incomplete';
+      }
+
+      onLogin(
+        email,
+        response.user.name || `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() || email,
+        response.user.role as any,
+        response.user.id,
+        onboardingStatus
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid credentials');
     } finally {
@@ -533,7 +557,29 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                                 result.user.displayName?.split(' ')[0],
                                 result.user.displayName?.split(' ').slice(1).join(' ')
                               );
-                              onLogin(response.user.email, result.user.displayName || 'User', response.user.role, response.user.id, response.user.onboardingStatus);
+
+                              // Option A: Check account_status (single source of truth)
+                              const accountStatus = response.user.account_status || 'active';
+
+                              // Map account_status to onboardingStatus for App.tsx routing
+                              let onboardingStatus = 'active';
+                              if (accountStatus === 'pending_verification' ||
+                                accountStatus === 'documents_review' ||
+                                accountStatus === 'background_check') {
+                                onboardingStatus = 'pending';
+                              } else if (accountStatus === 'rejected') {
+                                onboardingStatus = 'rejected';
+                              } else if (accountStatus === 'suspended') {
+                                onboardingStatus = 'suspended';
+                              }
+
+                              onLogin(
+                                response.user.email,
+                                result.user.displayName || 'User',
+                                response.user.role,
+                                response.user.id,
+                                onboardingStatus
+                              );
                             } else {
                               throw new Error("Firebase login not supported by current auth service");
                             }

@@ -123,7 +123,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   const handleGlobalSearchResult = (result: any) => {
     switch (result.category) {
       case 'organizations':
-        if (userRole === 'superadmin') {
+        if (userRole === 'superadmin' || userRole === 'super_admin') {
           handleTabChange('organizations');
         }
         break;
@@ -134,7 +134,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         handleTabChange('clients');
         break;
       case 'users':
-        if (userRole === 'superadmin') {
+        if (userRole === 'superadmin' || userRole === 'super_admin') {
           handleTabChange('user-management');
         }
         break;
@@ -246,7 +246,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     },
   ];
 
-  const navigationSections = userRole === 'superadmin'
+  const navigationSections = (userRole === 'superadmin' || userRole === 'super_admin')
     ? getSuperAdminNavigation()
     : userRole === 'client'
       ? getClientNavigation()
@@ -541,12 +541,12 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   <>
                     {userRole === 'therapist' ? (
                       <TherapistHomeView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
-                    ) : userRole === 'superadmin' ? (
+                    ) : (userRole === 'superadmin' || userRole === 'super_admin') ? (
                       <SuperAdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
-                    ) : userRole === 'admin' ? (
+                    ) : (userRole === 'admin' || userRole === 'org_admin') ? (
                       <AdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
                     ) : userRole === 'client' ? (
-                      <ClientDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={(tab) => setActiveTab(tab as TabType)} />
+                      <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab) => setActiveTab(tab as TabType)} />
                     ) : (
                       <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} />
                     )}

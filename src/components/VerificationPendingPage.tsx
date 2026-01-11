@@ -65,10 +65,29 @@ export function VerificationPendingPage() {
     useEffect(() => {
         const checkStatus = async () => {
             try {
-                const user = auth.currentUser;
+                // Try to get user from Firebase Auth
+                let user = auth.currentUser;
+
+                // If not authenticated, try to get from localStorage (saved during registration)
                 if (!user) {
-                    setError('Not authenticated');
-                    return;
+                    const savedEmail = localStorage.getItem('therapistOnboardingEmail');
+                    const savedUid = localStorage.getItem('therapistFirebaseUid');
+
+                    if (savedUid) {
+                        // Use the saved UID to fetch status
+                        const result = await verificationService.getRegistrationStatus(savedUid);
+                        setStatus(result);
+                        setLoading(false);
+                        return;
+                    } else {
+                        setError('Your session has expired. Please sign in again to view your application status.');
+                        setLoading(false);
+                        // Redirect to login after 5 seconds
+                        setTimeout(() => {
+                            window.location.href = '/?returnTo=verification-pending';
+                        }, 5000);
+                        return;
+                    }
                 }
 
                 const result = await verificationService.getRegistrationStatus(user.uid);
@@ -83,9 +102,8 @@ export function VerificationPendingPage() {
 
         checkStatus();
 
-        // Poll every 30 seconds
-        const interval = setInterval(checkStatus, 30000);
-        return () => clearInterval(interval);
+        // Don't auto-refresh - user can manually refresh or logout and login again
+        // Polling every 30s keeps users stuck on this page
     }, []);
 
     if (loading) {
@@ -116,6 +134,36 @@ export function VerificationPendingPage() {
 
     const workflowStage = status?.registration?.workflow_stage || 'registration_submitted';
     const registrationStatus = status?.registration?.status || 'pending_review';
+
+    // ROUTING LOGIC: Handle different statuses
+    // 1. If APPROVED → Redirect to dashboard (therapist home)
+    if (registrationStatus === 'approved') {
+        window.location.href = '/dashboard';
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto" />
+                    <p className="mt-4 text-gray-600">Redirecting to your dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // 2. If REJECTED or ADDITIONAL_INFO_REQUIRED → Show rejection page
+    if (registrationStatus === 'rejected' || registrationStatus === 'additional_info_required') {
+        // Dynamically import and show ApplicationRejectedPage
+        const { ApplicationRejectedPage } = require('./ApplicationRejectedPage');
+        return (
+            <ApplicationRejectedPage
+                status={registrationStatus}
+                rejectionReason={registrationStatus === 'rejected' ? status?.message : undefined}
+                additionalInfoRequired={registrationStatus === 'additional_info_required' ? status?.message : undefined}
+            />
+        );
+    }
+
+    // 3. All other statuses (pending_review, documents_verified, background_check_pending, background_check_completed)
+    //    → Show Verification Pending Page with dynamic timeline
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-50 py-12 px-4">
@@ -218,15 +266,18 @@ export function VerificationPendingPage() {
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    onClick={() => window.location.href = 'mailto:support@ataraxia.app'}
+                                    onClick={() => {
+                                        auth.signOut();
+                                        window.location.href = '/';
+                                    }}
                                 >
-                                    Contact Support
+                                    Logout
                                 </Button>
                             </div>
 
-                            {/* Auto-refresh indicator */}
+                            {/* Help text */}
                             <p className="text-center text-sm text-gray-500 mt-6">
-                                This page auto-refreshes every 30 seconds
+                                You can safely logout and login again later to check your status
                             </p>
                         </CardContent>
                     </Card>
