@@ -1,18 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Search, Filter, MoreVertical, Eye } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+import React, { useState, useEffect, ReactNode } from 'react';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+    Activity, Search, Filter, MoreVertical, Check, X,
+    ChevronRight, ChevronLeft, Circle, Clock, AlertCircle, FileText, Download,
+    Shield, CheckCircle2, ExternalLink, Rocket, User, Mail, GraduationCap,
+    MapPin, Calendar, Briefcase, Phone, Loader2
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { verificationService } from '@/services/verificationService';
+import { Therapist, VerificationStage, VerificationStatus } from '@/types/therapist';
 import {
     Select,
     SelectContent,
@@ -20,299 +16,725 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { TherapistVerificationModal } from '@/components/workflow/TherapistVerificationModal';
-import { verificationService } from '@/services/verificationService';
-import { Therapist, VerificationStage, VerificationStatus } from '@/types/therapist';
-import { toast } from 'sonner';
 
-const TherapistVerificationView = () => {
-    const [therapists, setTherapists] = useState<Therapist[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [selectedTherapist, setSelectedTherapist] = useState<Therapist | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
+// ==================== STEPPER COMPONENT ====================
+interface StepperProps {
+    currentStep: number;
+    totalSteps: number;
+    children: ReactNode;
+    onStepChange: (step: number) => void;
+    onComplete?: () => void;
+    canProceed?: boolean;
+    hideNavigation?: boolean;
+}
 
-    const fetchTherapists = async () => {
+export function Step({ children }: { children: ReactNode }) {
+    return <>{children}</>;
+}
+
+function Stepper({
+    currentStep,
+    totalSteps,
+    children,
+    onStepChange,
+    onComplete,
+    canProceed = true,
+    hideNavigation = false
+}: StepperProps) {
+    const steps = React.Children.toArray(children);
+    const isFirstStep = currentStep === 0;
+    const isLastStep = currentStep === totalSteps - 1;
+
+    return (
+        <div className="w-full">
+            {/* Stepper Header */}
+            <div className="mb-8">
+                <div className="flex items-center justify-between">
+                    {Array.from({ length: totalSteps }).map((_, index) => (
+                        <div key={index} className="flex items-center flex-1">
+                            {/* Step Circle */}
+                            <div className="flex flex-col items-center flex-1">
+                                <div
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all duration-300 ${index < currentStep
+                                        ? 'bg-emerald-500 border-emerald-500'
+                                        : index === currentStep
+                                            ? 'bg-blue-500 border-blue-500'
+                                            : 'bg-white border-gray-300'
+                                        }`}
+                                >
+                                    {index < currentStep ? (
+                                        <Check className="w-6 h-6 text-white" />
+                                    ) : (
+                                        <span
+                                            className={`font-bold ${index === currentStep ? 'text-white' : 'text-gray-400'
+                                                }`}
+                                        >
+                                            {index + 1}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="mt-2 text-center">
+                                    <div
+                                        className={`text-sm font-semibold ${index <= currentStep ? 'text-gray-900' : 'text-gray-400'
+                                            }`}
+                                    >
+                                        Step {index + 1}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Connector Line */}
+                            {index < totalSteps - 1 && (
+                                <div className="flex-1 h-1 mx-2 relative top-[-14px]">
+                                    <div className="h-full bg-gray-200 rounded">
+                                        <div
+                                            className="h-full bg-emerald-500 transition-all duration-500 ease-out"
+                                            style={{
+                                                width: index < currentStep ? '100%' : '0%'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="mt-6">
+                {steps[currentStep]}
+            </div>
+
+            {/* Navigation Buttons (if enabled) */}
+            {!hideNavigation && (
+                <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
+                    <button
+                        onClick={() => onStepChange(Math.max(0, currentStep - 1))}
+                        disabled={isFirstStep}
+                        className={`px-6 py-2 rounded-lg font-medium transition-colors ${isFirstStep
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                    >
+                        Back
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (isLastStep && onComplete) onComplete();
+                            else onStepChange(Math.min(totalSteps - 1, currentStep + 1));
+                        }}
+                        disabled={!canProceed}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isLastStep ? 'Complete' : 'Next'}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+
+
+// ==================== VERIFICATION MODAL ====================
+function VerificationModal({
+    therapist,
+    onClose,
+    onUpdate,
+}: {
+    therapist: Therapist;
+    onClose: () => void;
+    onUpdate: () => void;
+}) {
+    const [currentStep, setCurrentStep] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [notes, setNotes] = useState(therapist.verification_notes || '');
+    const [backgroundChecks, setBackgroundChecks] = useState({
+        criminal: 'clear',
+        references: 'verified',
+        education: 'verified'
+    });
+
+    // Calculate initial step based on therapist status
+    useEffect(() => {
+        if (therapist.account_status === 'active') {
+            setCurrentStep(3);
+        } else if (therapist.background_check_status === 'completed') {
+            setCurrentStep(3);
+        } else if (therapist.license_verified) {
+            setCurrentStep(2);
+        } else {
+            setCurrentStep(1);
+        }
+    }, [therapist]);
+
+    const handleApproveStep = async (stage: VerificationStage) => {
         setIsLoading(true);
         try {
-            const data = await verificationService.getAllTherapists();
-            const sortedData = data.sort((a: Therapist, b: Therapist) => {
-                const scoreA = getPriorityScore(a);
-                const scoreB = getPriorityScore(b);
-                return scoreB - scoreA;
-            });
-            setTherapists(sortedData);
+            const payload: any = {
+                stage,
+                status: 'approved',
+                notes: notes
+            };
+
+            if (stage === 'background_check') {
+                payload.details = backgroundChecks;
+            }
+
+            await verificationService.updateVerificationStage(therapist.id, payload);
+            toast.success(`Stage ${stage} approved successfully`);
+
+            // Optimistic update logic (simplified for brevity)
+            if (stage === 'documents') {
+                setCurrentStep(2);
+            } else if (stage === 'background_check') {
+                setCurrentStep(3);
+            } else if (stage === 'final') {
+                onUpdate(); // Refresh all
+                onClose();
+            }
         } catch (error) {
-            console.error(error);
-            toast.error('Failed to load therapist applications');
+            toast.error('Failed to update verification stage');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const getPriorityScore = (t: Therapist) => {
-        if (['registration_submitted', 'pending_verification', 'documents_review'].includes(t.account_status)) return 3;
-        if (t.account_status === 'onboarding_pending') return 2;
-        if (t.account_status === 'active') return 0;
-        return 1;
+    const handleRejectStep = async (stage: VerificationStage) => {
+        setIsLoading(true);
+        try {
+            let apiStage: 'documents' | 'background_check' | 'final' = 'documents';
+            if (stage === 'background_check') apiStage = 'background_check';
+
+            await verificationService.updateVerificationStage(therapist.id, {
+                stage: apiStage,
+                status: 'rejected',
+                notes
+            });
+
+            toast.error(`${stage === 'documents' ? 'License' : 'Background check'} rejected`);
+            onUpdate();
+        } catch (error) {
+            toast.error('Failed to update verification status');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const isDocVerified = therapist.license_verified;
+    const isBgCheckPassed = therapist.background_check_status === 'completed';
+    const isActive = therapist.account_status === 'active';
+
+    return (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl relative">
+                {/* Absolute Close Button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 z-50 p-2 bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-full transition-all border border-gray-100 shadow-sm"
+                    aria-label="Close modal"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
+                {/* Header */}
+                <div className="p-6 bg-white border-b border-gray-100 shrink-0">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-5">
+                            <div className="relative">
+                                <img
+                                    src={therapist.profile_image_url || `https://ui-avatars.com/api/?name=${therapist.first_name}+${therapist.last_name}`}
+                                    alt={`${therapist.first_name} ${therapist.last_name}`}
+                                    className="w-16 h-16 rounded-full object-cover ring-2 ring-orange-100 shadow-sm"
+                                />
+                                <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center ${isActive ? 'bg-emerald-500' : 'bg-orange-500'
+                                    }`}>
+                                    {isActive ? (
+                                        <Check className="w-3 h-3 text-white" />
+                                    ) : (
+                                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                    )}
+                                </div>
+                            </div >
+
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                                    {therapist.first_name} {therapist.last_name}
+                                </h2>
+                                <p className="text-gray-500 font-medium text-sm mt-0.5">{therapist.email}</p>
+                                <div className="flex gap-2 mt-3">
+                                    <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold border border-gray-200">
+                                        {therapist.specialty || 'Therapist'}
+                                    </span>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${isActive
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                        : 'bg-orange-50 text-orange-700 border-orange-100'
+                                        }`}>
+                                        {isActive ? 'Verified & Active' : 'Pending Review'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div >
+                    </div >
+                </div >
+
+                {/* Stepper Content */}
+                < div className="p-8 overflow-y-auto flex-1 min-h-0 bg-gray-50/50" >
+                    <Stepper
+                        currentStep={currentStep}
+                        totalSteps={4}
+                        onStepChange={setCurrentStep}
+                        onComplete={onClose}
+                        hideNavigation={true}
+                    >
+                        {/* Step 1: Registration Complete */}
+                        <Step>
+                            <div className="max-w-3xl mx-auto">
+                                <div className="text-center mb-8">
+                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-blue-100">
+                                        <Check className="w-8 h-8 text-blue-600" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-900">Registration Details</h2>
+                                    <p className="text-gray-500 mt-2">Initial application info</p>
+                                </div>
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Date Joined</p>
+                                            <p className="font-medium">{new Date(therapist.created_at).toLocaleDateString()}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Status</p>
+                                            <p className="font-medium text-blue-600">Submitted</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-8 flex justify-end">
+                                    <button
+                                        onClick={() => setCurrentStep(1)}
+                                        className="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </Step>
+
+                        {/* Step 2: License Verification */}
+                        <Step>
+                            <div className="max-w-3xl mx-auto">
+                                <div className="text-center mb-8">
+                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-blue-100">
+                                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-ping absolute" />
+                                        <div className="w-8 h-8 rounded-full border-2 border-blue-500" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-900">License Verification</h2>
+                                    <p className="text-gray-500 mt-2">Review and verify professional credentials</p>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                                    <div className="grid grid-cols-2 gap-6 mb-6">
+                                        <div>
+                                            <label className="text-sm text-gray-500 block mb-1">License Number</label>
+                                            <div className="font-bold text-xl text-gray-900">{therapist.license_number || 'N/A'}</div>
+                                        </div>
+                                        <div>
+                                            <label className="text-sm text-gray-500 block mb-1">License State</label>
+                                            <div className="font-bold text-xl text-gray-900">{therapist.license_state || 'N/A'}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Document Preview */}
+                                    <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between hover:border-blue-200 transition-all group cursor-pointer">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-blue-100 rounded-lg text-blue-600">
+                                                <FileText className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-gray-900">Professional License Document</p>
+                                                <p className="text-sm text-gray-400">license_verification.pdf</p>
+                                            </div>
+                                        </div>
+                                        <button className="text-sm font-semibold text-blue-600 hover:text-blue-700 px-4 py-2 hover:bg-blue-50 rounded-lg transition-colors">
+                                            View Document
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* ACTION BUTTONS */}
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => handleApproveStep('documents')}
+                                        disabled={isLoading}
+                                        className="flex-1 px-8 py-4 bg-orange-500 text-white rounded-xl font-bold text-lg hover:bg-orange-600 transition-colors shadow-lg shadow-orange-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        ✓ Approve License
+                                    </button>
+                                    <button
+                                        onClick={() => handleRejectStep('documents')}
+                                        disabled={isLoading}
+                                        className="flex-1 px-8 py-4 bg-white border-2 border-red-100 text-red-600 rounded-xl font-bold text-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        ✗ Reject License
+                                    </button>
+                                </div>
+                            </div>
+                        </Step>
+
+                        {/* Step 3: Background Check */}
+                        <Step>
+                            <div className="max-w-3xl mx-auto">
+                                <div className="text-center mb-8">
+                                    <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-purple-100">
+                                        <Shield className="w-8 h-8 text-purple-600" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-900">Background Check</h2>
+                                    <p className="text-gray-500 mt-2">Criminal and professional history review</p>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                                    <div className="flex flex-col gap-4">
+                                        {/* Criminal History */}
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-full bg-emerald-50">
+                                                    <Shield className="w-4 h-4 text-emerald-500" />
+                                                </div>
+                                                <span className="font-medium text-gray-700">Criminal History</span>
+                                            </div>
+                                            <select
+                                                value={backgroundChecks.criminal}
+                                                onChange={(e) => setBackgroundChecks({ ...backgroundChecks, criminal: e.target.value })}
+                                                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none font-medium cursor-pointer"
+                                            >
+                                                <option value="clear">Clear</option>
+                                                <option value="flagged">Flagged</option>
+                                                <option value="pending">Pending</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Professional References */}
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-full bg-blue-50">
+                                                    <User className="w-4 h-4 text-blue-500" />
+                                                </div>
+                                                <span className="font-medium text-gray-700">Professional References</span>
+                                            </div>
+                                            <select
+                                                value={backgroundChecks.references}
+                                                onChange={(e) => setBackgroundChecks({ ...backgroundChecks, references: e.target.value })}
+                                                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none font-medium cursor-pointer"
+                                            >
+                                                <option value="verified">Verified</option>
+                                                <option value="pending">Pending</option>
+                                                <option value="failed">Failed</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Education Verification */}
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-full bg-orange-50">
+                                                    <GraduationCap className="w-4 h-4 text-orange-500" />
+                                                </div>
+                                                <span className="font-medium text-gray-700">Education Verification</span>
+                                            </div>
+                                            <select
+                                                value={backgroundChecks.education}
+                                                onChange={(e) => setBackgroundChecks({ ...backgroundChecks, education: e.target.value })}
+                                                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none font-medium cursor-pointer"
+                                            >
+                                                <option value="verified">Verified</option>
+                                                <option value="pending">Pending</option>
+                                                <option value="unverified">Unverified</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button className="w-full mt-4 py-3 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                                        <ExternalLink className="w-4 h-4" />
+                                        View Full Report
+                                    </button>
+                                </div>
+
+                                {/* ACTION BUTTONS */}
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => handleApproveStep('background_check')}
+                                        disabled={isLoading}
+                                        className="flex-1 px-8 py-4 bg-orange-500 text-white rounded-xl font-bold text-lg hover:bg-orange-600 transition-colors shadow-lg shadow-orange-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        ✓ Pass Background Check
+                                    </button>
+                                    <button
+                                        onClick={() => handleRejectStep('background_check')}
+                                        disabled={isLoading}
+                                        className="flex-1 px-8 py-4 bg-white border-2 border-red-100 text-red-600 rounded-xl font-bold text-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        ✗ Fail Check
+                                    </button>
+                                </div>
+                            </div>
+                        </Step>
+
+                        {/* Step 4: Final Approval */}
+                        <Step>
+                            <div className="max-w-xl mx-auto py-8">
+                                {isActive ? (
+                                    <div className="text-center space-y-6 animate-in zoom-in duration-300">
+                                        <div className="w-24 h-24 bg-gradient-to-tr from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-emerald-200">
+                                            <Check className="w-12 h-12 text-white" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-3xl font-bold text-gray-900">Verification Complete!</h2>
+                                            <p className="text-gray-500 mt-2 text-lg">
+                                                {therapist.first_name} has been successfully verified and activated.
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={onClose}
+                                            className="px-8 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl shadow-sm hover:bg-gray-50 transition-all w-full"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="text-center mb-8">
+                                            <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3 transform hover:rotate-6 transition-transform">
+                                                <Rocket className="w-10 h-10 text-white" />
+                                            </div>
+                                            <h2 className="text-3xl font-bold text-gray-900">Ready to Activate?</h2>
+                                            <p className="text-gray-500 mt-2 text-lg">
+                                                All checks passed. Confirm to enable this therapist account.
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                                                <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                                                    <span className="text-gray-500">License Verification</span>
+                                                    <span className="flex items-center gap-2 text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full text-sm">
+                                                        <Check className="w-4 h-4" /> Verified
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                                                    <span className="text-gray-500">Background Check</span>
+                                                    <span className="flex items-center gap-2 text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full text-sm">
+                                                        <Check className="w-4 h-4" /> Clear
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() => handleApproveStep('final')}
+                                                disabled={isLoading}
+                                                className="w-full px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-200 hover:shadow-orange-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+                                            >
+                                                {isLoading ? (
+                                                    <span className="flex items-center justify-center gap-2">
+                                                        <Loader2 className="w-5 h-5 animate-spin" /> Activating...
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center justify-center gap-2">
+                                                        🚀 Activate Therapist Account
+                                                    </span>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </Step>
+                    </Stepper>
+                </div >
+            </div >
+        </div >
+    );
+}
+
+// ==================== MAIN APP ====================
+export default function TherapistVerificationView() {
+    const [therapists, setTherapists] = useState<Therapist[]>([]);
+    const [selectedTherapist, setSelectedTherapist] = useState<Therapist | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'active'>('all');
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchTherapists = async () => {
+        try {
+            setIsLoading(true);
+            const data = await verificationService.getAllTherapists();
+            setTherapists(data);
+        } catch (error) {
+            toast.error('Failed to load therapists');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
         fetchTherapists();
     }, []);
 
-    const handleUpdateTherapist = async (
-        therapistId: string,
-        stage: VerificationStage,
-        status: VerificationStatus,
-        notes?: string
-    ) => {
-        try {
-            let apiStage: 'documents' | 'background_check' | 'final' = 'documents';
-            if (stage === 'background_check') apiStage = 'background_check';
-            if (stage === 'final') apiStage = 'final';
-
-            await verificationService.updateVerificationStage(therapistId, {
-                stage: apiStage,
-                status: status === 'approved' ? 'approved' : 'rejected',
-                notes
-            });
-
-            toast.success('Status updated successfully');
-            fetchTherapists();
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to update status');
-        }
-    };
-
-    useEffect(() => {
-        if (selectedTherapist) {
-            const fresh = therapists.find(t => t.id === selectedTherapist.id);
-            if (fresh) setSelectedTherapist(fresh);
-        }
-    }, [therapists]);
-
     const filteredTherapists = therapists.filter((t) => {
         const matchesSearch =
-            `${t.first_name || ''} ${t.last_name || ''} ${t.email || ''}`.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === 'all' ||
-            (statusFilter === 'pending' && ['pending_verification', 'onboarding_pending', 'incomplete_registration', 'registration_submitted'].includes(t.account_status)) ||
-            t.account_status === statusFilter;
+            t.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (t.license_number && t.license_number.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        let matchesStatus = true;
+        if (statusFilter === 'pending') {
+            matchesStatus = t.account_status !== 'active';
+        } else if (statusFilter === 'active') {
+            matchesStatus = t.account_status === 'active';
+        }
+
         return matchesSearch && matchesStatus;
     });
 
     const stats = {
-        total: therapists.length,
-        pending: therapists.filter((t) =>
-            ['pending_verification', 'onboarding_pending', 'incomplete_registration', 'registration_submitted'].includes(t.account_status)
-        ).length,
+        pending: therapists.filter((t) => t.account_status === 'onboarding_pending').length,
         active: therapists.filter((t) => t.account_status === 'active').length,
-        rejected: therapists.filter((t) => t.account_status === 'rejected').length,
-    };
-
-    const getStatusBadge = (status: string) => {
-        if (['active'].includes(status)) {
-            return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 font-medium">Active</Badge>;
-        }
-        if (['rejected', 'suspended'].includes(status)) {
-            return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 font-medium">Rejected</Badge>;
-        }
-        return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 font-medium">Pending</Badge>;
-    };
-
-    const getStageBadge = (stage: string) => {
-        const stageMap: Record<string, string> = {
-            'account_created': 'Registration',
-            'documents': 'License Review',
-            'background_check': 'Background Check',
-            'final_review': 'Final Review',
-            'completed': 'Completed'
-        };
-        const label = stageMap[stage] || 'Registration';
-        return <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 font-medium">{label}</Badge>;
-    };
-
-    const getProgressPercentage = (therapist: Therapist) => {
-        let progress = 25;
-        if (therapist.license_verified) progress = 50;
-        if (therapist.background_check_status === 'completed') progress = 75;
-        if (therapist.account_status === 'active') progress = 100;
-        return progress;
+        total: therapists.length,
     };
 
     return (
-        <div className="w-full min-h-screen bg-white">
+        <div className="min-h-screen bg-background font-sans">
             {/* Header */}
-            <div className="border-b border-gray-200 bg-white px-8 py-6">
-                <div className="max-w-[1400px] mx-auto">
-                    <h1 className="text-2xl font-semibold text-gray-900">Therapist Verification</h1>
-                    <p className="text-sm text-gray-500 mt-1">Review and manage therapist applications</p>
+            <div className="bg-white border-b shadow-sm">
+                <div className="max-w-[1600px] mx-auto px-8 py-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                                Therapist Verification
+                            </h1>
+                            <p className="text-gray-600">
+                                Review and approve therapist applications with our streamlined workflow
+                            </p>
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="text-center px-6 py-3 bg-blue-50 rounded-xl">
+                                <div className="text-2xl font-bold text-blue-600">{stats.pending}</div>
+                                <div className="text-xs text-gray-600">Pending</div>
+                            </div>
+                            <div className="text-center px-6 py-3 bg-emerald-50 rounded-xl">
+                                <div className="text-2xl font-bold text-emerald-600">{stats.active}</div>
+                                <div className="text-xs text-gray-600">Active</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Search */}
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search by name, email, or license number..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-1.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                            />
+                        </div>
+
+                        <div className="w-[180px]">
+                            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                                <SelectTrigger className="w-full bg-white border-2 border-gray-200 font-semibold text-gray-700 h-[38px]">
+                                    <SelectValue placeholder="Filter status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All ({therapists.length})</SelectItem>
+                                    <SelectItem value="pending">Pending ({stats.pending})</SelectItem>
+                                    <SelectItem value="active">Active ({stats.active})</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="max-w-[1400px] mx-auto px-8 py-8">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-4 gap-4 mb-8">
-                    <Card className="border border-gray-200 shadow-sm">
-                        <CardContent className="p-6">
-                            <div className="text-sm text-gray-500 mb-1">Total Applications</div>
-                            <div className="text-3xl font-semibold text-gray-900">{stats.total}</div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border border-gray-200 shadow-sm">
-                        <CardContent className="p-6">
-                            <div className="text-sm text-gray-500 mb-1">Pending Review</div>
-                            <div className="text-3xl font-semibold text-gray-900">{stats.pending}</div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border border-gray-200 shadow-sm">
-                        <CardContent className="p-6">
-                            <div className="text-sm text-gray-500 mb-1">Active Therapists</div>
-                            <div className="text-3xl font-semibold text-gray-900">{stats.active}</div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border border-gray-200 shadow-sm">
-                        <CardContent className="p-6">
-                            <div className="text-sm text-gray-500 mb-1">Rejected</div>
-                            <div className="text-3xl font-semibold text-gray-900">{stats.rejected}</div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Search and Filter Bar */}
-                <div className="flex items-center gap-3 mb-6 bg-white border border-gray-200 rounded-lg p-3">
-                    <div className="flex items-center gap-2 flex-1">
-                        <Search className="h-4 w-4 text-gray-400" />
-                        <Input
-                            placeholder="Search..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="border-0 shadow-none focus-visible:ring-0 h-8 px-0"
-                        />
+            {/* Therapist Grid */}
+            <div className="max-w-[1600px] mx-auto px-8 py-8">
+                {isLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 text-gray-400" />
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="border-0 shadow-none focus:ring-0 h-8 w-[180px]">
-                                <SelectValue placeholder="All Applications" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Applications</SelectItem>
-                                <SelectItem value="pending">Pending Review</SelectItem>
-                                <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="rejected">Rejected</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredTherapists.map((therapist) => (
+                            <div
+                                key={therapist.id}
+                                onClick={() => setSelectedTherapist(therapist)}
+                                className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-xl cursor-pointer transition-all transform hover:-translate-y-1"
+                            >
+                                <div className="flex items-center gap-4 mb-4">
+                                    <img
+                                        src={therapist.profile_image_url || `https://ui-avatars.com/api/?name=${therapist.first_name}+${therapist.last_name}`}
+                                        alt={`${therapist.first_name} ${therapist.last_name}`}
+                                        className="w-16 h-16 rounded-full object-cover"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-lg text-gray-900 truncate">
+                                            {therapist.first_name} {therapist.last_name}
+                                        </h3>
+                                        <p className="text-sm text-gray-600 truncate">{therapist.email}</p>
+                                    </div>
+                                </div>
 
-                {/* Table */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-white hover:bg-white border-b border-gray-200">
-                                <TableHead className="font-medium text-xs text-gray-500 uppercase tracking-wider">Therapist</TableHead>
-                                <TableHead className="font-medium text-xs text-gray-500 uppercase tracking-wider">License Info</TableHead>
-                                <TableHead className="font-medium text-xs text-gray-500 uppercase tracking-wider">Progress</TableHead>
-                                <TableHead className="font-medium text-xs text-gray-500 uppercase tracking-wider">Status</TableHead>
-                                <TableHead className="font-medium text-xs text-gray-500 uppercase tracking-wider">Stage</TableHead>
-                                <TableHead className="font-medium text-xs text-gray-500 uppercase tracking-wider text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-32 text-center text-gray-500">
-                                        Loading...
-                                    </TableCell>
-                                </TableRow>
-                            ) : filteredTherapists.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-32 text-center text-gray-500">
-                                        No applications found
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                filteredTherapists.map((therapist) => {
-                                    const progress = getProgressPercentage(therapist);
-                                    return (
-                                        <TableRow
-                                            key={therapist.id}
-                                            className="hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
-                                            onClick={() => {
-                                                setSelectedTherapist(therapist);
-                                                setIsModalOpen(true);
-                                            }}
-                                        >
-                                            <TableCell className="py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={therapist.profile_image_url} />
-                                                        <AvatarFallback className="bg-gray-900 text-white text-sm font-medium">
-                                                            {therapist.first_name?.[0]}{therapist.last_name?.[0]}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <div className="font-medium text-gray-900">
-                                                            {therapist.first_name} {therapist.last_name}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">{therapist.email}</div>
-                                                    </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="space-y-0.5">
-                                                    <div className="font-medium text-gray-900">{therapist.license_number || 'N/A'}</div>
-                                                    <div className="text-sm text-gray-500">{therapist.license_state || 'N/A'}</div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="text-sm font-medium text-gray-900">{progress}%</div>
-                                            </TableCell>
-                                            <TableCell>{getStatusBadge(therapist.account_status)}</TableCell>
-                                            <TableCell>{getStageBadge(therapist.verification_stage || 'account_created')}</TableCell>
-                                            <TableCell className="text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => {
-                                                            setSelectedTherapist(therapist);
-                                                            setIsModalOpen(true);
-                                                        }}>
-                                                            View Details
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                                <div className="space-y-2 mb-4">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600">License:</span>
+                                        <span className="font-semibold text-gray-900">{therapist.license_number || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600">Specialization:</span>
+                                        <span className="font-semibold text-gray-900 text-xs">{therapist.specialty || 'N/A'}</span>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-gray-200">
+                                    {therapist.account_status === 'active' ? (
+                                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg font-semibold text-sm w-full justify-center">
+                                            <Check className="w-4 h-4" />
+                                            Active
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg font-semibold text-sm w-full justify-center">
+                                            <Circle className="w-4 h-4" />
+                                            Pending Review
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {!isLoading && filteredTherapists.length === 0 && (
+                    <div className="text-center py-16">
+                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Search className="w-10 h-10 text-gray-400" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No therapists found</h3>
+                        <p className="text-gray-600">Try adjusting your search criteria</p>
+                    </div>
+                )}
             </div>
 
-            <TherapistVerificationModal
-                therapist={selectedTherapist}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onUpdate={handleUpdateTherapist}
-            />
+            {/* Verification Modal */}
+            {selectedTherapist && (
+                <VerificationModal
+                    therapist={selectedTherapist}
+                    onClose={() => setSelectedTherapist(null)}
+                    onUpdate={() => {
+                        fetchTherapists();
+                        // Do not close modal automatically - let user close it via UI buttons
+                    }}
+                />
+            )}
         </div>
     );
-};
-
-export default TherapistVerificationView;
+}
