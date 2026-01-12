@@ -14,6 +14,7 @@ export interface VerificationUpdatePayload {
     stage: 'documents' | 'background_check' | 'final';
     status: 'approved' | 'rejected';
     notes?: string;
+    details?: any;
 }
 
 export const verificationService = {
