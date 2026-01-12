@@ -565,12 +565,17 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                               let onboardingStatus = 'active';
                               if (accountStatus === 'pending_verification' ||
                                 accountStatus === 'documents_review' ||
-                                accountStatus === 'background_check') {
+                                accountStatus === 'background_check' ||
+                                accountStatus === 'final_review' ||
+                                accountStatus === 'account_created' ||
+                                accountStatus === 'onboarding_pending') {
                                 onboardingStatus = 'pending';
                               } else if (accountStatus === 'rejected') {
                                 onboardingStatus = 'rejected';
                               } else if (accountStatus === 'suspended') {
                                 onboardingStatus = 'suspended';
+                              } else if (accountStatus === 'incomplete_registration') {
+                                onboardingStatus = 'incomplete';
                               }
 
                               onLogin(

@@ -537,9 +537,12 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
 
                             {therapist.status === 'pending' && (
                               <>
+                                {/* Quick Approve PROHIBITED - Must use Verify Application workflow */}
+                                {/* 
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'active')} className="text-green-600 focus:text-green-700 focus:bg-green-50">
                                   <Check className="mr-2 h-4 w-4" /> Quick Approve
-                                </DropdownMenuItem>
+                                </DropdownMenuItem> 
+                                */}
                                 <DropdownMenuItem onClick={() => handleOpenVerification(therapist.id)} className="text-blue-600 focus:text-blue-700 focus:bg-blue-50">
                                   <Shield className="mr-2 h-4 w-4" /> Verify Application
                                 </DropdownMenuItem>
