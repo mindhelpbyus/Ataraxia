@@ -18,6 +18,7 @@ import { SettingsView } from './SettingsView';
 import { SettingsSidebar } from './SettingsSidebar';
 import { ReportsView } from './ReportsView';
 import { ClientDashboardView } from './ClientDashboardView';
+import TherapistVerificationView from './TherapistVerificationView';
 import { BedrockLogo } from '../imports/BedrockLogo';
 import { UserRole, Notification } from '../types/appointment';
 import { Toaster } from './ui/sonner';
@@ -43,7 +44,8 @@ import {
   ChevronRight,
   UserCog,
   Building2,
-  Mail
+  Mail,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -69,7 +71,7 @@ interface DashboardLayoutProps {
   onMarkAllNotificationsAsRead: () => void;
 }
 
-type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance' | 'logs' | 'data-explorer' | 'api-monitoring';
+type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'therapist-verification' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance' | 'logs' | 'data-explorer' | 'api-monitoring';
 
 export function DashboardLayout({ userRole, currentUserId, userEmail, userName, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -185,6 +187,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
       items: [
         { id: 'organizations' as TabType, label: 'Organizations', icon: Building2 },
         { id: 'therapists' as TabType, label: 'Providers / Therapists', icon: UserCog },
+        { id: 'therapist-verification' as TabType, label: 'Therapist Verification', icon: ShieldCheck },
         { id: 'clients' as TabType, label: 'Clients', icon: Users },
         { id: 'video-rooms' as TabType, label: 'Video Rooms', icon: Calendar },
       ]
@@ -556,6 +559,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                 {activeTab === 'calendar' && <CalendarContainer userRole={userRole} currentUserId={currentUserId} searchQuery={searchQuery} triggerNewAppointment={triggerNewAppointment} />}
                 {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} />}
                 {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} />}
+                {activeTab === 'therapist-verification' && <TherapistVerificationView />}
                 {activeTab === 'organizations' && <OrganizationManagementView userId={currentUserId} userEmail={userEmail} onNavigate={() => setActiveTab('dashboard')} />}
 
                 {/* Tools */}
