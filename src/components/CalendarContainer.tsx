@@ -365,7 +365,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
 
         <div className="flex items-center gap-4">
           {/* View Switcher - Fantastical Style */}
-          <div className="flex items-center bg-muted rounded-lg p-0.5">
+          <div className="flex items-center bg-white border border-border rounded-lg p-0.5">
             {(['day', 'week', 'month'] as CalendarView[]).map((view) => (
               <Button
                 key={view}
@@ -494,7 +494,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
         />
 
         {/* Calendar Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden h-full relative min-h-0">
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

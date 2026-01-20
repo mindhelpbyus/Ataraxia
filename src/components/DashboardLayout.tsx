@@ -42,6 +42,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  PanelLeft,
+  PanelLeftClose,
   UserCog,
   Building2,
   Mail,
@@ -62,6 +64,8 @@ import { ScrollArea } from './ui/scroll-area';
 import { Input } from './ui/input';
 import { SearchBar } from './ui/search-bar';
 import { GlobalSearchBar } from './GlobalSearchBar';
+import { CustomizeDashboard, DashboardWidgets } from './CustomizeDashboard';
+import { Dialog, DialogContent } from './ui/dialog';
 import { Separator } from './ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -85,6 +89,16 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   const [showSettingsNav, setShowSettingsNav] = useState(false); // Track if settings navigation is visible
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [widgets, setWidgets] = useState<DashboardWidgets>({
+    stats: true,
+    agenda: true,
+    categories: true,
+    completionRate: true,
+    people: true,
+    companies: true
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [triggerNewAppointment, setTriggerNewAppointment] = useState(0); // Counter to trigger appointment form
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -337,49 +351,49 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
       <TooltipProvider delayDuration={300}>
         <div className="flex h-screen bg-background overflow-hidden font-sans">
           {/* Left Sidebar - Premium Glass/Hybrid Design */}
-          <aside className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-sidebar flex flex-col shrink-0 transition-all duration-300 z-20`}>
+          <aside className={`${sidebarCollapsed ? 'w-20' : 'w-72'} bg-sidebar flex flex-col shrink-0 transition-all duration-300 z-20`}>
             {/* Sidebar Header with Logo + Utility Icons */}
-            <div className="h-16 flex items-center justify-between px-4 gap-2">
+            <div className={`h-16 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between px-4 gap-2'} relative group transition-all duration-300`}>
               {/* Logo */}
-              <BedrockLogo variant="icon" className="w-9 h-9 shrink-0" />
+              <div className={`${sidebarCollapsed ? 'group-hover:opacity-0 transition-opacity duration-200' : ''}`}>
+                <BedrockLogo variant="icon" className="w-9 h-9 shrink-0" />
+              </div>
 
-              {/* Utility Icons - Only show when sidebar is expanded */}
               {!sidebarCollapsed && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   {/* Search Icon */}
-                  {(userRole === 'superadmin' || userRole === 'admin') && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground">
-                          <Search className="h-5 w-5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p>Search</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsSearchOpen(true)}
+                        className="h-8 w-8 rounded-full hover:bg-muted text-muted-foreground"
+                      >
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Search</TooltipContent>
+                  </Tooltip>
 
                   {/* Notifications Icon */}
                   <Popover open={notificationPopoverOpen} onOpenChange={setNotificationPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground relative">
-                            <Bell className="h-5 w-5" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted text-muted-foreground relative">
+                            <Bell className="h-4 w-4" />
                             {unreadCount > 0 && (
-                              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+                              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] flex items-center justify-center px-1 shadow-sm border border-background">
                                 {unreadCount > 9 ? '9+' : unreadCount}
                               </span>
                             )}
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p>Notifications</p>
-                        </TooltipContent>
+                        <TooltipContent side="bottom">Notifications</TooltipContent>
                       </Tooltip>
                     </PopoverTrigger>
-                    <PopoverContent align="end" className="w-96 p-0 rounded-xl shadow-xl border-border">
+                    <PopoverContent align="start" className="w-96 p-0 rounded-xl shadow-xl border-border">
                       <div className="flex items-center justify-between p-4 border-b border-border">
                         <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
                         {unreadCount > 0 && (
@@ -431,50 +445,52 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                         variant="ghost"
                         size="icon"
                         onClick={() => handleTabChange('settings')}
-                        className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground"
+                        className="h-8 w-8 rounded-full hover:bg-muted text-muted-foreground"
                       >
-                        <Settings className="h-5 w-5" />
+                        <Settings className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      <p>Settings</p>
-                    </TooltipContent>
+                    <TooltipContent side="bottom">Settings</TooltipContent>
                   </Tooltip>
+                </div>
+              )}
 
-                  {/* Panel/Layout Toggle Icon (Collapse Sidebar) */}
+              {/* Sidebar Toggle - Collapsed State (Expand) - Overlay on Hover */}
+              {sidebarCollapsed && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground"
+                        onClick={() => setSidebarCollapsed(false)}
+                        className="h-9 w-9 rounded-full text-foreground bg-popover shadow-md border border-border hover:bg-accent"
                       >
-                        <ChevronLeft className="h-5 w-5" />
+                        <PanelLeft className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      <p>Collapse Sidebar</p>
+                    <TooltipContent side="right">
+                      <p>Expand Sidebar</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
               )}
 
-              {/* Expand Button - Only show when sidebar is collapsed */}
-              {sidebarCollapsed && (
+              {/* Sidebar Toggle - Expanded State (Collapse) */}
+              {!sidebarCollapsed && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setSidebarCollapsed(false)}
+                      onClick={() => setSidebarCollapsed(true)}
                       className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground"
                     >
-                      <ChevronRight className="h-5 w-5" />
+                      <PanelLeftClose className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    <p>Expand Sidebar</p>
+                    <p>Collapse Sidebar</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -569,7 +585,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                 {!sidebarCollapsed && (
                   <div className="p-4 space-y-3">
                     {/* Trial Info */}
-                    {(subscriptionInfo?.status === 'trial' || subscriptionInfo?.isOrgOwner) && (
+                    {userRole !== 'superadmin' && userRole !== 'super_admin' && (subscriptionInfo?.status === 'trial' || subscriptionInfo?.isOrgOwner) && (
                       <div className="bg-card rounded-lg px-3 py-2 shadow-sm border border-border/50">
                         <div className={`flex ${((subscriptionInfo?.trialDaysRemaining ?? 0) > 365 && subscriptionInfo?.status === 'trial') ? 'justify-center' : 'justify-between'} items-center ${(subscriptionInfo?.status === 'trial' && (subscriptionInfo?.trialDaysRemaining ?? 0) <= 365) ? 'mb-2' : ''}`}>
                           <span className="text-xs font-semibold text-foreground">
@@ -722,19 +738,25 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
           <div className="flex-1 flex flex-col min-w-0 relative">
             {/* Top Header */}
             <header className="h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6 sticky top-0 z-10 transition-all duration-300">
-              {/* Left Side: Greeting Only */}
+              {/* Left Side: Page Title */}
               <div className="flex items-center">
-                <h1 className="text-xl font-bold text-foreground tracking-tight">
-                  {activeTab === 'dashboard' ? `${getGreeting()}, ${userName || getUserName(userEmail)}!` : activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">
+                  {activeTab === 'dashboard' ? '' : activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                 </h1>
               </div>
 
               {/* Right Side: Customize Button */}
               <div className="flex items-center gap-2">
+
                 {activeTab === 'dashboard' && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted text-foreground border-border">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-lg hover:bg-muted text-foreground border-border ml-2"
+                        onClick={() => setIsCustomizeOpen(true)}
+                      >
                         <Palette className="h-4 w-4 mr-2" />
                         Customize
                       </Button>
@@ -762,13 +784,13 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                     {userRole === 'therapist' ? (
                       <TherapistHomeView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
                     ) : (userRole === 'superadmin' || userRole === 'super_admin') ? (
-                      <SuperAdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
+                      <SuperAdminDashboardView userId={currentUserId} userEmail={userEmail} userName={userName} onNavigate={setActiveTab} />
                     ) : (userRole === 'admin' || userRole === 'org_admin') ? (
                       <AdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
                     ) : userRole === 'client' ? (
                       <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab) => setActiveTab(tab as TabType)} />
                     ) : (
-                      <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} />
+                      <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} visibleWidgets={widgets} />
                     )}
                   </>
                 )}
@@ -800,6 +822,25 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
           <Toaster position="bottom-right" theme="system" className="font-sans" />
         </div>
       </TooltipProvider>
+      <CustomizeDashboard
+        open={isCustomizeOpen}
+        onOpenChange={setIsCustomizeOpen}
+        widgets={widgets}
+        onToggle={(key) => setWidgets(prev => ({ ...prev, [key]: !prev[key] }))}
+      />
+      <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-2xl sm:max-w-3xl">
+          <GlobalSearchBar
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+            onResultClick={(result) => {
+              handleGlobalSearchResult(result);
+              setIsSearchOpen(false);
+            }}
+            className="w-full shadow-2xl"
+          />
+        </DialogContent>
+      </Dialog>
     </DndProvider>
   );
 }

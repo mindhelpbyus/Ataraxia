@@ -38,6 +38,7 @@ import { Progress } from './ui/progress';
 interface SuperAdminDashboardViewProps {
     userId: string;
     userEmail: string;
+    userName?: string;
     onNavigate: (tab: 'dashboard' | 'calendar' | 'clients' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings') => void;
 }
 
@@ -128,16 +129,25 @@ const CustomAreaChart = ({ data, color = "#6366f1" }: { data: any[], color?: str
     </ResponsiveContainer>
 );
 
-export function SuperAdminDashboardView({ userId, userEmail, onNavigate }: SuperAdminDashboardViewProps) {
+export function SuperAdminDashboardView({ userId, userEmail, userName, onNavigate }: SuperAdminDashboardViewProps) {
     const [activeTab, setActiveTab] = useState('overview');
+
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 18) return 'Good Afternoon';
+        return 'Good Evening';
+    };
 
     return (
         <div className="min-h-screen bg-background p-8 max-w-[1600px] mx-auto font-sans">
             {/* Header Section */}
             <div className="mb-8 flex items-end justify-between">
                 <div>
-                    <h1 className="text-3xl font-semibold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Command Center</h1>
-                    <p className="mt-2 text-muted-foreground">Real-time platform insights and performance metrics.</p>
+                    <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                        {getGreeting()}, {userName || 'Super Admin'}!
+                    </h1>
+                    <p className="mt-2 text-muted-foreground">Here is what is happening with your platform today.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1 shadow-sm">

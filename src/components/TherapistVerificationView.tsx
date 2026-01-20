@@ -606,15 +606,7 @@ export default function TherapistVerificationView() {
             {/* Header */}
             <div className="bg-white border-b shadow-sm">
                 <div className="max-w-[1600px] mx-auto px-8 py-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                                Therapist Verification
-                            </h1>
-                            <p className="text-gray-600">
-                                Review and approve therapist applications with our streamlined workflow
-                            </p>
-                        </div>
+                    <div className="flex items-center justify-end mb-6">
                         <div className="flex gap-4">
                             <div className="text-center px-6 py-3 bg-blue-50 rounded-xl">
                                 <div className="text-2xl font-bold text-blue-600">{stats.pending}</div>

@@ -50,7 +50,7 @@ export function EnhancedCalendarSidebar({
   return (
     <div className="relative flex h-full">
       {/* Main Sidebar with Horizontal Collapse */}
-      <div 
+      <div
         className={`
           bg-sidebar border-r border-sidebar-border flex flex-col h-full
           transition-all duration-300 ease-in-out
@@ -60,7 +60,7 @@ export function EnhancedCalendarSidebar({
         <div className={`w-80 flex flex-col h-full ${isExpanded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>
           {/* Step Indicator */}
           <div className="p-4 border-b border-sidebar-border bg-white">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = activeStep === step.id;
@@ -78,26 +78,27 @@ export function EnhancedCalendarSidebar({
                           w-9 h-9 rounded-full flex items-center justify-center
                           transition-all border-2
                           ${isActive
-                            ? 'bg-[#0176d3] border-[#0176d3] text-white'
+                            ? 'shadow-md font-bold'
                             : isCompleted
-                            ? 'bg-[#ecf7ed] border-[#2e844a] text-[#2e844a]'
-                            : 'bg-white border-[#dddbda] text-muted-foreground group-hover:border-[#0176d3]'
+                              ? 'bg-[#fff7ed] border-[#f97316] text-[#ea580c]'
+                              : 'bg-white border-[#dddbda] text-muted-foreground group-hover:border-orange-600'
                           }
                         `}
+                        style={isActive ? { backgroundColor: '#ea580c', borderColor: '#ea580c', color: 'white' } : {}}
                       >
                         <Icon className="h-4.5 w-4.5" />
                       </div>
                       <span
                         className={`
                           text-xs font-medium text-center
-                          ${isActive ? 'text-[#0176d3]' : 'text-muted-foreground'}
+                          ${isActive ? 'text-orange-600' : 'text-muted-foreground'}
                         `}
                       >
                         {step.label}
                       </span>
                     </button>
                     {!isLast && (
-                      <div className="flex-shrink-0 w-6 h-0.5 bg-[#dddbda] mb-5" />
+                      <div className="flex-shrink-0 w-6 h-0.5 bg-[#dddbda] mt-4" />
                     )}
                   </React.Fragment>
                 );
@@ -111,7 +112,9 @@ export function EnhancedCalendarSidebar({
               <MiniCalendar
                 currentDate={currentDate}
                 onDateChange={onDateChange}
-                onNavigate={onNavigate}
+                onNavigate={(dir) => onNavigate(dir)}
+                appointments={appointments}
+                therapists={therapists}
               />
             )}
 
@@ -177,8 +180,8 @@ export function EnhancedCalendarSidebar({
           cursor-pointer
           ${isExpanded ? 'left-[319px]' : 'left-0'}
         `}
-        style={{ 
-          width: '24px', 
+        style={{
+          width: '24px',
           height: '48px',
           pointerEvents: 'auto'
         }}

@@ -66,7 +66,7 @@ export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewP
                 Export Excel
               </Button>
               <Button
-                className="bg-slate-900 text-white shadow-sm hover:bg-slate-800"
+                className="bg-orange-600 text-white shadow-sm hover:bg-orange-700"
                 onClick={handleExportPDF}
               >
                 <Download className="h-4 w-4 mr-2" />
