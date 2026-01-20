@@ -23,7 +23,7 @@ import { Spotlight } from './ui/spotlight';
 type LoginMode = 'email' | 'phone';
 
 interface LoginPageProps {
-  onLogin: (email: string, userName: string, role: 'therapist' | 'admin' | 'superadmin' | 'client', userId: string, onboardingStatus?: string) => void;
+  onLogin: (email: string, userName: string, role: 'therapist' | 'admin' | 'superadmin' | 'client', userId: string, onboardingStatus?: string, token?: string) => void;
   onRegisterTherapist?: () => void;
   onBackToHome?: () => void;
 }
@@ -149,7 +149,8 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
         response.user.name || `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() || email,
         response.user.role as any,
         response.user.id,
-        onboardingStatus
+        onboardingStatus,
+        response.token
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid credentials');
@@ -224,7 +225,7 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
           );
 
           const userName = `${response.user.first_name} ${response.user.last_name}`.trim();
-          onLogin(response.user.email || phoneNumber, userName, response.user.role, response.user.id, response.user.onboardingStatus);
+          onLogin(response.user.email || phoneNumber, userName, response.user.role, response.user.id, response.user.onboardingStatus, response.token);
 
           toast.success('Phone verified successfully!');
         } else {

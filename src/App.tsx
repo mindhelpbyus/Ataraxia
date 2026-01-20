@@ -24,6 +24,25 @@ export default function App() {
   const [userName, setUserName] = useState('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  // Check for existing authentication on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedEmail = localStorage.getItem('userEmail');
+    const storedName = localStorage.getItem('userName');
+    const storedRole = localStorage.getItem('userRole');
+    const storedUserId = localStorage.getItem('userId');
+
+    if (token && storedEmail && storedRole && storedUserId) {
+      // Restore authentication state
+      setUserEmail(storedEmail);
+      setUserName(storedName || '');
+      setUserRole(storedRole as UserRole);
+      setCurrentUserId(storedUserId);
+      setCurrentView('dashboard');
+      logger.info('Restored authentication from localStorage');
+    }
+  }, []);
+
   useEffect(() => {
     // Check URL params
     const params = new URLSearchParams(window.location.search);
@@ -65,16 +84,25 @@ export default function App() {
   };
 
   // Handle login
-  const handleLogin = (emailOrIdentifier: string, passwordOrName: string, role: string, userId: string, onboardingStatus?: string) => {
+  const handleLogin = (emailOrIdentifier: string, passwordOrName: string, role: string, userId: string, onboardingStatus?: string, token?: string) => {
     setUserEmail(emailOrIdentifier);
     setUserName(passwordOrName);
     setCurrentUserId(userId);
+
+    // Save to localStorage for persistence
+    localStorage.setItem('userEmail', emailOrIdentifier);
+    localStorage.setItem('userName', passwordOrName);
+    localStorage.setItem('userId', userId);
+    if (token) {
+      localStorage.setItem('token', token);
+    }
 
     // Convert role to UserRole type and go directly to dashboard
     // Convert backend role to frontend state
     // We now support direct mapping of super_admin and org_admin
     if (role === 'therapist') {
       setUserRole('therapist');
+      localStorage.setItem('userRole', 'therapist');
 
       // Strict Onboarding Status Check
       const pendingStatuses = ['pending', 'onboarding_pending', 'pending_verification', 'documents_review', 'background_check', 'final_review', 'account_created'];
@@ -94,13 +122,16 @@ export default function App() {
       }
     } else if (role === 'super_admin' || role === 'superadmin') {
       setUserRole('super_admin'); // Use snake_case internally
+      localStorage.setItem('userRole', 'super_admin');
       setCurrentView('dashboard');
     } else if (role === 'org_admin' || role === 'admin') {
       setUserRole('org_admin'); // Use snake_case internally
+      localStorage.setItem('userRole', 'org_admin');
       setCurrentView('dashboard');
     } else {
       // Fallback for any other roles
       setUserRole(role as UserRole);
+      localStorage.setItem('userRole', role);
       setCurrentView('dashboard');
     }
   };
@@ -120,6 +151,13 @@ export default function App() {
     setUserEmail('');
     setUserName('');
     setNotifications([]);
+
+    // Clear localStorage
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('token');
   };
 
   // Handle back to home from login
