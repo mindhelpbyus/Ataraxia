@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Broadcast, Invoice, Ticket, Wallet } from '@phosphor-icons/react';
@@ -45,7 +45,13 @@ import {
   UserCog,
   Building2,
   Mail,
-  ShieldCheck
+  ShieldCheck,
+  Palette,
+  Sparkles,
+  Gift,
+  Zap,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -88,6 +94,43 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     'Billing': true,
     'Data & Intelligence': true,
   });
+
+  // Subscription state
+  const [subscriptionInfo, setSubscriptionInfo] = useState<{
+    status: string;
+    trialDaysRemaining: number | null;
+    isTrialActive: boolean;
+    tier?: string;
+    organizationName?: string;
+    isOrgOwner?: boolean;
+    organizationId?: string;
+  } | null>(null);
+
+  // Fetch subscription info on mount
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        const { SubscriptionService } = await import('../api/services/subscription');
+        const info = await SubscriptionService.getUserSubscription(currentUserId);
+        setSubscriptionInfo(info);
+      } catch (error) {
+        console.error('Failed to fetch subscription:', error);
+        // Fallback to default trial values for demo
+        setSubscriptionInfo({
+          status: 'trial',
+          trialDaysRemaining: 30, // Default for demo
+          isTrialActive: true,
+          tier: 'trial',
+          organizationName: 'My Practice',
+          isOrgOwner: true
+        });
+      }
+    };
+
+    if (currentUserId) {
+      fetchSubscription();
+    }
+  }, [currentUserId]);
 
   // Clear search when switching tabs
   const handleTabChange = (tab: TabType) => {
@@ -174,6 +217,14 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     return name.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
   };
 
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
   // Navigation structure - conditional based on user role
   const getSuperAdminNavigation = () => [
     {
@@ -189,7 +240,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         { id: 'therapists' as TabType, label: 'Providers / Therapists', icon: UserCog },
         { id: 'therapist-verification' as TabType, label: 'Therapist Verification', icon: ShieldCheck },
         { id: 'clients' as TabType, label: 'Clients', icon: Users },
-        { id: 'video-rooms' as TabType, label: 'Video Rooms', icon: Calendar },
+        { id: 'video-rooms' as TabType, label: 'Video Rooms', icon: Calendar, badge: 'BETA' },
       ]
     },
     {
@@ -286,23 +337,146 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
       <TooltipProvider delayDuration={300}>
         <div className="flex h-screen bg-background overflow-hidden font-sans">
           {/* Left Sidebar - Premium Glass/Hybrid Design */}
-          <aside className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-sidebar border-r border-sidebar-border flex flex-col shrink-0 transition-all duration-300 z-20`}>
-            {/* Logo Header */}
-            <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
+          <aside className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-sidebar flex flex-col shrink-0 transition-all duration-300 z-20`}>
+            {/* Sidebar Header with Logo + Utility Icons */}
+            <div className="h-16 flex items-center justify-between px-4 gap-2">
+              {/* Logo */}
+              <BedrockLogo variant="icon" className="w-9 h-9 shrink-0" />
+
+              {/* Utility Icons - Only show when sidebar is expanded */}
               {!sidebarCollapsed && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl shadow-lg shadow-indigo-200">
-                    <BedrockLogo variant="icon" className="text-white w-8 h-8" />
-                  </div>
-                  <span className="text-foreground font-bold text-lg tracking-tight ml-2">Ataraxia</span>
-                </motion.div>
-              )}
-              {sidebarCollapsed && (
-                <div className="mx-auto">
-                  <div className="p-2 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl shadow-lg shadow-indigo-200">
-                    <BedrockLogo variant="icon" className="w-8 h-8 text-white" />
-                  </div>
+                <div className="flex items-center gap-1">
+                  {/* Search Icon */}
+                  {(userRole === 'superadmin' || userRole === 'admin') && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground">
+                          <Search className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>Search</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
+                  {/* Notifications Icon */}
+                  <Popover open={notificationPopoverOpen} onOpenChange={setNotificationPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground relative">
+                            <Bell className="h-5 w-5" />
+                            {unreadCount > 0 && (
+                              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                              </span>
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          <p>Notifications</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-96 p-0 rounded-xl shadow-xl border-border">
+                      <div className="flex items-center justify-between p-4 border-b border-border">
+                        <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+                        {unreadCount > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={onMarkAllNotificationsAsRead}
+                            className="text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Mark all as read
+                          </Button>
+                        )}
+                      </div>
+                      <ScrollArea className="h-96">
+                        <div className="p-2 space-y-1">
+                          {notifications.length === 0 ? (
+                            <div className="p-8 text-center text-sm text-muted-foreground">
+                              No notifications
+                            </div>
+                          ) : (
+                            notifications.map((notification) => (
+                              <button
+                                key={notification.id}
+                                onClick={() => onMarkNotificationAsRead(notification.id)}
+                                className={`w-full text-left p-3 rounded-lg hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''
+                                  }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!notification.read ? 'bg-blue-500' : 'bg-transparent'
+                                    }`} />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-foreground">{notification.title}</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">{notification.message}</p>
+                                    <p className="text-[10px] text-muted-foreground mt-1">{notification.timestamp}</p>
+                                  </div>
+                                </div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Settings Icon */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleTabChange('settings')}
+                        className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground"
+                      >
+                        <Settings className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>Settings</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  {/* Panel/Layout Toggle Icon (Collapse Sidebar) */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                        className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>Collapse Sidebar</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
+              )}
+
+              {/* Expand Button - Only show when sidebar is collapsed */}
+              {sidebarCollapsed && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSidebarCollapsed(false)}
+                      className="h-9 w-9 rounded-full hover:bg-muted text-muted-foreground"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Expand Sidebar</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
 
@@ -325,7 +499,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                           {!sidebarCollapsed && section.section && (
                             <button
                               onClick={() => toggleSection(section.section)}
-                              className="w-full flex items-center justify-between text-[11px] uppercase font-bold text-muted-foreground px-3 mb-3 tracking-widest hover:text-indigo-600 transition-colors"
+                              className="w-full flex items-center justify-between text-[10px] uppercase font-bold text-foreground px-3 mb-3 tracking-widest hover:text-orange-600 transition-colors"
                             >
                               <span>{section.section}</span>
                               <ChevronRight className={`h-3 w-3 transition-transform duration-300 ${expandedSections[section.section] ? 'rotate-90' : ''}`} />
@@ -338,7 +512,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                                 const isActive = activeTab === item.id;
 
                                 return (
-                                  <Tooltip key={item.id} disabled={!sidebarCollapsed}>
+                                  <Tooltip key={item.id}>
                                     <TooltipTrigger asChild>
                                       <button
                                         onClick={() => handleTabChange(item.id)}
@@ -347,29 +521,35 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                                             px-3 h-10 rounded-lg transition-all duration-200 group relative select-none
                                             ${isActive
                                             ? 'bg-sidebar-accent text-sidebar-primary'
-                                            : 'text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground'
+                                            : 'text-foreground hover:bg-sidebar-accent/80'
                                           }
                                           `}
                                       >
                                         <Icon
-                                          className={`h-5 w-5 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300'} transition-colors`}
+                                          className={`h-5 w-5 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-foreground'} transition-colors`}
                                           strokeWidth={isActive ? 2.5 : 2}
                                         />
 
                                         {!sidebarCollapsed && (
-                                          <span className={`flex-1 text-left text-sm ${isActive ? 'font-semibold tracking-tight' : 'font-medium'}`}>
+                                          <span className={`flex-1 text-left text-xs ${isActive ? 'font-semibold tracking-tight' : 'font-medium'}`}>
                                             {item.label}
                                           </span>
                                         )}
 
                                         {/* Badges */}
                                         {item.badge && !sidebarCollapsed && (
-                                          <Badge className={`h-5 px-1.5 min-w-[20px] justify-center ${isActive ? 'bg-white text-black' : 'bg-rose-500 text-white'}`}>
+                                          <Badge className={`h-5 px-1.5 min-w-[20px] justify-center text-[10px] font-bold ${typeof item.badge === 'string' && item.badge === 'BETA'
+                                            ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
+                                            : isActive ? 'bg-white text-black' : 'bg-rose-500 text-white'
+                                            }`}>
                                             {item.badge}
                                           </Badge>
                                         )}
                                         {item.badge && sidebarCollapsed && (
-                                          <div className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-rose-500 border-2 border-white" />
+                                          <div className={`absolute top-2 right-2 h-2.5 w-2.5 rounded-full border-2 border-white ${typeof item.badge === 'string' && item.badge === 'BETA'
+                                            ? 'bg-slate-500'
+                                            : 'bg-rose-500'
+                                            }`} />
                                         )}
                                       </button>
                                     </TooltipTrigger>
@@ -385,148 +565,185 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   </div>
                 </div>
 
-                {/* Sidebar Footer */}
-                <div className="p-4 border-t border-border space-y-2 bg-muted/50">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                    className={`w-full ${sidebarCollapsed ? 'justify-center' : 'justify-start'} text-muted-foreground hover:text-foreground hover:bg-white rounded-xl h-10`}
-                  >
-                    {sidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <><ChevronLeft className="h-5 w-5 mr-3" /> Collapse</>}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleTabChange('settings')}
-                    className={`w-full ${sidebarCollapsed ? 'justify-center' : 'justify-start'} text-muted-foreground hover:text-foreground hover:bg-white rounded-xl h-10`}
-                  >
-                    <Settings className={`h-5 w-5 ${!sidebarCollapsed && 'mr-3'}`} />
-                    {!sidebarCollapsed && 'Settings'}
-                  </Button>
-                </div>
+                {/* Sidebar Footer - Premium Design */}
+                {!sidebarCollapsed && (
+                  <div className="p-4 space-y-3">
+                    {/* Trial Info */}
+                    {(subscriptionInfo?.status === 'trial' || subscriptionInfo?.isOrgOwner) && (
+                      <div className="bg-card rounded-lg px-3 py-2 shadow-sm border border-border/50">
+                        <div className={`flex ${((subscriptionInfo?.trialDaysRemaining ?? 0) > 365 && subscriptionInfo?.status === 'trial') ? 'justify-center' : 'justify-between'} items-center ${(subscriptionInfo?.status === 'trial' && (subscriptionInfo?.trialDaysRemaining ?? 0) <= 365) ? 'mb-2' : ''}`}>
+                          <span className="text-xs font-semibold text-foreground">
+                            {subscriptionInfo?.status === 'trial' ? 'Free Trial Plan' : `${subscriptionInfo?.tier || 'Basic'} Plan`}
+                          </span>
+                          {((subscriptionInfo?.trialDaysRemaining ?? 0) <= 365 || subscriptionInfo?.status !== 'trial') && (
+                            <span className="text-xs text-muted-foreground">
+                              {subscriptionInfo?.status === 'trial'
+                                ? `${subscriptionInfo?.trialDaysRemaining ?? 30} days left`
+                                : subscriptionInfo?.organizationName || 'My Practice'}
+                            </span>
+                          )}
+                        </div>
+                        {subscriptionInfo?.status === 'trial' && (subscriptionInfo?.trialDaysRemaining ?? 0) <= 365 && (
+                          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-gradient-to-r from-orange-500 to-orange-600 h-full"
+                              style={{
+                                width: `${Math.max(0, Math.min(100, ((subscriptionInfo?.trialDaysRemaining ?? 30) / 30) * 100))}%`
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* AI Assistant */}
+                    <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
+                      <Sparkles className="h-5 w-5 text-orange-600" />
+                      <span className="text-xs font-semibold text-orange-600">AI Assistant</span>
+                    </button>
+
+                    {/* Help & Support */}
+                    <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
+                      <HelpCircle className="h-5 w-5 text-foreground" />
+                      <span className="text-xs font-medium text-foreground">Help & Support</span>
+                    </button>
+
+                    {/* Promotional Banner */}
+                    <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
+                      <Gift className="h-5 w-5 text-foreground" />
+                      <span className="text-xs font-medium text-foreground">Refer & Earn $30</span>
+                    </button>
+
+                    {/* User Profile Dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback style={{ backgroundColor: '#ea580c' }} className="text-white text-xs font-bold">
+                              {getInitials(userEmail)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs font-medium text-foreground flex-1 text-left">{userName || getUserName(userEmail)}</span>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border p-2">
+                        <DropdownMenuItem className="rounded-lg text-xs">
+                          <Moon className="w-4 h-4 mr-2" /> Dark mode
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-lg text-xs">
+                          <Zap className="w-4 h-4 mr-2" /> What's new
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleTabChange('settings')} className="rounded-lg text-xs">
+                          <Settings className="w-4 h-4 mr-2" /> Settings
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="my-1" />
+                        <DropdownMenuItem onClick={onLogout} className="text-rose-600 focus:text-rose-600 rounded-lg text-xs">
+                          <LogOut className="w-4 h-4 mr-2" /> Sign out
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+
+                {/* Collapsed Sidebar Footer - Icon Only */}
+                {sidebarCollapsed && (
+                  <div className="p-2 space-y-2 flex flex-col items-center">
+                    {/* AI Assistant Icon */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
+                          <Sparkles className="h-5 w-5 text-orange-600" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>AI Assistant</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* Help & Support Icon */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
+                          <HelpCircle className="h-5 w-5 text-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Help & Support</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* Promotional Banner Icon */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
+                          <Gift className="h-5 w-5 text-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Refer & Earn $30</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* User Profile Icon */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback style={{ backgroundColor: '#ea580c' }} className="text-white text-xs font-bold">
+                              {getInitials(userEmail)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border p-2">
+                        <DropdownMenuItem className="rounded-lg text-xs">
+                          <Moon className="w-4 h-4 mr-2" /> Dark mode
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-lg text-xs">
+                          <Zap className="w-4 h-4 mr-2" /> What's new
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleTabChange('settings')} className="rounded-lg text-xs">
+                          <Settings className="w-4 h-4 mr-2" /> Settings
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="my-1" />
+                        <DropdownMenuItem onClick={onLogout} className="text-rose-600 focus:text-rose-600 rounded-lg text-xs">
+                          <LogOut className="w-4 h-4 mr-2" /> Sign out
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
               </>
             )}
           </aside>
 
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {/* Top Header - Glassmorphism */}
             {/* Top Header */}
-            <header className="h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border flex items-center justify-between px-6 sticky top-0 z-10 transition-all duration-300">
-              <div className="flex items-center gap-6 flex-1">
-                <h1 className="text-xl font-bold text-foreground tracking-tight capitalize">
-                  {activeTab === 'dashboard' ? 'Overview' : activeTab.replace('-', ' ')}
+            <header className="h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6 sticky top-0 z-10 transition-all duration-300">
+              {/* Left Side: Greeting Only */}
+              <div className="flex items-center">
+                <h1 className="text-xl font-bold text-foreground tracking-tight">
+                  {activeTab === 'dashboard' ? `${getGreeting()}, ${userName || getUserName(userEmail)}!` : activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                 </h1>
-
-                {/* Global Search - Integrated nicely */}
-                {(userRole === 'superadmin' || userRole === 'admin') && (
-                  <div className="max-w-md w-full ml-4">
-                    <GlobalSearchBar
-                      placeholder="Type / to search..."
-                      value={searchQuery}
-                      onValueChange={setSearchQuery}
-                      onResultClick={handleGlobalSearchResult}
-                      className="bg-muted/50 border-0 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
-                    />
-                  </div>
-                )}
               </div>
 
-              <div className="flex items-center gap-6">
-
-                {/* Notifications & Theme */}
-                <div className="flex items-center gap-2 pr-4 border-r border-border">
-                  <Popover open={notificationPopoverOpen} onOpenChange={setNotificationPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-muted text-muted-foreground">
-                        <Bell className="h-5 w-5" />
-                        {unreadCount > 0 && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: '-4px',
-                              right: '-4px',
-                              height: '20px',
-                              minWidth: '20px',
-                              padding: '0 6px',
-                              backgroundColor: 'rgb(234, 88, 12)',
-                              color: 'rgb(255, 255, 255)',
-                              fontSize: '11px',
-                              fontWeight: '700',
-                              borderRadius: '9999px',
-                              border: '2px solid rgb(255, 255, 255)',
-                              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              lineHeight: '1'
-                            }}
-                          >
-                            {unreadCount}
-                          </div>
-                        )}
+              {/* Right Side: Customize Button */}
+              <div className="flex items-center gap-2">
+                {activeTab === 'dashboard' && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted text-foreground border-border">
+                        <Palette className="h-4 w-4 mr-2" />
+                        Customize
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent align="end" className="w-[400px] p-0 rounded-xl shadow-lg border-border bg-popover">
-                      <div className="heading p-4 border-b border-border flex justify-between items-center bg-muted/50 rounded-t-xl">
-                        <h4 className="font-semibold text-foreground">Notifications</h4>
-                        {unreadCount > 0 && <Button variant="link" size="sm" onClick={onMarkAllNotificationsAsRead}>Mark all read</Button>}
-                      </div>
-                      <ScrollArea className="h-[400px]">
-                        {notifications.map(n => (
-                          <div key={n.id} onClick={() => handleNotificationClick(n)} className={`p-4 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors ${!n.read ? 'bg-primary/5' : ''}`}>
-                            <div className="flex gap-3">
-                              <div className={`mt-1 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${getNotificationColor(n.type)} text-white shadow-sm`}>
-                                {getNotificationIcon(n.type)}
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-foreground">{n.title}</p>
-                                <p className="text-sm text-muted-foreground mt-0.5">{n.message}</p>
-                                <p className="text-xs text-muted-foreground mt-2">{formatTimestamp(n.timestamp)}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                        {notifications.length === 0 && <div className="p-8 text-center text-muted-foreground">No new notifications</div>}
-                      </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
-
-                </div>
-
-                {/* User Profile */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-3 pl-2 outline-none group">
-                      <div className="text-right hidden md:block">
-                        <p className="text-sm font-bold text-foreground">{userName || getUserName(userEmail)}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
-                      </div>
-                      <Avatar className="h-10 w-10 ring-2 ring-white shadow-lg group-hover:ring-indigo-100 transition-all">
-                        <AvatarFallback
-                          className="bg-gradient-to-br from-indigo-500 to-purple-500"
-                          style={{
-                            color: 'rgb(255, 255, 255)',
-                            fontWeight: '700',
-                            fontSize: '14px'
-                          }}
-                        >
-                          {getInitials(userEmail)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border p-2">
-                    <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Account</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setActiveTab('settings')} className="rounded-lg">
-                      <Settings className="w-4 h-4 mr-2" /> Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="my-1 border-slate-50" />
-                    <DropdownMenuItem onClick={onLogout} className="text-rose-600 focus:text-rose-600 rounded-lg">
-                      <LogOut className="w-4 h-4 mr-2" /> Log Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Customize Dashboard</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </div>
             </header>
 
