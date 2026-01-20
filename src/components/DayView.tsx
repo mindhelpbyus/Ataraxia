@@ -42,13 +42,13 @@ export function DayView({
   // NOTE: Working hours are for visual indication and mobile app sync ONLY
   // All slots are clickable in CRM to allow booking outside business hours
   const isWorkingHour = (hour: number, therapist: Therapist): boolean => {
-    const start = therapist.workingHours?.start 
+    const start = therapist.workingHours?.start
       ? parseInt(therapist.workingHours.start.split(':')[0])
       : 9;
     const end = therapist.workingHours?.end
       ? parseInt(therapist.workingHours.end.split(':')[0])
       : 18;
-    
+
     return hour >= start && hour <= end;
   };
 
@@ -89,13 +89,13 @@ export function DayView({
   const handleDrop = (item: { appointment: Appointment }, hour: number, therapistId?: string) => {
     const newStartTime = new Date(date);
     newStartTime.setHours(hour, 0, 0, 0);
-    
+
     const originalStart = new Date(item.appointment.startTime);
     const originalEnd = new Date(item.appointment.endTime);
     const duration = originalEnd.getTime() - originalStart.getTime();
-    
+
     const newEndTime = new Date(newStartTime.getTime() + duration);
-    
+
     onAppointmentUpdate(item.appointment.id, {
       startTime: newStartTime.toISOString(),
       endTime: newEndTime.toISOString(),
@@ -118,14 +118,14 @@ export function DayView({
         <div className="flex-1 overflow-auto">
           <div className="flex min-h-full">
             {/* Time Column */}
-            <div className="w-20 border-r border-border bg-muted/30 flex-shrink-0 sticky left-0 z-30">
-              <div className="h-16 border-b border-border flex items-center justify-center text-sm font-medium sticky top-0 bg-muted/30 z-50 border-r border-border">
+            <div className="w-20 border-r border-border bg-white flex-shrink-0 sticky left-0 z-30">
+              <div className="h-16 border-b border-border flex items-center justify-center text-sm font-medium sticky top-0 bg-white z-50 border-r border-border">
                 Time
               </div>
               {timeSlots.map(slot => (
                 <div
                   key={slot.hour}
-                  className="h-24 border-b border-border flex items-center justify-center text-xs text-muted-foreground bg-muted/30"
+                  className="h-24 border-b border-border flex items-center justify-center text-xs text-muted-foreground bg-white"
                 >
                   {slot.displayTime}
                 </div>
@@ -135,7 +135,7 @@ export function DayView({
             {/* Therapist Columns */}
             {therapists.map(therapist => {
               const isDayWorking = isWorkingDay(therapist);
-              
+
               return (
                 <div key={therapist.id} className="flex-1 min-w-64 border-r border-border">
                   {/* Therapist Header */}
@@ -156,7 +156,7 @@ export function DayView({
                   {/* Time Slots */}
                   {timeSlots.map(slot => {
                     const isWorking = isDayWorking && isWorkingHour(slot.hour, therapist);
-                    
+
                     return (
                       <DaySlot
                         key={`${therapist.id}-${slot.hour}`}
@@ -182,7 +182,7 @@ export function DayView({
 
   // Single therapist view
   const therapist = therapists[0];
-  
+
   // If no therapist data, show error message
   if (!therapist) {
     return (
@@ -194,7 +194,7 @@ export function DayView({
       </div>
     );
   }
-  
+
   const isDayWorking = isWorkingDay(therapist);
 
   return (
@@ -210,11 +210,11 @@ export function DayView({
       <div className="flex-1 overflow-auto">
         <div className="flex">
           {/* Time Column */}
-          <div className="w-20 border-r border-border bg-muted/30 flex-shrink-0 sticky left-0 z-30">
+          <div className="w-20 border-r border-border bg-white flex-shrink-0 sticky left-0 z-30">
             {timeSlots.map(slot => (
               <div
                 key={slot.hour}
-                className="h-24 border-b border-border flex items-center justify-center text-xs text-muted-foreground bg-muted/30 bg-[rgba(255,255,255,0.3)]"
+                className="h-24 border-b border-border flex items-center justify-center text-xs text-muted-foreground bg-white"
               >
                 {slot.displayTime}
               </div>
@@ -225,7 +225,7 @@ export function DayView({
           <div className="flex-1">
             {timeSlots.map(slot => {
               const isWorking = isDayWorking && isWorkingHour(slot.hour, therapist);
-              
+
               return (
                 <DaySlot
                   key={slot.hour}
@@ -279,12 +279,12 @@ function DaySlot({
   const now = new Date();
   const isCurrentHour = now.getHours() === hour;
   const isPastHour = now.getHours() > hour;
-  
+
   // Allow clicking if: allowAllSlots is true OR it's a working hour
   // NOTE: In CRM, allowAllSlots is ALWAYS true to allow booking outside business hours
   // Working hours are only used for visual styling (grayed out background)
   const isClickable = allowAllSlots || isWorkingHour;
-  
+
   // Debug logging for slot clickability
   if (hour === 10) { // Only log for 10 AM to avoid spam
     console.log(`[DaySlot ${hour}:00] allowAllSlots=${allowAllSlots}, isWorkingHour=${isWorkingHour}, isClickable=${isClickable}, therapist=${therapist?.name}`);
@@ -292,13 +292,13 @@ function DaySlot({
 
   return (
     <div
-      ref={drop}
+      ref={drop as any}
       className={`
         h-24 border-b border-border p-2 transition-colors cursor-pointer
-        ${!isWorkingHour ? 'bg-gray-50/80' : ''}
+        ${!isWorkingHour ? '' : ''}
         ${isOver ? 'bg-primary/10' : isClickable ? 'hover:bg-muted/50' : ''}
-        ${isCurrentHour ? 'bg-blue-50' : ''}
-        ${isPastHour && isWorkingHour ? 'bg-gray-50/50' : ''}
+        ${isCurrentHour ? 'bg-orange-50' : ''}
+        ${isPastHour && isWorkingHour ? '' : ''}
       `}
       onClick={isClickable ? onSlotClick : undefined}
     >

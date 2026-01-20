@@ -31,13 +31,13 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
   const generateTimeSlots = (therapist?: Therapist): string[] => {
     const slots: string[] = [];
     // Use therapist's working hours or default to 6 AM - 10 PM
-    const startHour = therapist?.workingHours?.start 
-      ? parseInt(therapist.workingHours.start.split(':')[0]) 
-      : 6;
-    const endHour = therapist?.workingHours?.end 
+    const startHour = therapist?.workingHours?.start
+      ? parseInt(therapist.workingHours.start.split(':')[0])
+      : 9;
+    const endHour = therapist?.workingHours?.end
       ? parseInt(therapist.workingHours.end.split(':')[0])
-      : 22;
-    
+      : 18;
+
     for (let hour = startHour; hour <= endHour; hour++) {
       slots.push(`${hour.toString().padStart(2, '0')}:00`);
       if (hour < endHour) {
@@ -59,7 +59,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
     if (!therapist || !isWorkingDay(date, therapist)) {
       return false;
     }
-    
+
     const dateStr = date.toISOString().split('T')[0];
     const seed = dateStr + time + therapistId;
     const hash = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -67,9 +67,9 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
   };
 
   // Get availability count for a date across all selected therapists
-  const getAvailabilityForDate = (date: Date): { 
-    total: number; 
-    byTherapist: Record<string, { name: string; count: number; color: string }> 
+  const getAvailabilityForDate = (date: Date): {
+    total: number;
+    byTherapist: Record<string, { name: string; count: number; color: string }>
   } => {
     const byTherapist: Record<string, { name: string; count: number; color: string }> = {};
     let total = 0;
@@ -79,7 +79,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
         byTherapist[therapist.id] = { name: therapist.name, count: 0, color: therapist.color };
         return;
       }
-      
+
       const timeSlots = generateTimeSlots(therapist);
       const count = timeSlots.filter(time => isSlotAvailable(date, time, therapist.id)).length;
       byTherapist[therapist.id] = { name: therapist.name, count, color: therapist.color };
@@ -124,18 +124,18 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
+
     const weeks: Date[][] = [];
     let currentWeek: Date[] = [];
-    
+
     const firstDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-    
+
     for (let i = 0; i < firstDayOfWeek; i++) {
       const prevDate = new Date(firstDay);
       prevDate.setDate(prevDate.getDate() - (firstDayOfWeek - i));
       currentWeek.push(prevDate);
     }
-    
+
     for (let day = 1; day <= lastDay.getDate(); day++) {
       currentWeek.push(new Date(year, month, day));
       if (currentWeek.length === 7) {
@@ -143,7 +143,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
         currentWeek = [];
       }
     }
-    
+
     if (currentWeek.length > 0) {
       while (currentWeek.length < 7) {
         const nextDate = new Date(lastDay);
@@ -152,7 +152,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
       }
       weeks.push(currentWeek);
     }
-    
+
     return weeks;
   };
 
@@ -186,7 +186,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
           {selectedTherapists.map((therapist) => {
             const therapistSlots = generateTimeSlots(therapist);
             const isWorking = isWorkingDay(date, therapist);
-            
+
             return (
               <div key={therapist.id} className="space-y-2">
                 {/* Therapist Header */}
@@ -200,7 +200,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                     <Badge variant="secondary" className="text-xs ml-auto">Non-working day</Badge>
                   )}
                 </div>
-                
+
                 {/* Slots for this therapist */}
                 {isWorking && (
                   <div className="space-y-1.5 pl-2">
@@ -215,7 +215,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                             w-full text-left px-3 py-2 rounded-md text-sm
                             transition-all border
                             ${available
-                              ? 'border-[#dddbda] hover:border-[#0176d3] hover:bg-[#ecf3fe] cursor-pointer'
+                              ? 'border-[#dddbda] hover:border-[#ea580c] hover:bg-orange-50 cursor-pointer'
                               : 'border-[#f3f4f6] bg-[#f9fafb] text-muted-foreground cursor-not-allowed opacity-50'
                             }
                           `}
@@ -226,7 +226,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                               <span className="font-medium">{time}</span>
                             </div>
                             {available ? (
-                              <Badge variant="green" size="sm">
+                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-200">
                                 Available
                               </Badge>
                             ) : (
@@ -251,7 +251,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
     const therapist = selectedTherapists[0];
     const therapistSlots = generateTimeSlots(therapist);
     const isWorking = therapist && isWorkingDay(date, therapist);
-    
+
     if (!isWorking) {
       return (
         <div className="text-center py-8 text-muted-foreground">
@@ -274,7 +274,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                 w-full text-left px-3 py-2 rounded-md text-sm
                 transition-all border
                 ${available
-                  ? 'border-[#dddbda] hover:border-[#0176d3] hover:bg-[#ecf3fe] cursor-pointer'
+                  ? 'border-[#dddbda] hover:border-[#ea580c] hover:bg-orange-50 cursor-pointer'
                   : 'border-[#f3f4f6] bg-[#f9fafb] text-muted-foreground cursor-not-allowed opacity-50'
                 }
               `}
@@ -285,7 +285,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                   <span className="font-medium">{time}</span>
                 </div>
                 {available ? (
-                  <Badge variant="green" size="sm">
+                  <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-200">
                     Available
                   </Badge>
                 ) : (
@@ -343,15 +343,15 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                     const therapist = therapists.find(th => th.name === t.name);
                     return sum + (therapist ? generateTimeSlots(therapist).length : 0);
                   }, 0);
-                  
+
                   return (
                     <button
                       key={date.toISOString()}
                       onClick={() => handleDateClick(date)}
                       className={`
-                        w-full p-3 rounded-lg border border-[#dddbda] hover:border-[#0176d3]
-                        hover:bg-[#ecf3fe] transition-all cursor-pointer text-left
-                        ${isToday(date) ? 'ring-2 ring-[#0176d3]' : ''}
+                        w-full p-3 rounded-lg border border-[#dddbda] hover:border-[#ea580c]
+                        hover:bg-orange-50 transition-all cursor-pointer text-left
+                        ${isToday(date) ? 'ring-2 ring-[#ea580c]' : ''}
                       `}
                     >
                       <div className="space-y-2">
@@ -361,11 +361,11 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                             <div className="font-semibold">{date.getDate()}</div>
                           </div>
                           <div className="text-right text-xs">
-                            <div className="text-[#2e844a] font-medium">{total} slots</div>
+                            <div className="text-orange-600 font-medium">{total} slots</div>
                             <div className="text-muted-foreground">{totalPossibleSlots - total} booked</div>
                           </div>
                         </div>
-                        
+
                         {/* Show availability by therapist */}
                         {isMultiTherapist && (
                           <div className="flex flex-wrap gap-1.5 pt-1 border-t border-[#dddbda]">
@@ -405,7 +405,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowDaySlots(false)}
-                    className="text-xs text-[#0176d3]"
+                    className="text-xs text-orange-600 hover:text-orange-700"
                   >
                     ← Back to week
                   </Button>
@@ -431,7 +431,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                       {week.map((date, dayIdx) => {
                         const { total, byTherapist } = getAvailabilityForDate(date);
                         const isCurrentMonth = isSameMonth(date, selectedDate);
-                        
+
                         return (
                           <Tooltip key={dayIdx}>
                             <TooltipTrigger asChild>
@@ -441,12 +441,13 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                                   text-xs h-7 w-7 rounded-md transition-colors font-medium
                                   flex items-center justify-center relative
                                   ${!isCurrentMonth ? 'text-sidebar-foreground/40' : 'text-sidebar-foreground'}
-                                  ${isToday(date) ? 'bg-[#0176d3] text-white hover:bg-[#0176d3] font-semibold' : 'hover:bg-sidebar-accent'}
+                                  ${isToday(date) ? 'shadow-sm font-bold' : 'hover:bg-sidebar-accent'}
                                 `}
+                                style={isToday(date) ? { backgroundColor: '#ea580c', color: 'white' } : {}}
                               >
                                 {date.getDate()}
                                 {isCurrentMonth && total > 0 && !isToday(date) && (
-                                  <span className="absolute bottom-0 text-[8px] text-[#2e844a] font-medium leading-none">
+                                  <span className="absolute bottom-0 text-[8px] text-orange-600 font-medium leading-none">
                                     {total}
                                   </span>
                                 )}

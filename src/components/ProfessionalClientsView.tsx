@@ -647,13 +647,7 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="mb-8"
       >
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Clients
-            </h1>
-            <p className="text-muted-foreground mt-1">Manage your client records and information</p>
-          </div>
+        <div className="flex items-center justify-end mb-6">
           <Button
             onClick={() => setIsAddClientOpen(true)}
             className="shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"

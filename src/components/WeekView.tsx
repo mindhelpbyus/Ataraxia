@@ -50,13 +50,13 @@ export function WeekView({
   // NOTE: Working hours are for visual indication and mobile app sync ONLY
   // All slots are clickable in CRM to allow booking outside business hours
   const isWorkingHour = (hour: number, therapist: Therapist): boolean => {
-    const start = therapist.workingHours?.start 
+    const start = therapist.workingHours?.start
       ? parseInt(therapist.workingHours.start.split(':')[0])
       : 9;
     const end = therapist.workingHours?.end
       ? parseInt(therapist.workingHours.end.split(':')[0])
       : 18;
-    
+
     return hour >= start && hour <= end;
   };
 
@@ -80,7 +80,7 @@ export function WeekView({
       );
       const matchesHour = aptHour === hour;
       const matchesTherapist = !therapistId || apt.therapistId === therapistId;
-      
+
       return matchesDate && matchesHour && matchesTherapist;
     });
   };
@@ -93,13 +93,13 @@ export function WeekView({
   const handleDrop = (item: { appointment: Appointment }, date: Date, hour: number, therapistId?: string) => {
     const newStartTime = new Date(date);
     newStartTime.setHours(hour, 0, 0, 0);
-    
+
     const originalStart = new Date(item.appointment.startTime);
     const originalEnd = new Date(item.appointment.endTime);
     const duration = originalEnd.getTime() - originalStart.getTime();
-    
+
     const newEndTime = new Date(newStartTime.getTime() + duration);
-    
+
     onAppointmentUpdate(item.appointment.id, {
       startTime: newStartTime.toISOString(),
       endTime: newEndTime.toISOString(),
@@ -125,7 +125,7 @@ export function WeekView({
   // Get available slots for a specific date and therapist
   const getAvailableSlots = (date: Date, therapist: Therapist): number => {
     if (!isWorkingDay(date, therapist)) return 0;
-    
+
     const workingSlots = timeSlots.filter(slot => isWorkingHour(slot.hour, therapist));
     const bookedSlots = appointments.filter(apt => {
       const aptDate = new Date(apt.startTime);
@@ -136,7 +136,7 @@ export function WeekView({
         apt.therapistId === therapist.id
       );
     });
-    
+
     return Math.max(0, workingSlots.length - bookedSlots.length);
   };
 
@@ -158,12 +158,12 @@ export function WeekView({
             <div className="sticky top-0 bg-background z-40 border-b border-border">
               {/* Time Label Row */}
               <div className="flex">
-                <div className="w-20 flex-shrink-0 border-r border-border bg-muted/30 flex items-center justify-center text-sm font-medium p-2 sticky left-0 z-50 border-b border-border">
+                <div className="w-20 flex-shrink-0 border-r border-border bg-white flex items-center justify-center text-sm font-medium p-2 sticky left-0 z-50 border-b border-border">
                   Time
                 </div>
                 {therapists.map(therapist => (
-                  <div 
-                    key={therapist.id} 
+                  <div
+                    key={therapist.id}
                     className="flex-shrink-0 border-r border-border"
                     style={{ width: '840px' }}
                   >
@@ -180,12 +180,12 @@ export function WeekView({
                   </div>
                 ))}
               </div>
-              
+
               {/* Days Row */}
               <div className="flex">
-                <div className="w-20 flex-shrink-0 border-r border-border sticky left-0 z-50 bg-muted/30" />
+                <div className="w-20 flex-shrink-0 border-r border-border sticky left-0 z-50 bg-white" />
                 {therapists.map(therapist => (
-                  <div 
+                  <div
                     key={`days-${therapist.id}`}
                     className="flex-shrink-0 border-r border-border"
                     style={{ width: '840px' }}
@@ -195,15 +195,15 @@ export function WeekView({
                         const dayInfo = formatDayHeader(date);
                         const isWorking = isWorkingDay(date, therapist);
                         const availableSlots = getAvailableSlots(date, therapist);
-                        
+
                         return (
                           <Tooltip key={date.toISOString()}>
                             <TooltipTrigger asChild>
                               <div
                                 className={`
                                   flex-1 p-2 text-center border-r border-border bg-card text-xs cursor-help
-                                  ${dayInfo.isToday ? 'bg-blue-50 text-blue-900' : ''}
-                                  ${!isWorking ? 'bg-gray-100 opacity-60' : ''}
+                                  ${dayInfo.isToday ? 'bg-orange-50 text-orange-700 font-semibold' : ''}
+                                  ${!isWorking ? 'bg-gray-50/30 opacity-60' : ''}
                                 `}
                                 style={{ width: '120px' }}
                               >
@@ -253,17 +253,17 @@ export function WeekView({
                 </div>
                 {therapists.map(therapist => {
                   const isWorking = isWorkingHour(slot.hour, therapist);
-                  
+
                   return (
-                    <div 
-                      key={therapist.id} 
+                    <div
+                      key={therapist.id}
                       className="flex-shrink-0 border-r border-border"
                       style={{ width: '840px' }}
                     >
                       <div className="flex h-20">
                         {weekDays.map(date => {
                           const isDayWorking = isWorkingDay(date, therapist);
-                          
+
                           return (
                             <WeekSlot
                               key={`${therapist.id}-${date.toISOString()}-${slot.hour}`}
@@ -293,7 +293,7 @@ export function WeekView({
 
   // Single therapist view
   const therapist = therapists[0];
-  
+
   // If no therapist data, show error message
   if (!therapist) {
     return (
@@ -305,27 +305,27 @@ export function WeekView({
       </div>
     );
   }
-  
+
   return (
     <div className="h-full overflow-auto">
       <div className="min-w-max">
         {/* Header Row */}
         <div className="sticky top-0 bg-background z-40 border-b border-border">
           <div className="flex">
-            <div className="w-16 border-r bg-muted/30 flex items-center justify-center text-sm font-medium p-2 sticky left-0 z-50 border-b border-border bg-[rgba(255,255,255,0.3)]">
+            <div className="w-16 border-r bg-white flex items-center justify-center text-sm font-medium p-2 sticky left-0 z-50 border-b border-border bg-[rgba(255,255,255,0.3)]">
               Time
             </div>
             {weekDays.map(date => {
               const dayInfo = formatDayHeader(date);
               const isWorking = isWorkingDay(date, therapist);
-              
+
               return (
                 <div
                   key={date.toISOString()}
                   className={`
                     flex-1 min-w-32 p-3 text-center border-r border-border bg-card
-                    ${dayInfo.isToday ? 'bg-blue-50 text-blue-900' : ''}
-                    ${!isWorking ? 'bg-gray-100' : ''}
+                    ${dayInfo.isToday ? 'bg-orange-50 text-orange-700 font-semibold' : ''}
+                    ${!isWorking ? 'bg-gray-50/30' : ''}
                   `}
                 >
                   <div className="font-medium text-sm">{dayInfo.dayName}</div>
@@ -344,15 +344,15 @@ export function WeekView({
         {/* Time Slots */}
         {timeSlots.map(slot => {
           const isWorking = isWorkingHour(slot.hour, therapist);
-          
+
           return (
             <div key={slot.hour} className="flex border-b border-border">
-              <div className="w-16 border-r border-border bg-muted/30 flex items-center justify-center text-xs text-muted-foreground p-2 sticky left-0 z-30 bg-muted/30">
+              <div className="w-16 border-r border-border bg-white flex items-center justify-center text-xs text-muted-foreground p-2 sticky left-0 z-30">
                 {slot.displayTime}
               </div>
               {weekDays.map(date => {
                 const isDayWorking = therapist && isWorkingDay(date, therapist);
-                
+
                 return (
                   <WeekSlot
                     key={`${date.toISOString()}-${slot.hour}`}
@@ -416,7 +416,7 @@ function WeekSlot({
   );
 
   const isPastHour = date.getTime() + (hour * 60 * 60 * 1000) < now.getTime();
-  
+
   // Allow clicking if: allowAllSlots is true OR it's a working hour
   // NOTE: In CRM, allowAllSlots is ALWAYS true to allow booking outside business hours
   // Working hours are only used for visual styling (grayed out background)
@@ -424,13 +424,13 @@ function WeekSlot({
 
   return (
     <div
-      ref={drop}
+      ref={drop as any}
       className={`
         flex-1 h-20 border-r border-border p-1 transition-colors cursor-pointer
-        ${!isWorkingHour ? 'bg-gray-50/80' : ''}
+        ${!isWorkingHour ? '' : ''}
         ${isOver ? 'bg-primary/10' : isClickable ? 'hover:bg-muted/50' : ''}
-        ${isCurrentHour ? 'bg-blue-50' : ''}
-        ${isPastHour && isWorkingHour ? 'bg-gray-50/50' : ''}
+        ${isCurrentHour ? 'bg-orange-50/40' : ''}
+        ${isPastHour && isWorkingHour ? '' : ''}
       `}
       style={{ minWidth: '28px' }}
       onClick={isClickable ? onSlotClick : undefined}

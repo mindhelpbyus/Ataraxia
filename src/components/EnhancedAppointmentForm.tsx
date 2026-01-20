@@ -14,6 +14,10 @@ import { Badge } from './ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
 import { generateRoomName, getJitsiDomain, generateJitsiJWT } from '../services/jitsiService';
+import { useAuth } from '../hooks/useAuth';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
+import { Check, ChevronDown } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 interface EnhancedAppointmentFormProps {
   isOpen: boolean;
@@ -67,6 +71,25 @@ export function EnhancedAppointmentForm({
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [openClientSelect, setOpenClientSelect] = useState(false);
+  const { user } = useAuth();
+
+  // combine passed therapists with current user if they are a therapist but not in the list (e.g. backend/mock mismatch)
+  const effectiveTherapists = React.useMemo(() => {
+    if (user?.role && user.role.toLowerCase() === 'therapist' && user.id && !therapists.some(t => t.id === user.id)) {
+      const currentUserTherapist: Therapist = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        color: '#3b82f6', // Default blue
+        workingDays: [1, 2, 3, 4, 5],
+        workingHours: { start: '09:00', end: '17:00' }
+      };
+      return [currentUserTherapist, ...therapists];
+    }
+    return therapists;
+  }, [therapists, user]);
+
   const [formData, setFormData] = useState({
     therapistId: '',
     clientId: '',
@@ -90,7 +113,7 @@ export function EnhancedAppointmentForm({
       loadClients();
       initializeForm();
     }
-  }, [isOpen, initialData, editingAppointment]);
+  }, [isOpen, initialData, editingAppointment, effectiveTherapists]);
 
   const loadClients = async () => {
     try {
@@ -105,7 +128,7 @@ export function EnhancedAppointmentForm({
     if (editingAppointment) {
       const startDate = new Date(editingAppointment.startTime);
       const endDate = new Date(editingAppointment.endTime);
-      
+
       setFormData({
         therapistId: editingAppointment.therapistId,
         clientId: editingAppointment.clientId,
@@ -126,13 +149,19 @@ export function EnhancedAppointmentForm({
     } else {
       const date = initialData?.date || new Date();
       const time = initialData?.time || '09:00';
-      const therapistId = initialData?.therapistId || therapists[0]?.id || '';
-      const selectedTherapist = therapists.find(t => t.id === therapistId);
-      
+
+      // Default to logged-in therapist if available, otherwise first in list
+      const defaultTherapistId = (user?.id && effectiveTherapists.some(t => t.id === user.id))
+        ? user.id
+        : (effectiveTherapists[0]?.id || '');
+
+      const therapistId = initialData?.therapistId || defaultTherapistId;
+      const selectedTherapist = effectiveTherapists.find(t => t.id === therapistId);
+
       const [hours, minutes] = time.split(':').map(Number);
       const endHours = hours + 1;
       const endTime = `${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-      
+
       setFormData({
         therapistId,
         clientId: '',
@@ -160,10 +189,10 @@ export function EnhancedAppointmentForm({
     try {
       const startDateTime = new Date(`${formData.date}T${formData.startTime}`);
       const endDateTime = new Date(`${formData.date}T${formData.endTime}`);
-      
+
       const selectedClient = clients.find(c => c.id === formData.clientId);
-      const selectedTherapist = therapists.find(t => t.id === formData.therapistId);
-      
+      const selectedTherapist = effectiveTherapists.find(t => t.id === formData.therapistId);
+
       let title = formData.title;
       if (!title) {
         if (formData.type === 'break') {
@@ -176,7 +205,7 @@ export function EnhancedAppointmentForm({
           title = `Session with ${selectedClient?.name || 'Client'}`;
         }
       }
-      
+
       const appointmentData: Omit<Appointment, 'id'> = {
         therapistId: formData.therapistId,
         clientId: formData.clientId,
@@ -202,7 +231,7 @@ export function EnhancedAppointmentForm({
         try {
           const roomName = generateRoomName(Date.now().toString());
           const domain = getJitsiDomain();
-          
+
           // Generate JWT token for the therapist (moderator)
           const jwt = await generateJitsiJWT(
             roomName,
@@ -212,7 +241,7 @@ export function EnhancedAppointmentForm({
             true, // therapist is moderator
             undefined // appointmentId will be added after creation
           );
-          
+
           appointmentData.videoCallRoomName = roomName;
           appointmentData.videoCallUrl = `https://${domain}/${roomName}`;
           appointmentData.videoCallJWT = jwt;
@@ -233,9 +262,9 @@ export function EnhancedAppointmentForm({
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     if (field === 'therapistId' && !formData.customColor) {
-      const therapist = therapists.find(t => t.id === value);
+      const therapist = effectiveTherapists.find(t => t.id === value);
       if (therapist) {
         setFormData(prev => ({ ...prev, color: therapist.color }));
       }
@@ -245,10 +274,10 @@ export function EnhancedAppointmentForm({
   const handleDurationChange = (duration: string) => {
     const [startHours, startMinutes] = formData.startTime.split(':').map(Number);
     const durationMinutes = parseInt(duration);
-    
+
     const endTime = new Date();
     endTime.setHours(startHours, startMinutes + durationMinutes, 0, 0);
-    
+
     const endTimeString = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
     setFormData(prev => ({ ...prev, endTime: endTimeString }));
   };
@@ -276,7 +305,7 @@ export function EnhancedAppointmentForm({
                   {editingAppointment ? 'Edit Appointment' : 'New Appointment'}
                 </SheetTitle>
                 <SheetDescription className="text-sm text-muted-foreground mt-1">
-                  {editingAppointment 
+                  {editingAppointment
                     ? 'Update appointment details and save changes'
                     : 'Schedule a new session or block time on calendar'
                   }
@@ -297,7 +326,7 @@ export function EnhancedAppointmentForm({
               </div>
               <RadioGroup
                 value={formData.type}
-                onValueChange={(value: 'appointment' | 'break' | 'internal' | 'external') => 
+                onValueChange={(value: 'appointment' | 'break' | 'internal' | 'external') =>
                   handleInputChange('type', value)
                 }
                 className="grid grid-cols-2 gap-4"
@@ -311,8 +340,8 @@ export function EnhancedAppointmentForm({
                       htmlFor={type.value}
                       className={`
                         relative flex items-center gap-4 border-2 rounded-xl p-5 cursor-pointer transition-all group
-                        ${isSelected 
-                          ? 'border-[#F97316] bg-[#F97316]/5 shadow-sm' 
+                        ${isSelected
+                          ? 'border-[#F97316] bg-[#F97316]/5 shadow-sm'
                           : 'border-border hover:border-[#F97316]/30 hover:bg-accent/50'
                         }
                       `}
@@ -357,7 +386,7 @@ export function EnhancedAppointmentForm({
                       <SelectValue placeholder="Select therapist" />
                     </SelectTrigger>
                     <SelectContent>
-                      {therapists.map(therapist => (
+                      {effectiveTherapists.map(therapist => (
                         <SelectItem key={therapist.id} value={therapist.id}>
                           <div className="flex items-center gap-2">
                             <div
@@ -373,80 +402,56 @@ export function EnhancedAppointmentForm({
                 </div>
 
                 {/* Color Picker */}
-                <div className="space-y-2.5">
+                {/* Color Selection - Expanded */}
+                <div className="space-y-3">
                   <Label className="text-sm text-muted-foreground">
                     Calendar Color
                   </Label>
-                  <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
-                    <PopoverTrigger asChild>
-                      <Button
+                  <div className="flex flex-wrap gap-2">
+                    {/* Default/Provider Color */}
+                    <button
+                      type="button"
+                      onClick={() => handleColorSelect('')}
+                      className={cn(
+                        "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
+                        !formData.customColor && !formData.color ? "ring-2 ring-offset-2 ring-[#0176d3]" : "hover:scale-105"
+                      )}
+                      style={{ backgroundColor: effectiveTherapists.find(t => t.id === formData.therapistId)?.color || '#0176d3' }}
+                      title="Provider Default"
+                    >
+                      {(!formData.customColor && !formData.color) && <Check className="w-4 h-4 text-white" />}
+                    </button>
+
+                    {/* Presets */}
+                    {PRESET_COLORS.map((color) => (
+                      <button
+                        key={color.value}
                         type="button"
-                        variant="outline"
-                        className="w-full h-12 justify-start"
-                      >
-                        <div
-                          className="w-7 h-7 rounded-md border border-border mr-2.5 flex-shrink-0"
-                          style={{ backgroundColor: currentDisplayColor }}
-                        />
-                        <span className="text-sm">{formData.customColor ? 'Custom Color' : 'Default Color'}</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-5">
-                      <div className="space-y-5">
-                        <div>
-                          <h4 className="text-sm mb-3.5">Preset Colors</h4>
-                          <div className="grid grid-cols-5 gap-2.5">
-                            {PRESET_COLORS.map((color) => (
-                              <button
-                                key={color.value}
-                                type="button"
-                                onClick={() => handleColorSelect(color.value)}
-                                className="w-full aspect-square rounded-lg border-2 transition-all hover:scale-105"
-                                style={{ 
-                                  backgroundColor: color.value,
-                                  borderColor: currentDisplayColor === color.value ? '#F97316' : 'transparent'
-                                }}
-                                title={color.name}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <Separator />
-                        <div className="space-y-2.5">
-                          <Label className="text-sm">Custom Color</Label>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="color"
-                              value={currentDisplayColor}
-                              onChange={(e) => handleColorSelect(e.target.value)}
-                              className="w-16 h-11 cursor-pointer p-1"
-                            />
-                          </div>
-                        </div>
-                        {formData.customColor && (
-                          <>
-                            <Separator />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => {
-                                setFormData(prev => ({ ...prev, customColor: '' }));
-                                const therapist = therapists.find(t => t.id === formData.therapistId);
-                                if (therapist) {
-                                  setFormData(prev => ({ ...prev, color: therapist.color }));
-                                }
-                                setShowColorPicker(false);
-                              }}
-                            >
-                              Reset to Provider Color
-                            </Button>
-                          </>
+                        onClick={() => handleColorSelect(color.value)}
+                        className={cn(
+                          "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
+                          (formData.customColor === color.value || formData.color === color.value) ? "ring-2 ring-offset-2 ring-[#ea580c]" : "hover:scale-105"
                         )}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      >
+                        {(formData.customColor === color.value || formData.color === color.value) && <Check className="w-4 h-4 text-white" />}
+                      </button>
+                    ))}
+
+                    {/* Custom Color Input */}
+                    <div className="relative">
+                      <div className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-[#ea580c] transition-colors relative">
+                        <Palette className="w-4 h-4 text-muted-foreground" />
+                        <Input
+                          type="color"
+                          value={currentDisplayColor}
+                          onChange={(e) => handleColorSelect(e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full p-0 border-0"
+                        />
                       </div>
-                    </PopoverContent>
-                  </Popover>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -461,24 +466,52 @@ export function EnhancedAppointmentForm({
                     <Label htmlFor="client" className="text-sm text-muted-foreground">
                       Select Client
                     </Label>
-                    <Select value={formData.clientId} onValueChange={(value) => handleInputChange('clientId', value)}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Choose a client for this session" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.map(client => (
-                          <SelectItem key={client.id} value={client.id}>
-                            <div className="py-1">
-                              <div>{client.name}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                <Badge variant="secondary" className="mr-2 text-xs">{client.membershipType}</Badge>
-                                {client.phone}
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openClientSelect} onOpenChange={setOpenClientSelect} modal={true}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={openClientSelect}
+                          className="w-full justify-between h-12"
+                        >
+                          {formData.clientId
+                            ? clients.find((client) => client.id === formData.clientId)?.name
+                            : "Search Client..."}
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[400px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search client (name, phone)..." />
+                          <CommandList>
+                            <CommandEmpty>No client found.</CommandEmpty>
+                            <CommandGroup>
+                              {clients.map((client) => (
+                                <CommandItem
+                                  key={client.id}
+                                  value={client.name}
+                                  onSelect={() => {
+                                    handleInputChange('clientId', client.id);
+                                    setOpenClientSelect(false);
+                                  }}
+                                >
+                                  <div className="flex flex-col">
+                                    <span>{client.name}</span>
+                                    <span className="text-xs text-muted-foreground">{client.phone} • {client.membershipType}</span>
+                                  </div>
+                                  <Check
+                                    className={cn(
+                                      "ml-auto h-4 w-4",
+                                      formData.clientId === client.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   {/* Title Override */}
@@ -511,9 +544,9 @@ export function EnhancedAppointmentForm({
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder={
-                      formData.type === 'break' ? 'e.g., Lunch Break' : 
-                      formData.type === 'internal' ? 'e.g., Team Standup' :
-                      'e.g., Conference, Training'
+                      formData.type === 'break' ? 'e.g., Lunch Break' :
+                        formData.type === 'internal' ? 'e.g., Team Standup' :
+                          'e.g., Conference, Training'
                     }
                     className="h-12"
                   />
@@ -526,7 +559,7 @@ export function EnhancedAppointmentForm({
             {/* Date & Time Section */}
             <div className="space-y-5">
               <Label className="text-base">Schedule</Label>
-              
+
               {/* Date */}
               <div className="space-y-2.5">
                 <Label htmlFor="date" className="text-sm text-muted-foreground">
@@ -622,7 +655,7 @@ export function EnhancedAppointmentForm({
                       <Label className="text-sm text-muted-foreground">Call Type</Label>
                       <RadioGroup
                         value={formData.videoCallType}
-                        onValueChange={(value: 'video' | 'audio') => 
+                        onValueChange={(value: 'video' | 'audio') =>
                           handleInputChange('videoCallType', value)
                         }
                         className="grid grid-cols-2 gap-3"
@@ -632,7 +665,7 @@ export function EnhancedAppointmentForm({
                           className={`
                             flex items-center gap-3 border-2 rounded-lg p-4 cursor-pointer transition-all
                             ${formData.videoCallType === 'video'
-                              ? 'border-[#F97316] bg-[#F97316]/5' 
+                              ? 'border-[#F97316] bg-[#F97316]/5'
                               : 'border-border hover:border-[#F97316]/30'
                             }
                           `}
@@ -655,7 +688,7 @@ export function EnhancedAppointmentForm({
                           className={`
                             flex items-center gap-3 border-2 rounded-lg p-4 cursor-pointer transition-all
                             ${formData.videoCallType === 'audio'
-                              ? 'border-[#F97316] bg-[#F97316]/5' 
+                              ? 'border-[#F97316] bg-[#F97316]/5'
                               : 'border-border hover:border-[#F97316]/30'
                             }
                           `}
@@ -726,7 +759,7 @@ export function EnhancedAppointmentForm({
                   onCheckedChange={(checked) => handleInputChange('flagged', checked as boolean)}
                 />
               </div>
-              
+
               {formData.flagged && (
                 <div className="rounded-xl border-2 border-[#F97316]/20 bg-[#F97316]/5 p-5 space-y-3">
                   <div className="flex items-center gap-2 text-[#F97316]">
@@ -763,16 +796,16 @@ export function EnhancedAppointmentForm({
 
         {/* Footer Actions */}
         <div className="px-8 py-5 bg-background border-t flex justify-end gap-3 flex-shrink-0">
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={onClose}
             className="px-8 h-11"
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={loading}
             className="px-8 h-11 bg-[#F97316] hover:bg-[#ea580c] text-white shadow-lg shadow-[#F97316]/20"
             onClick={handleSubmit}

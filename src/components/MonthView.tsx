@@ -19,12 +19,12 @@ export function MonthView({
   // Get the first day of the month
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
   const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  
+
   // Get the first day of the calendar (may be from previous month)
   const firstDayOfCalendar = new Date(firstDayOfMonth);
   const dayOfWeek = firstDayOfMonth.getDay();
   firstDayOfCalendar.setDate(firstDayOfMonth.getDate() - dayOfWeek);
-  
+
   // Generate 42 days (6 weeks) for the calendar grid
   const calendarDays = Array.from({ length: 42 }, (_, i) => {
     const day = new Date(firstDayOfCalendar);
@@ -50,12 +50,7 @@ export function MonthView({
   };
 
   const isToday = (day: Date) => {
-    const today = new Date();
-    return (
-      day.getFullYear() === today.getFullYear() &&
-      day.getMonth() === today.getMonth() &&
-      day.getDate() === today.getDate()
-    );
+    return day.toDateString() === new Date().toDateString();
   };
 
   const getTherapistById = (id: string) => {
@@ -82,7 +77,7 @@ export function MonthView({
           const dayAppointments = getAppointmentsForDay(day);
           const isCurrentMonthDay = isCurrentMonth(day);
           const isTodayDay = isToday(day);
-          
+
           return (
             <div
               key={day.toISOString()}
@@ -90,7 +85,7 @@ export function MonthView({
                 border-r border-b border-border last:border-r-0 p-2 cursor-pointer transition-colors
                 hover:bg-muted/50 min-h-24
                 ${!isCurrentMonthDay ? 'bg-muted/20 text-muted-foreground' : 'bg-background'}
-                ${isTodayDay ? 'bg-blue-50' : ''}
+                ${isTodayDay ? 'bg-orange-50' : ''}
               `}
               onClick={() => onDayClick(day)}
             >
@@ -98,14 +93,15 @@ export function MonthView({
               <div className="flex items-center justify-between mb-1">
                 <span
                   className={`
-                    text-sm font-medium
-                    ${isTodayDay ? 'bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center' : ''}
-                    ${!isCurrentMonthDay ? 'text-muted-foreground' : ''}
+                    text-sm font-medium z-10 relative
+                    ${isTodayDay ? 'rounded-full w-8 h-8 flex items-center justify-center shadow-sm font-bold' : ''}
+                    ${!isCurrentMonthDay && !isTodayDay ? 'text-muted-foreground' : ''}
                   `}
+                  style={isTodayDay ? { backgroundColor: '#ea580c', color: 'white' } : {}}
                 >
                   {day.getDate()}
                 </span>
-                
+
                 {/* Appointment count indicator */}
                 {dayAppointments.length > 3 && (
                   <span className="text-xs text-muted-foreground bg-muted rounded px-1">
@@ -119,14 +115,14 @@ export function MonthView({
                 {dayAppointments.slice(0, 3).map(appointment => {
                   const therapist = getTherapistById(appointment.therapistId);
                   const startTime = new Date(appointment.startTime);
-                  
+
                   return (
                     <div
                       key={appointment.id}
                       className={`
                         text-xs p-1 rounded cursor-pointer transition-colors
-                        ${appointment.type === 'break' 
-                          ? 'bg-gray-200 text-gray-700' 
+                        ${appointment.type === 'break'
+                          ? 'bg-gray-200 text-gray-700'
                           : 'bg-white border-l-2 shadow-sm hover:shadow-md'
                         }
                       `}
@@ -150,11 +146,11 @@ export function MonthView({
                           <span className="w-1 h-1 bg-yellow-500 rounded-full" />
                         )}
                       </div>
-                      
+
                       <div className="truncate" title={appointment.title}>
                         {appointment.title}
                       </div>
-                      
+
                       {therapists.length > 1 && therapist && (
                         <div className="text-xs text-muted-foreground truncate" title={therapist.name}>
                           {therapist.name}

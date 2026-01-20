@@ -255,14 +255,7 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="mb-8"
       >
-        <div className="flex items-end justify-between gap-6 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Organizations</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage practice entities and subscriptions.
-            </p>
-          </div>
-
+        <div className="flex items-end justify-end gap-6 mb-6">
           <Button onClick={handleCreateOrganization} className="bg-primary hover:bg-primary/90 shadow-sm transition-colors font-medium">
             <Plus className="h-4 w-4 mr-2" />
             Add Organization

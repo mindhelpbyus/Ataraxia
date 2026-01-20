@@ -323,13 +323,7 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="mb-8"
       >
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              {userRole === 'admin' ? 'Therapists' : 'All Therapists'}
-            </h1>
-            <p className="text-muted-foreground mt-1">Manage and view all therapist information</p>
-          </div>
+        <div className="flex justify-end items-center mb-6">
           <Button className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 hover:scale-105">
             <Plus className="h-4 w-4 mr-2" />
             Add Therapist
