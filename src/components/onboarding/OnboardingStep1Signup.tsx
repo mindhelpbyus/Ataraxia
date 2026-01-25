@@ -14,6 +14,7 @@ import { signInWithGoogle, signInWithApple, createUserWithEmail, getAuthErrorMes
 import { saveOAuthUserData } from '../../services/firestoreService';
 import { isFirebaseConfigured } from '../../config/firebase';
 import { logger } from '../../services/secureLogger';
+import { verificationService } from '../../api/services/verification';
 
 
 interface OnboardingStep1Props {
@@ -35,6 +36,7 @@ interface OnboardingStep1Props {
 export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, onBackToLogin }: OnboardingStep1Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showUnauthorizedDomainError, setShowUnauthorizedDomainError] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
 
   const handleBackToLogin = () => {
     localStorage.removeItem('therapistOnboardingData');
@@ -47,7 +49,7 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
     }
   };
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors: Record<string, string> = {};
 
     if (!data.fullName.trim()) {
@@ -72,6 +74,32 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
       newErrors.password = 'Password must be at least 8 characters';
     }
 
+    // Check for duplicates if basic validation passes
+    if (!newErrors.email && !newErrors.phoneNumber) {
+      setIsValidating(true);
+      try {
+        const duplicateCheck = await verificationService.checkDuplicateRegistration(
+          data.email,
+          data.phoneNumber
+        );
+
+        if (!duplicateCheck.success) {
+          if (duplicateCheck.emailExists) {
+            newErrors.email = 'This email address is already registered';
+          }
+          if (duplicateCheck.phoneExists) {
+            newErrors.phoneNumber = 'This phone number is already registered';
+          }
+        }
+      } catch (error) {
+        console.error('Error checking duplicates:', error);
+        // Don't block registration if duplicate check fails - log and continue
+        logger.error('Duplicate check failed:', error);
+      } finally {
+        setIsValidating(false);
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,9 +110,10 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
     e.preventDefault();
     if (isSubmitting) return;
 
-    if (validateForm()) {
-      setIsSubmitting(true);
+    setIsSubmitting(true);
 
+    const isValid = await validateForm();
+    if (isValid) {
       if (!isFirebaseConfigured) {
         alert('Firebase not configured. Please configure Firebase to use email sign-in.');
         setIsSubmitting(false);
@@ -294,8 +323,8 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
           </div>
 
           {/* Continue Button */}
-          <Button type="submit" disabled={isSubmitting} className="w-full bg-[#F97316] hover:bg-[#ea580c] rounded-full">
-            {isSubmitting ? 'Processing...' : 'Continue'}
+          <Button type="submit" disabled={isSubmitting || isValidating} className="w-full bg-[#F97316] hover:bg-[#ea580c] rounded-full">
+            {isValidating ? 'Checking availability...' : isSubmitting ? 'Processing...' : 'Continue'}
           </Button>
         </form>
 

@@ -100,6 +100,55 @@ export const registerTherapist = async (data: TherapistRegistrationData): Promis
 };
 
 /**
+ * Check for duplicate email or phone number
+ */
+export const checkDuplicateRegistration = async (email?: string, phoneNumber?: string): Promise<{
+    success: boolean;
+    emailExists?: boolean;
+    phoneExists?: boolean;
+    message?: string;
+}> => {
+    try {
+        const response = await fetch(`${VERIFICATION_API_URL}/api/verification/check-duplicate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+                phone_number: phoneNumber
+            }),
+        });
+
+        const data = await response.json();
+
+        if (response.status === 409) {
+            // Duplicate found
+            return {
+                success: false,
+                emailExists: data.details?.email_exists || false,
+                phoneExists: data.details?.phone_exists || false,
+                message: data.details?.message || 'Registration already exists'
+            };
+        }
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to check duplicate registration');
+        }
+
+        return {
+            success: true,
+            emailExists: false,
+            phoneExists: false,
+            message: 'Email and phone number are available'
+        };
+    } catch (error: any) {
+        console.error('Check duplicate registration error:', error);
+        throw error;
+    }
+};
+
+/**
  * Get registration status by firebase_uid
  */
 export const getRegistrationStatus = async (firebase_uid: string): Promise<RegistrationStatus> => {
@@ -245,4 +294,5 @@ export const verificationService = {
     getPendingVerifications,
     approveTherapist,
     rejectTherapist,
+    checkDuplicateRegistration,
 };
