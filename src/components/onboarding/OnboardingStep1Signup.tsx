@@ -38,6 +38,17 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showUnauthorizedDomainError, setShowUnauthorizedDomainError] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
+  
+  // Clear specific error when user starts typing
+  const clearError = (field: string) => {
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
 
   const handleBackToLogin = () => {
     localStorage.removeItem('therapistOnboardingData');
@@ -122,33 +133,39 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting || isValidating) return;
 
+    // First validate the form
+    const isValid = await validateForm();
+    if (!isValid) {
+      // If validation fails, don't proceed but keep form interactive
+      return;
+    }
+
+    // Only set submitting state if validation passes
     setIsSubmitting(true);
 
-    const isValid = await validateForm();
-    if (isValid) {
-      if (!isFirebaseConfigured) {
-        alert('Firebase not configured. Please configure Firebase to use email sign-in.');
-        setIsSubmitting(false);
-        return;
-      }
+    if (!isFirebaseConfigured) {
+      alert('Firebase not configured. Please configure Firebase to use email sign-in.');
+      setIsSubmitting(false);
+      return;
+    }
 
-      try {
-        const result = await createUserWithEmail(data.email, data.password);
-        const { user } = result;
+    try {
+      const result = await createUserWithEmail(data.email, data.password);
+      const { user } = result;
 
-        onUpdate({
-          fullName: data.fullName,
-          email: user.email || data.email,
-        });
+      onUpdate({
+        fullName: data.fullName,
+        email: user.email || data.email,
+      });
 
-        onNext();
-      } catch (error: any) {
-        logger.error('Email signup error:', error);
-        alert(getAuthErrorMessage(error) || 'Email sign-in failed. Please try again.');
-        setIsSubmitting(false);
-      }
+      onNext();
+    } catch (error: any) {
+      logger.error('Email signup error:', error);
+      alert(getAuthErrorMessage(error) || 'Email sign-in failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -281,7 +298,10 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
                 placeholder="Dr. Jane Smith"
                 className={`pl-10 ${errors.fullName ? 'border-red-500' : ''}`}
                 value={data.fullName}
-                onChange={(e) => onUpdate({ fullName: e.target.value })}
+                onChange={(e) => {
+                  onUpdate({ fullName: e.target.value });
+                  clearError('fullName');
+                }}
                 disabled={isSubmitting}
               />
             </div>
@@ -299,7 +319,10 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
                 placeholder="jane.smith@example.com"
                 className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                 value={data.email}
-                onChange={(e) => onUpdate({ email: e.target.value })}
+                onChange={(e) => {
+                  onUpdate({ email: e.target.value });
+                  clearError('email');
+                }}
                 disabled={isSubmitting}
               />
             </div>
@@ -311,7 +334,10 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
             label="Phone Number"
             value={data.phoneNumber}
             countryCode={data.countryCode}
-            onChange={(phone, code, iso) => onUpdate({ phoneNumber: phone, countryCode: code, country: iso })} /* Added iso */
+            onChange={(phone, code, iso) => {
+              onUpdate({ phoneNumber: phone, countryCode: code, country: iso });
+              clearError('phoneNumber');
+            }}
             error={errors.phoneNumber}
             required
             helperText={errors.phoneNumber || "We'll use this for verification"}
@@ -326,10 +352,13 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
               <Input
                 id="password"
                 type="password"
-                placeholder="Minimum 8 characters"
+                placeholder="Minimum 12 characters"
                 className={`pl-10 ${errors.password ? 'border-red-500' : ''}`}
                 value={data.password}
-                onChange={(e) => onUpdate({ password: e.target.value })}
+                onChange={(e) => {
+                  onUpdate({ password: e.target.value });
+                  clearError('password');
+                }}
                 disabled={isSubmitting}
               />
             </div>
