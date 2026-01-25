@@ -2,10 +2,42 @@
  * Chat Service - Refactored to use API Abstraction Layer
  */
 
-import { chatService } from '../api';
-import { ChatMessage, ChatRoom, TypingStatus } from '../api/mock/chat';
+// Define types locally since mock files are removed
+export interface ChatMessage {
+  id: string;
+  chatRoomId: string;
+  senderId: string;
+  senderName: string;
+  senderEmail: string;
+  recipientId: string;
+  recipientName: string;
+  message: string;
+  timestamp: Date;
+  isRead: boolean;
+  reactions?: { [emoji: string]: string[] };
+}
 
-export type { ChatMessage, ChatRoom, TypingStatus };
+export interface ChatRoom {
+  id: string;
+  user1Id: string;
+  user1Name: string;
+  user1Email: string;
+  user2Id: string;
+  user2Name: string;
+  user2Email: string;
+  lastMessage?: string;
+  lastMessageTime?: Date;
+  unreadCount?: number;
+}
+
+export interface TypingStatus {
+  userId: string;
+  userName: string;
+  isTyping: boolean;
+}
+
+// TODO: Implement real chat service when needed
+// For now, these are placeholder functions
 
 export async function getOrCreateChatRoom(
   user1Id: string,
@@ -15,10 +47,8 @@ export async function getOrCreateChatRoom(
   user2Name: string,
   user2Email: string
 ): Promise<string> {
-  return chatService.getOrCreateChatRoom(
-    user1Id, user1Name, user1Email,
-    user2Id, user2Name, user2Email
-  );
+  console.warn('Chat service not implemented yet - getOrCreateChatRoom');
+  return 'placeholder-room-id';
 }
 
 export async function sendMessage(
@@ -30,10 +60,8 @@ export async function sendMessage(
   recipientName: string,
   message: string
 ): Promise<string> {
-  return chatService.sendMessage(
-    chatRoomId, senderId, senderName, senderEmail,
-    recipientId, recipientName, message
-  );
+  console.warn('Chat service not implemented yet - sendMessage');
+  return 'placeholder-message-id';
 }
 
 export async function sendFileMessage(
@@ -45,29 +73,35 @@ export async function sendFileMessage(
   recipientName: string,
   file: File
 ): Promise<string> {
-  // Mock file upload
-  return chatService.sendMessage(
-    chatRoomId, senderId, senderName, senderEmail,
-    recipientId, recipientName, `[File: ${file.name}]`
-  );
+  console.warn('Chat service not implemented yet - sendFileMessage');
+  return 'placeholder-file-message-id';
 }
 
 export function subscribeToMessages(
   chatRoomId: string,
   callback: (messages: ChatMessage[]) => void
 ): () => void {
-  return chatService.subscribeToMessages(chatRoomId, callback);
+  // Return a no-op unsubscribe function for now
+  console.warn('Chat service not implemented yet - subscribeToMessages');
+  // Call callback with empty array to prevent errors
+  callback([]);
+  return () => {};
 }
 
 export function subscribeToChatRooms(
   userId: string,
   callback: (rooms: ChatRoom[]) => void
 ): () => void {
-  return chatService.subscribeToChatRooms(userId, callback);
+  // Return a no-op unsubscribe function for now
+  console.warn('Chat service not implemented yet - subscribeToChatRooms');
+  // Call callback with empty array to prevent errors
+  callback([]);
+  return () => {};
 }
 
 export async function markMessagesAsRead(chatRoomId: string, userId: string): Promise<void> {
-  // No-op for mock
+  console.warn('Chat service not implemented yet - markMessagesAsRead');
+  // No-op for now
 }
 
 export async function updateTypingStatus(
@@ -76,7 +110,8 @@ export async function updateTypingStatus(
   userName: string,
   isTyping: boolean
 ): Promise<void> {
-  // No-op for mock
+  console.warn('Chat service not implemented yet - updateTypingStatus');
+  // No-op for now
 }
 
 export function subscribeToTyping(
@@ -84,17 +119,23 @@ export function subscribeToTyping(
   currentUserId: string,
   callback: (typing: TypingStatus[]) => void
 ): () => void {
-  return () => { };
+  console.warn('Chat service not implemented yet - subscribeToTyping');
+  // Call callback with empty array to prevent errors
+  callback([]);
+  return () => {};
 }
 
 export async function addReaction(messageId: string, userId: string, emoji: string): Promise<void> {
-  // No-op for mock
+  console.warn('Chat service not implemented yet - addReaction');
+  // No-op for now
 }
 
 export async function removeReaction(messageId: string, userId: string, emoji: string): Promise<void> {
-  // No-op for mock
+  console.warn('Chat service not implemented yet - removeReaction');
+  // No-op for now
 }
 
 export async function getUnreadCount(userId: string): Promise<number> {
+  console.warn('Chat service not implemented yet - getUnreadCount');
   return 0;
 }

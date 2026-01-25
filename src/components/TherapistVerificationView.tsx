@@ -98,7 +98,7 @@ function Stepper({
                             {/* Connector Line */}
                             {index < totalSteps - 1 && (
                                 <div className="flex-1 h-1 mx-2 relative top-[-14px]">
-                                    <div className="h-full bg-gray-200 rounded">
+                                    <div className="h-full bg-muted/30 rounded">
                                         <div
                                             className="h-full bg-emerald-500 transition-all duration-500 ease-out"
                                             style={{
@@ -126,7 +126,7 @@ function Stepper({
                         disabled={isFirstStep}
                         className={`px-6 py-2 rounded-lg font-medium transition-colors ${isFirstStep
                             ? 'text-gray-300 cursor-not-allowed'
-                            : 'text-gray-600 hover:bg-gray-100'
+                            : 'text-muted-foreground hover:bg-muted/50'
                             }`}
                     >
                         Back
@@ -244,7 +244,7 @@ function VerificationModal({
                 {/* Absolute Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-50 p-2 bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-full transition-all border border-gray-100 shadow-sm"
+                    className="absolute top-4 right-4 z-50 p-2 bg-background hover:bg-muted text-muted-foreground hover:text-foreground rounded-full transition-all border border-border shadow-sm"
                     aria-label="Close modal"
                 >
                     <X className="w-5 h-5" />
@@ -274,9 +274,9 @@ function VerificationModal({
                                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
                                     {therapist.first_name} {therapist.last_name}
                                 </h2>
-                                <p className="text-gray-500 font-medium text-sm mt-0.5">{therapist.email}</p>
+                                <p className="text-muted-foreground font-medium text-sm mt-0.5">{therapist.email}</p>
                                 <div className="flex gap-2 mt-3">
-                                    <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold border border-gray-200">
+                                    <span className="px-3 py-1 bg-muted text-muted-foreground rounded-full text-xs font-semibold border border-border">
                                         {therapist.specialty || 'Therapist'}
                                     </span>
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${isActive
@@ -292,7 +292,7 @@ function VerificationModal({
                 </div >
 
                 {/* Stepper Content */}
-                < div className="p-8 overflow-y-auto flex-1 min-h-0 bg-gray-50/50" >
+                <div className="p-8 overflow-y-auto flex-1 min-h-0 bg-background/50">
                     <Stepper
                         currentStep={currentStep}
                         totalSteps={4}
@@ -325,7 +325,7 @@ function VerificationModal({
                                 <div className="mt-8 flex justify-end">
                                     <button
                                         onClick={() => setCurrentStep(1)}
-                                        className="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                        className="px-6 py-2 bg-background border border-border text-foreground font-semibold rounded-lg hover:bg-muted transition-colors"
                                     >
                                         Next
                                     </button>
@@ -358,7 +358,7 @@ function VerificationModal({
                                     </div>
 
                                     {/* Document Preview */}
-                                    <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between hover:border-blue-200 transition-all group cursor-pointer">
+                                    <div className="p-4 border border-border rounded-xl bg-muted/50 flex items-center justify-between hover:border-primary/50 transition-all group cursor-pointer">
                                         <div className="flex items-center gap-4">
                                             <div className="p-3 bg-blue-100 rounded-lg text-blue-600">
                                                 <FileText className="w-6 h-6" />
@@ -408,7 +408,7 @@ function VerificationModal({
                                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
                                     <div className="flex flex-col gap-4">
                                         {/* Criminal History */}
-                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 rounded-full bg-emerald-50">
                                                     <Shield className="w-4 h-4 text-emerald-500" />
@@ -427,7 +427,7 @@ function VerificationModal({
                                         </div>
 
                                         {/* Professional References */}
-                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 rounded-full bg-blue-50">
                                                     <User className="w-4 h-4 text-blue-500" />
@@ -446,7 +446,7 @@ function VerificationModal({
                                         </div>
 
                                         {/* Education Verification */}
-                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 rounded-full bg-orange-50">
                                                     <GraduationCap className="w-4 h-4 text-orange-500" />
@@ -464,7 +464,7 @@ function VerificationModal({
                                             </select>
                                         </div>
                                     </div>
-                                    <button className="w-full mt-4 py-3 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                                    <button className="w-full mt-4 py-3 border border-border text-muted-foreground font-semibold rounded-xl hover:bg-muted/50 transition-colors flex items-center justify-center gap-2">
                                         <ExternalLink className="w-4 h-4" />
                                         View Full Report
                                     </button>
@@ -506,7 +506,7 @@ function VerificationModal({
                                         </div>
                                         <button
                                             onClick={onClose}
-                                            className="px-8 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl shadow-sm hover:bg-gray-50 transition-all w-full"
+                                            className="px-8 py-3 bg-background border border-border text-foreground font-semibold rounded-xl shadow-sm hover:bg-muted transition-all w-full"
                                         >
                                             Close
                                         </button>
@@ -686,9 +686,9 @@ export default function TherapistVerificationView() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
+        <div className="min-h-screen bg-background font-sans">
             {/* Header Section */}
-            <div className="bg-white border-b">
+            <div className="bg-white">
                 <div className="max-w-[1600px] mx-auto px-6 py-6">
                     {/* Action Buttons Row - Top Right */}
                     <div className="flex items-center justify-end gap-3 mb-6">
@@ -698,7 +698,7 @@ export default function TherapistVerificationView() {
                                 toast.success('Refreshed therapist list');
                             }}
                             disabled={isLoading}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-background border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                             Refresh
@@ -754,8 +754,8 @@ export default function TherapistVerificationView() {
                         <div className="bg-orange-50 rounded-lg p-4 border border-orange-100">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Total Therapists</p>
-                                    <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+                                    <p className="text-xs text-muted-foreground mb-1">Total Therapists</p>
+                                    <p className="text-3xl font-bold text-foreground">{stats.total}</p>
                                 </div>
                                 <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
                                     <User className="w-5 h-5 text-orange-600" />
@@ -766,7 +766,7 @@ export default function TherapistVerificationView() {
                         <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Active</p>
+                                    <p className="text-xs text-muted-foreground mb-1">Active</p>
                                     <p className="text-3xl font-bold text-emerald-600">{stats.active}</p>
                                 </div>
                                 <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -778,7 +778,7 @@ export default function TherapistVerificationView() {
                         <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Pending</p>
+                                    <p className="text-xs text-muted-foreground mb-1">Pending</p>
                                     <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
                                 </div>
                                 <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -787,14 +787,14 @@ export default function TherapistVerificationView() {
                             </div>
                         </div>
 
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="bg-muted/50 rounded-lg p-4 border border-border">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Inactive</p>
-                                    <p className="text-3xl font-bold text-gray-600">{stats.total - stats.active - stats.pending}</p>
+                                    <p className="text-xs text-muted-foreground mb-1">Inactive</p>
+                                    <p className="text-3xl font-bold text-muted-foreground">{stats.total - stats.active - stats.pending}</p>
                                 </div>
-                                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                    <User className="w-5 h-5 text-gray-600" />
+                                <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-muted-foreground" />
                                 </div>
                             </div>
                         </div>
@@ -811,133 +811,135 @@ export default function TherapistVerificationView() {
                                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-muted/30 hover:bg-muted/30 border-border/50">
-                                            <TableHead className="w-[280px] font-semibold text-muted-foreground uppercase tracking-wider">Therapist</TableHead>
-                                            <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Email</TableHead>
-                                            <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Phone</TableHead>
-                                            <TableHead className="w-[180px] font-semibold text-muted-foreground uppercase tracking-wider">Specialty</TableHead>
-                                            <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Location</TableHead>
-                                            <TableHead className="w-[110px] font-semibold text-muted-foreground uppercase tracking-wider">Status</TableHead>
-                                            <TableHead className="w-[40px]"></TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredTherapists.map((therapist) => (
-                                            <TableRow
-                                                key={therapist.id}
-                                                className="group hover:bg-muted/30 transition-colors duration-200 border-b border-border/30 last:border-0 cursor-pointer"
-                                                onClick={() => setSelectedTherapist(therapist)}
-                                            >
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-10 w-10 ring-2 ring-background shadow-sm group-hover:ring-primary/20 transition-all duration-200">
-                                                            <AvatarImage src={therapist.profile_image_url} />
-                                                            <AvatarFallback className="text-xs bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
-                                                                {therapist.first_name?.[0]}{therapist.last_name?.[0]}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="min-w-0">
-                                                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                                                                {therapist.first_name} {therapist.last_name}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground truncate">
-                                                                {therapist.license_number || 'N/A'}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-2 min-w-0">
-                                                        <Mail className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
-                                                        <span className="text-sm text-muted-foreground truncate">{therapist.email}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Phone className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
-                                                        <span className="text-sm text-muted-foreground">{therapist.phone_number || '-'}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-2 min-w-0">
-                                                        <Award className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
-                                                        <span className="text-sm text-muted-foreground truncate" title={therapist.specialty}>
-                                                            {therapist.specialty || 'General'}
-                                                        </span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
-                                                        <span className="text-sm text-muted-foreground">{therapist.license_state || 'Remote'}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    {therapist.account_status === 'active' ? (
-                                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
-                                                            <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                                                            <span className="text-xs font-medium text-green-700">Active</span>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-50 border border-yellow-200">
-                                                            <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-                                                            <span className="text-xs font-medium text-yellow-700">Pending</span>
-                                                        </div>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="py-4 text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-muted"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedTherapist(therapist);
-                                                        }}
-                                                    >
-                                                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                                                    </Button>
-                                                </TableCell>
+                            <>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-muted/30 hover:bg-muted/30 border-border/50">
+                                                <TableHead className="w-[280px] font-semibold text-muted-foreground uppercase tracking-wider">Therapist</TableHead>
+                                                <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Email</TableHead>
+                                                <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Phone</TableHead>
+                                                <TableHead className="w-[180px] font-semibold text-muted-foreground uppercase tracking-wider">Specialty</TableHead>
+                                                <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Location</TableHead>
+                                                <TableHead className="w-[110px] font-semibold text-muted-foreground uppercase tracking-wider">Status</TableHead>
+                                                <TableHead className="w-[40px]"></TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredTherapists.map((therapist) => (
+                                                <TableRow
+                                                    key={therapist.id}
+                                                    className="group hover:bg-muted/30 transition-colors duration-200 border-b border-border/30 last:border-0 cursor-pointer"
+                                                    onClick={() => setSelectedTherapist(therapist)}
+                                                >
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-10 w-10 ring-2 ring-background shadow-sm group-hover:ring-primary/20 transition-all duration-200">
+                                                                <AvatarImage src={therapist.profile_image_url} />
+                                                                <AvatarFallback className="text-xs bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                                                                    {therapist.first_name?.[0]}{therapist.last_name?.[0]}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="min-w-0">
+                                                                <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                                                    {therapist.first_name} {therapist.last_name}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground truncate">
+                                                                    {therapist.license_number || 'N/A'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <Mail className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                                                            <span className="text-sm text-muted-foreground truncate">{therapist.email}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <Phone className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                                                            <span className="text-sm text-muted-foreground">{therapist.phone_number || '-'}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <Award className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                                                            <span className="text-sm text-muted-foreground truncate" title={therapist.specialty}>
+                                                                {therapist.specialty || 'General'}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                                                            <span className="text-sm text-muted-foreground">{therapist.license_state || 'Remote'}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        {therapist.account_status === 'active' ? (
+                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
+                                                                <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                                                <span className="text-xs font-medium text-green-700">Active</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-50 border border-yellow-200">
+                                                                <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
+                                                                <span className="text-xs font-medium text-yellow-700">Pending</span>
+                                                            </div>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-right">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-muted"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedTherapist(therapist);
+                                                            }}
+                                                        >
+                                                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
 
-                            {/* Pagination */}
-                        {filteredTherapists.length > 0 && (
-                            <div className="w-full flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20">
-                                <div className="text-sm text-muted-foreground">
-                                    Showing <span className="font-medium text-foreground">1</span> to{' '}
-                                    <span className="font-medium text-foreground">{filteredTherapists.length}</span> of{' '}
-                                    <span className="font-medium text-foreground">{filteredTherapists.length}</span> therapists
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled>
-                                        <ChevronLeft className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="default" size="sm" className="h-8 w-8 p-0">
-                                        1
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled>
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
+                                {/* Pagination */}
+                                {filteredTherapists.length > 0 && (
+                                    <div className="w-full flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20">
+                                        <div className="text-sm text-muted-foreground">
+                                            Showing <span className="font-medium text-foreground">1</span> to{' '}
+                                            <span className="font-medium text-foreground">{filteredTherapists.length}</span> of{' '}
+                                            <span className="font-medium text-foreground">{filteredTherapists.length}</span> therapists
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled>
+                                                <ChevronLeft className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="default" size="sm" className="h-8 w-8 p-0">
+                                                1
+                                            </Button>
+                                            <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled>
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
 
-                        {!isLoading && filteredTherapists.length === 0 && (
-                            <div className="text-center py-16">
-                                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Search className="w-8 h-8 text-muted-foreground" />
-                                </div>
-                                <h3 className="text-lg font-semibold text-foreground mb-2">No therapists found</h3>
-                                <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
-                            </div>
-                        )}
+                                {filteredTherapists.length === 0 && (
+                                    <div className="text-center py-16">
+                                        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Search className="w-8 h-8 text-muted-foreground" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-foreground mb-2">No therapists found</h3>
+                                        <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </CardContent>
                 </Card>

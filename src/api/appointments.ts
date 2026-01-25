@@ -1,211 +1,65 @@
 import { Appointment, Therapist, Client } from '../types/appointment';
+import { dataService } from './index';
 
-// Mock data
-const mockTherapists: Therapist[] = [
-  { 
-    id: '1', 
-    name: 'Dr. Sarah Johnson', 
-    color: '#3b82f6', 
-    email: 'sarah@wellness.com',
-    workingDays: [1, 2, 3, 4, 5], // Mon-Fri
-    workingHours: { start: '09:00', end: '18:00' }
-  },
-  { 
-    id: '2', 
-    name: 'Dr. Michael Chen', 
-    color: '#10b981', 
-    email: 'michael@wellness.com',
-    workingDays: [1, 2, 3, 4, 5], // Mon-Fri
-    workingHours: { start: '08:00', end: '17:00' }
-  },
-  { 
-    id: '3', 
-    name: 'Dr. Emily Rodriguez', 
-    color: '#f59e0b', 
-    email: 'emily@wellness.com',
-    workingDays: [0, 1, 2, 3, 4], // Sun-Thu
-    workingHours: { start: '10:00', end: '19:00' }
-  },
-  { 
-    id: '4', 
-    name: 'Dr. David Thompson', 
-    color: '#ef4444', 
-    email: 'david@wellness.com',
-    workingDays: [1, 2, 3, 4, 5], // Mon-Fri
-    workingHours: { start: '09:00', end: '18:00' }
-  },
-  { 
-    id: '5', 
-    name: 'Dr. Jessica Williams', 
-    color: '#8b5cf6', 
-    email: 'jessica@wellness.com',
-    workingDays: [2, 3, 4, 5, 6], // Tue-Sat
-    workingHours: { start: '11:00', end: '20:00' }
-  },
-  { 
-    id: '6', 
-    name: 'Dr. Robert Martinez', 
-    color: '#ec4899', 
-    email: 'robert@wellness.com',
-    workingDays: [1, 2, 3, 4, 5], // Mon-Fri
-    workingHours: { start: '09:00', end: '17:00' }
-  },
-  { 
-    id: '7', 
-    name: 'Dr. Lisa Anderson', 
-    color: '#06b6d4', 
-    email: 'lisa@wellness.com',
-    workingDays: [1, 3, 5], // Mon, Wed, Fri
-    workingHours: { start: '09:00', end: '15:00' }
-  },
-  { 
-    id: '8', 
-    name: 'Dr. Mark Taylor', 
-    color: '#84cc16', 
-    email: 'mark@wellness.com',
-    workingDays: [1, 2, 3, 4, 5, 6], // Mon-Sat
-    workingHours: { start: '07:00', end: '16:00' }
-  },
-];
-
-const mockClients: Client[] = [
-  { id: '1', name: 'John Smith', email: 'john@email.com', phone: '5550123', membershipType: 'Premium' },
-  { id: '2', name: 'Emma Wilson', email: 'emma@email.com', phone: '5550124', membershipType: 'Basic' },
-  { id: '3', name: 'James Brown', email: 'james@email.com', phone: '5550125', membershipType: 'Premium' },
-  { id: '4', name: 'Lisa Davis', email: 'lisa@email.com', phone: '5550126', membershipType: 'Standard' },
-  { id: '5', name: 'Robert Miller', email: 'robert@email.com', phone: '5550127', membershipType: 'Basic' },
-];
-
-// Generate mock appointments
-const generateMockAppointments = (): Appointment[] => {
-  const appointments: Appointment[] = [];
-  const today = new Date();
-  
-  // Generate appointments for the next 30 days
-  for (let dayOffset = -7; dayOffset < 30; dayOffset++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + dayOffset);
-    
-    // Skip weekends for most appointments
-    if (date.getDay() === 0 || date.getDay() === 6) continue;
-    
-    const appointmentsPerDay = Math.floor(Math.random() * 6) + 2; // 2-7 appointments per day
-    
-    for (let i = 0; i < appointmentsPerDay; i++) {
-      const therapist = mockTherapists[Math.floor(Math.random() * mockTherapists.length)];
-      const client = mockClients[Math.floor(Math.random() * mockClients.length)];
-      
-      const startHour = 9 + Math.floor(Math.random() * 8); // 9 AM to 4 PM
-      const startMinute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, 45
-      const duration = [30, 45, 60, 90][Math.floor(Math.random() * 4)]; // Duration in minutes
-      
-      const startTime = new Date(date);
-      startTime.setHours(startHour, startMinute, 0, 0);
-      
-      const endTime = new Date(startTime);
-      endTime.setMinutes(startTime.getMinutes() + duration);
-      
-      const appointmentTypes = ['appointment', 'appointment', 'appointment', 'break', 'tentative'];
-      const type = appointmentTypes[Math.floor(Math.random() * appointmentTypes.length)] as 'appointment' | 'break' | 'tentative';
-      
-      let title = '';
-      let clientName = '';
-      
-      if (type === 'break') {
-        const breakTypes = ['Lunch Break', 'Coffee Break', 'Personal Break', 'Meeting Break'];
-        title = breakTypes[Math.floor(Math.random() * breakTypes.length)];
-        clientName = '';
-      } else if (type === 'tentative') {
-        title = `Tentative: ${client.name}`;
-        clientName = client.name;
-      } else {
-        title = `Session with ${client.name}`;
-        clientName = client.name;
-      }
-      
-      appointments.push({
-        id: `${dayOffset}-${i}-${Date.now()}`,
-        therapistId: therapist.id,
-        clientId: type !== 'break' ? client.id : undefined,
-        title,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
-        color: type === 'break' ? '#6b7280' : therapist.color,
-        type,
-        status: Math.random() > 0.2 ? 'confirmed' : 'pending',
-        createdBy: Math.random() > 0.7 ? 'client' : 'therapist',
-        notes: type === 'break' ? undefined : `Notes for ${clientName}`,
-        clientName,
-        therapistName: therapist.name,
-      });
-    }
-  }
-  
-  return appointments.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-};
-
-let mockAppointments = generateMockAppointments();
-
-// API functions
+// API functions using real backend services
 export const appointmentsApi = {
   async getAppointments(startDate?: string, endDate?: string, therapistIds?: string[]): Promise<Appointment[]> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    let filtered = [...mockAppointments];
-    
-    if (startDate) {
-      filtered = filtered.filter(apt => apt.startTime >= startDate);
-    }
-    
-    if (endDate) {
-      filtered = filtered.filter(apt => apt.startTime <= endDate);
-    }
-    
-    if (therapistIds && therapistIds.length > 0) {
-      filtered = filtered.filter(apt => therapistIds.includes(apt.therapistId));
-    }
-    
-    return filtered;
+    // TODO: Implement real appointment service
+    console.warn('Appointment service not implemented yet');
+    return [];
   },
 
   async createAppointment(appointment: Omit<Appointment, 'id'>): Promise<Appointment> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    const newAppointment: Appointment = {
-      ...appointment,
-      id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    };
-    
-    mockAppointments.push(newAppointment);
-    return newAppointment;
+    // TODO: Implement real appointment service
+    throw new Error('Appointment creation not implemented yet');
   },
 
   async updateAppointment(id: string, updates: Partial<Appointment>): Promise<Appointment> {
-    await new Promise(resolve => setTimeout(resolve, 150));
-    
-    const index = mockAppointments.findIndex(apt => apt.id === id);
-    if (index === -1) {
-      throw new Error('Appointment not found');
-    }
-    
-    mockAppointments[index] = { ...mockAppointments[index], ...updates };
-    return mockAppointments[index];
+    // TODO: Implement real appointment service
+    throw new Error('Appointment update not implemented yet');
   },
 
   async deleteAppointment(id: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    mockAppointments = mockAppointments.filter(apt => apt.id !== id);
+    // TODO: Implement real appointment service
+    throw new Error('Appointment deletion not implemented yet');
   },
 
   async getTherapists(): Promise<Therapist[]> {
-    await new Promise(resolve => setTimeout(resolve, 50));
-    return [...mockTherapists];
+    try {
+      // Use real therapist service
+      const therapists = await dataService.list('therapists');
+      
+      // Transform to expected format
+      return therapists.map((t: any) => ({
+        id: t.id,
+        name: `${t.first_name} ${t.last_name}`,
+        color: '#3b82f6', // Default color, TODO: add color field to therapist profile
+        email: t.email,
+        workingDays: [1, 2, 3, 4, 5], // Default Mon-Fri, TODO: get from therapist schedule
+        workingHours: { start: '09:00', end: '17:00' } // Default hours, TODO: get from therapist schedule
+      }));
+    } catch (error) {
+      console.error('Failed to load therapists:', error);
+      return [];
+    }
   },
 
   async getClients(): Promise<Client[]> {
-    await new Promise(resolve => setTimeout(resolve, 50));
-    return [...mockClients];
+    try {
+      // Use real client service
+      const clients = await dataService.list('clients');
+      
+      // Transform to expected format
+      return clients.map((c: any) => ({
+        id: c.id,
+        name: `${c.first_name} ${c.last_name}`,
+        email: c.email,
+        phone: c.phone_number || '',
+        membershipType: 'Standard' // Default membership, TODO: add membership field to client profile
+      }));
+    } catch (error) {
+      console.error('Failed to load clients:', error);
+      return [];
+    }
   },
 };

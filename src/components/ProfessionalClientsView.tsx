@@ -422,89 +422,41 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
 
   const loadClients = async () => {
     try {
-      const data = await dataService.list('professional_clients');
+      // Call the real client service backend
+      const response = await fetch('http://localhost:3003/api/clients', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
 
-      if (data.length === 0) {
-        // Seed mock data
-        const mockData: Client[] = [
-          {
-            id: '1',
-            name: 'Sarah Johnson',
-            email: 'sarah.johnson@email.com',
-            phone: '(555) 123-4567',
-            status: 'active',
-            lastVisit: '2025-10-09',
-            nextAppointment: '2025-10-15',
-            therapist: 'Dr. Emily Parker',
-            totalSessions: 12,
-            condition: 'Anxiety',
-            safetyRisk: 'high',
-            safetyFlags: ['suicide_risk']
-          },
-          {
-            id: '2',
-            name: 'Michael Chen',
-            email: 'michael.chen@email.com',
-            phone: '(555) 234-5678',
-            status: 'active',
-            lastVisit: '2025-10-08',
-            nextAppointment: '2025-10-14',
-            therapist: 'Dr. James Smith',
-            totalSessions: 8,
-            condition: 'Depression',
-            safetyRisk: 'moderate'
-          },
-          {
-            id: '3',
-            name: 'Emma Davis',
-            email: 'emma.davis@email.com',
-            phone: '(555) 345-6789',
-            status: 'new',
-            lastVisit: '2025-10-10',
-            nextAppointment: '2025-10-13',
-            therapist: 'Dr. Emily Parker',
-            totalSessions: 1,
-            condition: 'Stress Management',
-            safetyRisk: 'low'
-          },
-          {
-            id: '4',
-            name: 'James Wilson',
-            email: 'james.wilson@email.com',
-            phone: '(555) 456-7890',
-            status: 'active',
-            lastVisit: '2025-10-07',
-            nextAppointment: null,
-            therapist: 'Dr. Sarah Martinez',
-            totalSessions: 15,
-            condition: 'PTSD',
-            safetyRisk: 'high',
-            safetyFlags: ['abuse_environment']
-          },
-          {
-            id: '5',
-            name: 'Lisa Anderson',
-            email: 'lisa.anderson@email.com',
-            phone: '(555) 567-8901',
-            status: 'inactive',
-            lastVisit: '2025-09-20',
-            nextAppointment: null,
-            therapist: 'Dr. James Smith',
-            totalSessions: 6,
-            condition: 'General Therapy',
-            safetyRisk: 'low'
-          }
-        ];
-
-        for (const client of mockData) {
-          await dataService.create('professional_clients', client);
-        }
-        setClients(mockData);
+      if (response.ok) {
+        const data = await response.json();
+        // Transform backend data to frontend format
+        const transformedClients: Client[] = data.map((client: any) => ({
+          id: client.id,
+          name: `${client.first_name || ''} ${client.last_name || ''}`.trim() || client.email,
+          email: client.email,
+          phone: client.phone_number || 'N/A',
+          status: client.account_status === 'active' ? 'active' : 'inactive',
+          lastVisit: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : 'N/A',
+          nextAppointment: null, // TODO: Get from appointment service
+          therapist: client.assigned_therapist_name || 'Unassigned',
+          totalSessions: 0, // TODO: Get from appointment service
+          condition: 'General Therapy', // TODO: Get from client profile
+          safetyRisk: client.safety_risk_level || 'low',
+          safetyFlags: [] // TODO: Get from client profile
+        }));
+        setClients(transformedClients);
       } else {
-        setClients(data as Client[]);
+        console.warn('Failed to fetch clients from backend, using empty list');
+        setClients([]);
       }
     } catch (error) {
       console.error('Failed to load clients:', error);
+      // Gracefully handle error by showing empty list
+      setClients([]);
     } finally {
       setLoading(false);
     }

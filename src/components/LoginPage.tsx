@@ -589,7 +589,8 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                                 result.user.displayName || 'User',
                                 response.user.role,
                                 response.user.id,
-                                onboardingStatus
+                                onboardingStatus,
+                                response.token
                               );
                             } else {
                               throw new Error("Firebase login not supported by current auth service");
@@ -644,7 +645,7 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                                 result.user.displayName?.split(' ')[0] || 'User',
                                 result.user.displayName?.split(' ').slice(1).join(' ') || ''
                               );
-                              onLogin(response.user.email, result.user.displayName || 'User', response.user.role, response.user.id, response.user.onboardingStatus);
+                              onLogin(response.user.email, result.user.displayName || 'User', response.user.role, response.user.id, response.user.onboardingStatus, response.token);
                             } else {
                               throw new Error("Firebase login not supported by current auth service");
                             }

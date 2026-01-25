@@ -31,6 +31,24 @@ export const SubscriptionService = {
         );
 
         if (!response.ok) {
+            if (response.status === 401) {
+                // Handle unauthorized gracefully - token might be expired or invalid
+                console.warn('Subscription service: Authentication failed, using default trial values');
+                return {
+                    status: 'trial',
+                    tier: 'trial',
+                    trialDaysRemaining: 30,
+                    trialEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    subscriptionEndDate: null,
+                    isTrialActive: true,
+                    canAccessFeatures: true
+                };
+            }
+            if (response.status === 403) {
+                // Client role - they don't have subscriptions
+                console.info('Subscription service: Client role detected, no subscription needed');
+                throw new Error('CLIENT_NO_SUBSCRIPTION');
+            }
             throw new Error('Failed to fetch subscription info');
         }
 

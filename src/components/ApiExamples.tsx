@@ -19,7 +19,7 @@ import {
   approveParticipant
 } from '../api/waitingRoom';
 import { checkHealth } from '../api/health';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 /**
  * Example 1: Authentication

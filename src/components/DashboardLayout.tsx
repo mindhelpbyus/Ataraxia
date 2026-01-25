@@ -120,21 +120,51 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     organizationId?: string;
   } | null>(null);
 
-  // Fetch subscription info on mount
+  // Fetch subscription info on mount - only for therapists
   useEffect(() => {
     const fetchSubscription = async () => {
+      // Only fetch subscription for therapists
+      // Super admins are product owners and don't need subscriptions
+      // Clients will have separate product page
+      if (userRole !== 'therapist') {
+        // Set unlimited access for super admins and org admins
+        if (userRole === 'super_admin' || userRole === 'org_admin') {
+          setSubscriptionInfo({
+            status: 'active',
+            tier: 'enterprise',
+            trialDaysRemaining: null,
+            trialEndDate: null,
+            subscriptionEndDate: null,
+            isTrialActive: false,
+            canAccessFeatures: true,
+            isOrgOwner: true,
+            organizationName: 'Ataraxia Platform'
+          });
+        }
+        // For clients, don't set subscription info (they'll have separate product page)
+        return;
+      }
+
       try {
         const { SubscriptionService } = await import('../api/services/subscription');
         const info = await SubscriptionService.getUserSubscription(currentUserId);
         setSubscriptionInfo(info);
-      } catch (error) {
+      } catch (error: any) {
+        if (error.message === 'CLIENT_NO_SUBSCRIPTION') {
+          // Clients don't need subscription info
+          console.info('Client role detected, skipping subscription');
+          return;
+        }
         console.error('Failed to fetch subscription:', error);
-        // Fallback to default trial values for demo
+        // Fallback to default trial values for therapists only
         setSubscriptionInfo({
           status: 'trial',
-          trialDaysRemaining: 30, // Default for demo
-          isTrialActive: true,
           tier: 'trial',
+          trialDaysRemaining: 30,
+          trialEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          subscriptionEndDate: null,
+          isTrialActive: true,
+          canAccessFeatures: true,
           organizationName: 'My Practice',
           isOrgOwner: true
         });
@@ -144,7 +174,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     if (currentUserId) {
       fetchSubscription();
     }
-  }, [currentUserId]);
+  }, [currentUserId, userRole]);
 
   // Clear search when switching tabs
   const handleTabChange = (tab: TabType) => {
@@ -265,15 +295,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         { id: 'support-tickets' as TabType, label: 'Support Tickets', icon: Ticket },
       ]
     },
-    {
-      section: 'Billing',
-      items: [
-        { id: 'billing' as TabType, label: 'Billing & Subscriptions', icon: FileText },
-        { id: 'invoices' as TabType, label: 'Invoices', icon: Invoice },
-        { id: 'payments' as TabType, label: 'Payments', icon: Wallet },
-        { id: 'plans' as TabType, label: 'Plans & Pricing', icon: FileText },
-      ]
-    },
+    // Super admins are product owners - no billing section needed
     {
       section: 'Data & Intelligence',
       items: [
@@ -292,13 +314,23 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         { id: 'dashboard' as TabType, label: 'Home', icon: LayoutDashboard },
         { id: 'calendar' as TabType, label: 'Appointments', icon: Calendar },
         { id: 'clients' as TabType, label: 'Clients', icon: Users },
-        ...(userRole === 'admin' ? [{ id: 'therapists' as TabType, label: 'Therapists', icon: UserCog }] : []),
+        ...(userRole === 'admin' || userRole === 'org_admin' ? [{ id: 'therapists' as TabType, label: 'Therapists', icon: UserCog }] : []),
         { id: 'messages' as TabType, label: 'Messages', icon: MessageSquare, badge: unreadCount > 0 ? unreadCount : undefined },
         { id: 'tasks' as TabType, label: 'Tasks', icon: CheckSquare },
         { id: 'notes' as TabType, label: 'Notes', icon: FileText },
         { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
       ]
     },
+    // Add billing section for therapists and org admins (not super admins or clients)
+    ...(userRole === 'therapist' || userRole === 'org_admin' || userRole === 'admin' ? [{
+      section: 'Billing',
+      items: [
+        { id: 'billing' as TabType, label: 'Billing & Subscriptions', icon: FileText },
+        { id: 'invoices' as TabType, label: 'Invoices', icon: Invoice },
+        { id: 'payments' as TabType, label: 'Payments', icon: Wallet },
+        { id: 'plans' as TabType, label: 'Plans & Pricing', icon: FileText },
+      ]
+    }] : []),
   ];
 
   const getClientNavigation = () => [

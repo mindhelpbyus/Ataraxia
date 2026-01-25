@@ -60,17 +60,11 @@ interface Contact {
   online?: boolean;
 }
 
-// Mock contacts - replace with actual user list from Firestore
-const MOCK_CONTACTS: Contact[] = [
-  { id: '1', name: 'Andrew Joseph', email: 'andrew.joseph@bedrock.health', unreadCount: 0, online: true },
-  { id: '2', name: 'George Alan', email: 'george.alan@bedrock.health', unreadCount: 0, online: false },
-  { id: '3', name: 'Nancy Grace', email: 'nancy.grace@bedrock.health', unreadCount: 0, online: true },
-  { id: '4', name: 'Susan Marie', email: 'susan.marie@email.com', unreadCount: 0, online: true },
-  { id: '5', name: 'John Paul', email: 'john.paul@email.com', unreadCount: 0, online: false },
-];
+// TODO: Replace with actual user list from backend service
+const INITIAL_CONTACTS: Contact[] = [];
 
 export function MessagesView({ currentUserId, currentUserName, currentUserEmail }: MessagesViewProps) {
-  const [contacts, setContacts] = useState<Contact[]>(MOCK_CONTACTS);
+  const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageText, setMessageText] = useState('');
@@ -95,13 +89,15 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail 
       
       // Update contacts with room data
       setContacts(prev => prev.map(contact => {
-        const room = rooms.find(r => r.participants.includes(contact.id));
+        const room = rooms.find(r => 
+          r.user1Id === contact.id || r.user2Id === contact.id
+        );
         if (room) {
           return {
             ...contact,
             lastMessage: room.lastMessage,
             lastMessageTime: room.lastMessageTime,
-            unreadCount: room.unreadCount[currentUserId] || 0
+            unreadCount: room.unreadCount || 0
           };
         }
         return contact;
@@ -466,26 +462,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail 
                               : 'bg-gray-100 text-gray-900 rounded-bl-sm'
                           }`}
                         >
-                          {msg.type === 'text' && <p>{msg.message}</p>}
-                          
-                          {msg.type === 'image' && msg.fileUrl && (
-                            <div className="space-y-2">
-                              <img src={msg.fileUrl} alt={msg.fileName} className="rounded-lg max-w-full" />
-                              <p className="text-sm">{msg.message}</p>
-                            </div>
-                          )}
-                          
-                          {msg.type === 'file' && msg.fileUrl && (
-                            <a
-                              href={msg.fileUrl}
-                              download={msg.fileName}
-                              className="flex items-center gap-2 hover:underline"
-                            >
-                              <FileIcon className="w-4 h-4" />
-                              <span>{msg.fileName}</span>
-                              <Download className="w-4 h-4" />
-                            </a>
-                          )}
+                          <p>{msg.message}</p>
 
                           {/* Reactions */}
                           {msg.reactions && Object.keys(msg.reactions).length > 0 && (
@@ -515,7 +492,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail 
                           </span>
                           {isOwn && (
                             <span className="text-xs text-gray-500">
-                              {msg.read ? <CheckCheck className="w-3 h-3" /> : <Check className="w-3 h-3" />}
+                              {msg.isRead ? <CheckCheck className="w-3 h-3" /> : <Check className="w-3 h-3" />}
                             </span>
                           )}
                         </div>
