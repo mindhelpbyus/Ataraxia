@@ -28,6 +28,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+} from '@/components/ui/sheet';
 
 // ==================== STEPPER COMPONENT ====================
 interface StepperProps {
@@ -126,7 +133,7 @@ function Stepper({
                         disabled={isFirstStep}
                         className={`px-6 py-2 rounded-lg font-medium transition-colors ${isFirstStep
                             ? 'text-gray-300 cursor-not-allowed'
-                            : 'text-muted-foreground hover:bg-muted/50'
+                            : 'text-orange-600 hover:bg-orange-50 border border-orange-200'
                             }`}
                     >
                         Back
@@ -137,7 +144,7 @@ function Stepper({
                             else onStepChange(Math.min(totalSteps - 1, currentStep + 1));
                         }}
                         disabled={!canProceed}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLastStep ? 'Complete' : 'Next'}
                     </button>
@@ -150,7 +157,8 @@ function Stepper({
 
 
 // ==================== VERIFICATION MODAL ====================
-function VerificationModal({
+// ==================== VERIFICATION SHEET ====================
+function VerificationSheet({
     therapist,
     onClose,
     onUpdate,
@@ -181,57 +189,55 @@ function VerificationModal({
         }
     }, [therapist]);
 
-    const handleApproveStep = async (stage: VerificationStage) => {
+    const handleApprove = async () => {
         setIsLoading(true);
         try {
-            const payload: any = {
-                stage,
-                status: 'approved',
-                notes: notes
-            };
-
-            if (stage === 'background_check') {
-                payload.details = backgroundChecks;
-            }
-
-            await verificationService.updateVerificationStage(therapist.id, payload);
-            toast.success(`Stage ${stage} approved successfully`);
-
-            // Optimistic update logic (simplified for brevity)
-            if (stage === 'documents') {
-                setCurrentStep(2);
-            } else if (stage === 'background_check') {
-                setCurrentStep(3);
-            } else if (stage === 'final') {
-                onUpdate(); // Refresh all
-                onClose();
-            }
-        } catch (error) {
-            toast.error('Failed to update verification stage');
+            await verificationService.activateTherapistAccount(therapist.id);
+            toast.success('Therapist account activated successfully!');
+            onUpdate();
+            onClose();
+        } catch (error: any) {
+            console.error('Error activating therapist:', error);
+            toast.error(error.message || 'Failed to activate therapist account');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleRejectStep = async (stage: VerificationStage) => {
+    const handleReject = async () => {
         setIsLoading(true);
         try {
-            let apiStage: 'documents' | 'background_check' | 'final' = 'documents';
-            if (stage === 'background_check') apiStage = 'background_check';
-
-            await verificationService.updateVerificationStage(therapist.id, {
-                stage: apiStage,
-                status: 'rejected',
-                notes
-            });
-
-            toast.error(`${stage === 'documents' ? 'License' : 'Background check'} rejected`);
+            await verificationService.rejectTherapist(therapist.id, 'Application rejected after review');
+            toast.success('Therapist application rejected');
             onUpdate();
-        } catch (error) {
-            toast.error('Failed to update verification status');
+            onClose();
+        } catch (error: any) {
+            console.error('Error rejecting therapist:', error);
+            toast.error(error.message || 'Failed to reject therapist application');
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleViewDocument = (documentUrl: string, documentName: string) => {
+        if (!documentUrl) {
+            toast.error('Document not available');
+            return;
+        }
+        
+        // Open document in new tab
+        window.open(documentUrl, '_blank', 'noopener,noreferrer');
+    };
+
+    const getDocumentName = (type: string) => {
+        const documentTypes: Record<string, string> = {
+            'license_document': 'Professional License',
+            'degree_certificate': 'Degree Certificate',
+            'malpractice_insurance': 'Malpractice Insurance',
+            'photo_id': 'Photo ID',
+            'headshot': 'Professional Headshot'
+        };
+        return documentTypes[type] || 'Document';
     };
 
     const isDocVerified = therapist.license_verified;
@@ -239,330 +245,380 @@ function VerificationModal({
     const isActive = therapist.account_status === 'active';
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl relative">
-                {/* Absolute Close Button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 z-50 p-2 bg-background hover:bg-muted text-muted-foreground hover:text-foreground rounded-full transition-all border border-border shadow-sm"
-                    aria-label="Close modal"
-                >
-                    <X className="w-5 h-5" />
-                </button>
-
-                {/* Header */}
-                <div className="p-6 bg-white border-b border-gray-100 shrink-0">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-5">
-                            <div className="relative">
-                                <img
-                                    src={therapist.profile_image_url || `https://ui-avatars.com/api/?name=${therapist.first_name}+${therapist.last_name}`}
-                                    alt={`${therapist.first_name} ${therapist.last_name}`}
-                                    className="w-16 h-16 rounded-full object-cover ring-2 ring-orange-100 shadow-sm"
-                                />
-                                <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center ${isActive ? 'bg-emerald-500' : 'bg-orange-500'
-                                    }`}>
-                                    {isActive ? (
-                                        <Check className="w-3 h-3 text-white" />
-                                    ) : (
-                                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                                    )}
-                                </div>
-                            </div >
-
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+        <SheetContent side="right" className="sm:max-w-4xl w-[90vw] p-0 border-l border-border shadow-2xl bg-background overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="bg-orange-50 border-b border-orange-200 px-8 py-6 flex-shrink-0 z-10 shadow-sm">
+                <div className="flex items-start justify-between">
+                    <div className="flex gap-6">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="mr-4 -ml-2 hover:bg-orange-100 text-orange-600 hover:text-orange-700"
+                            onClick={onClose}
+                        >
+                            <ChevronRight className="h-6 w-6 rotate-180" />
+                        </Button>
+                        <Avatar className="h-20 w-20 ring-4 ring-orange-100 shadow-md rounded-2xl">
+                            <AvatarImage 
+                                src={therapist.profile_image_url || `https://ui-avatars.com/api/?name=${therapist.first_name}+${therapist.last_name}`}
+                                alt={`${therapist.first_name} ${therapist.last_name}`}
+                            />
+                            <AvatarFallback className="bg-orange-500 text-white text-2xl font-light">
+                                {therapist.first_name?.[0]}{therapist.last_name?.[0]}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="pt-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <h2 className="text-2xl font-bold tracking-tight text-gray-900">
                                     {therapist.first_name} {therapist.last_name}
                                 </h2>
-                                <p className="text-muted-foreground font-medium text-sm mt-0.5">{therapist.email}</p>
-                                <div className="flex gap-2 mt-3">
-                                    <span className="px-3 py-1 bg-muted text-muted-foreground rounded-full text-xs font-semibold border border-border">
-                                        {therapist.specialty || 'Therapist'}
-                                    </span>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${isActive
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                        : 'bg-orange-50 text-orange-700 border-orange-100'
-                                        }`}>
-                                        {isActive ? 'Verified & Active' : 'Pending Review'}
-                                    </span>
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${
+                                    isActive ? 'bg-green-100 text-green-700' :
+                                    therapist.registration_status === 'pending_review' ? 'bg-orange-100 text-orange-700' :
+                                    'bg-red-100 text-red-700'
+                                }`}>
+                                    {isActive ? 'Active' : therapist.registration_status?.replace('_', ' ')}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
+                                <span>{therapist.email}</span>
+                                <span className="text-gray-400">•</span>
+                                <span>{therapist.phone_number || 'No phone'}</span>
+                                <span className="text-gray-400">•</span>
+                                <span className="capitalize">
+                                    {therapist.workflow_stage?.replace('_', ' ')}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <Button 
+                            variant="outline" 
+                            onClick={handleReject}
+                            disabled={isLoading}
+                            className="text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50"
+                        >
+                            <X className="h-4 w-4 mr-2" />
+                            Reject
+                        </Button>
+                        <Button 
+                            onClick={handleApprove}
+                            disabled={isLoading}
+                            className="bg-orange-500 hover:bg-orange-600 text-white"
+                        >
+                            {isLoading ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Check className="h-4 w-4 mr-2" />
+                            )}
+                            Approve & Activate
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+                <Stepper
+                    currentStep={currentStep}
+                    totalSteps={4}
+                    onStepChange={setCurrentStep}
+                    canProceed={true}
+                    hideNavigation={false}
+                >
+                    {/* Step 1: Registration Complete */}
+                    <Step>
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <User className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-foreground">Personal Information</h3>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                                        <p className="text-base font-medium text-foreground">{therapist.first_name} {therapist.last_name}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+                                        <p className="text-base text-foreground">{therapist.email}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
+                                        <p className="text-base text-foreground">{therapist.phone_number || 'Not provided'}</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
+                                        <p className="text-base text-foreground">{therapist.date_of_birth || 'Not provided'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Registration Date</label>
+                                        <p className="text-base text-foreground">
+                                            {therapist.created_at ? new Date(therapist.created_at).toLocaleDateString() : 'Unknown'}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div >
-                    </div >
-                </div >
+                        </div>
+                    </Step>
 
-                {/* Stepper Content */}
-                <div className="p-8 overflow-y-auto flex-1 min-h-0 bg-background/50">
-                    <Stepper
-                        currentStep={currentStep}
-                        totalSteps={4}
-                        onStepChange={setCurrentStep}
-                        onComplete={onClose}
-                        hideNavigation={true}
-                    >
-                        {/* Step 1: Registration Complete */}
-                        <Step>
-                            <div className="max-w-3xl mx-auto">
-                                <div className="text-center mb-8">
-                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-blue-100">
-                                        <Check className="w-8 h-8 text-blue-600" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-gray-900">Registration Details</h2>
-                                    <p className="text-gray-500 mt-2">Initial application info</p>
+                    {/* Step 2: License Verification */}
+                    <Step>
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-green-100 rounded-lg">
+                                    <GraduationCap className="w-5 h-5 text-green-600" />
                                 </div>
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Date Joined</p>
-                                            <p className="font-medium">{new Date(therapist.created_at).toLocaleDateString()}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Status</p>
-                                            <p className="font-medium text-blue-600">Submitted</p>
-                                        </div>
+                                <h3 className="text-xl font-semibold text-foreground">Professional Credentials</h3>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">License Number</label>
+                                        <p className="text-base font-medium text-foreground">{therapist.license_number}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">License State</label>
+                                        <p className="text-base text-foreground">{therapist.license_state}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Degree</label>
+                                        <p className="text-base text-foreground">{therapist.degree || 'Not provided'}</p>
                                     </div>
                                 </div>
-                                <div className="mt-8 flex justify-end">
-                                    <button
-                                        onClick={() => setCurrentStep(1)}
-                                        className="px-6 py-2 bg-background border border-border text-foreground font-semibold rounded-lg hover:bg-muted transition-colors"
-                                    >
-                                        Next
-                                    </button>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Years of Experience</label>
+                                        <p className="text-base text-foreground">{therapist.years_of_experience || 'Not provided'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Specializations</label>
+                                        <p className="text-base text-foreground">
+                                            {therapist.specializations ? 
+                                                (Array.isArray(therapist.specializations) ? 
+                                                    therapist.specializations.join(', ') : 
+                                                    therapist.specializations) : 
+                                                'Not provided'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">NPI Number</label>
+                                        <p className="text-base text-foreground">{therapist.npi_number || 'Not provided'}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </Step>
 
-                        {/* Step 2: License Verification */}
-                        <Step>
-                            <div className="max-w-3xl mx-auto">
-                                <div className="text-center mb-8">
-                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-blue-100">
-                                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-ping absolute" />
-                                        <div className="w-8 h-8 rounded-full border-2 border-blue-500" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-gray-900">License Verification</h2>
-                                    <p className="text-gray-500 mt-2">Review and verify professional credentials</p>
-                                </div>
-
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-                                    <div className="grid grid-cols-2 gap-6 mb-6">
-                                        <div>
-                                            <label className="text-sm text-gray-500 block mb-1">License Number</label>
-                                            <div className="font-bold text-xl text-gray-900">{therapist.license_number || 'N/A'}</div>
-                                        </div>
-                                        <div>
-                                            <label className="text-sm text-gray-500 block mb-1">License State</label>
-                                            <div className="font-bold text-xl text-gray-900">{therapist.license_state || 'N/A'}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Document Preview */}
-                                    <div className="p-4 border border-border rounded-xl bg-muted/50 flex items-center justify-between hover:border-primary/50 transition-all group cursor-pointer">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-3 bg-blue-100 rounded-lg text-blue-600">
-                                                <FileText className="w-6 h-6" />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-gray-900">Professional License Document</p>
-                                                <p className="text-sm text-gray-400">license_verification.pdf</p>
+                            {/* Documents Section */}
+                            <div className="mt-8">
+                                <h4 className="text-lg font-semibold text-foreground mb-4">Uploaded Documents</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* License Document */}
+                                    {therapist.license_document_url && (
+                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                             onClick={() => handleViewDocument(therapist.license_document_url, 'Professional License')}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-orange-100 rounded-lg">
+                                                        <FileText className="w-5 h-5 text-orange-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">Professional License</p>
+                                                        <p className="text-sm text-gray-500">Click to view document</p>
+                                                    </div>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-orange-600" />
                                             </div>
                                         </div>
-                                        <button className="text-sm font-semibold text-blue-600 hover:text-blue-700 px-4 py-2 hover:bg-blue-50 rounded-lg transition-colors">
-                                            View Document
-                                        </button>
-                                    </div>
-                                </div>
+                                    )}
 
-                                {/* ACTION BUTTONS */}
-                                <div className="flex gap-4">
-                                    <button
-                                        onClick={() => handleApproveStep('documents')}
-                                        disabled={isLoading}
-                                        className="flex-1 px-8 py-4 bg-orange-500 text-white rounded-xl font-bold text-lg hover:bg-orange-600 transition-colors shadow-lg shadow-orange-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        ✓ Approve License
-                                    </button>
-                                    <button
-                                        onClick={() => handleRejectStep('documents')}
-                                        disabled={isLoading}
-                                        className="flex-1 px-8 py-4 bg-white border-2 border-red-100 text-red-600 rounded-xl font-bold text-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        ✗ Reject License
-                                    </button>
+                                    {/* Degree Certificate */}
+                                    {therapist.degree_certificate_url && (
+                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                             onClick={() => handleViewDocument(therapist.degree_certificate_url, 'Degree Certificate')}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-orange-100 rounded-lg">
+                                                        <Award className="w-5 h-5 text-orange-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">Degree Certificate</p>
+                                                        <p className="text-sm text-gray-500">Click to view document</p>
+                                                    </div>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Malpractice Insurance */}
+                                    {therapist.malpractice_document_url && (
+                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                             onClick={() => handleViewDocument(therapist.malpractice_document_url, 'Malpractice Insurance')}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-orange-100 rounded-lg">
+                                                        <Shield className="w-5 h-5 text-orange-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">Malpractice Insurance</p>
+                                                        <p className="text-sm text-gray-500">Click to view document</p>
+                                                    </div>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Photo ID */}
+                                    {therapist.photo_id_url && (
+                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                             onClick={() => handleViewDocument(therapist.photo_id_url, 'Photo ID')}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-orange-100 rounded-lg">
+                                                        <User className="w-5 h-5 text-orange-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">Photo ID</p>
+                                                        <p className="text-sm text-gray-500">Click to view document</p>
+                                                    </div>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Professional Headshot */}
+                                    {therapist.headshot_url && (
+                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                             onClick={() => handleViewDocument(therapist.headshot_url, 'Professional Headshot')}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-orange-100 rounded-lg">
+                                                        <User className="w-5 h-5 text-orange-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">Professional Headshot</p>
+                                                        <p className="text-sm text-gray-500">Click to view image</p>
+                                                    </div>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* No Documents Message */}
+                                    {!therapist.license_document_url && !therapist.degree_certificate_url && 
+                                     !therapist.malpractice_document_url && !therapist.photo_id_url && !therapist.headshot_url && (
+                                        <div className="col-span-2 p-6 border border-gray-200 rounded-xl bg-gray-50 text-center">
+                                            <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                            <p className="text-gray-500">No documents uploaded yet</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        </Step>
+                        </div>
+                    </Step>
 
-                        {/* Step 3: Background Check */}
-                        <Step>
-                            <div className="max-w-3xl mx-auto">
-                                <div className="text-center mb-8">
-                                    <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-purple-100">
-                                        <Shield className="w-8 h-8 text-purple-600" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-gray-900">Background Check</h2>
-                                    <p className="text-gray-500 mt-2">Criminal and professional history review</p>
+                    {/* Step 3: Background Check */}
+                    <Step>
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <Shield className="w-5 h-5 text-purple-600" />
                                 </div>
+                                <h3 className="text-xl font-semibold text-foreground">Insurance & Verification</h3>
+                            </div>
 
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-                                    <div className="flex flex-col gap-4">
-                                        {/* Criminal History */}
-                                        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 rounded-full bg-emerald-50">
-                                                    <Shield className="w-4 h-4 text-emerald-500" />
-                                                </div>
-                                                <span className="font-medium text-gray-700">Criminal History</span>
-                                            </div>
-                                            <select
-                                                value={backgroundChecks.criminal}
-                                                onChange={(e) => setBackgroundChecks({ ...backgroundChecks, criminal: e.target.value })}
-                                                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none font-medium cursor-pointer"
-                                            >
-                                                <option value="clear">Clear</option>
-                                                <option value="flagged">Flagged</option>
-                                                <option value="pending">Pending</option>
-                                            </select>
-                                        </div>
-
-                                        {/* Professional References */}
-                                        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 rounded-full bg-blue-50">
-                                                    <User className="w-4 h-4 text-blue-500" />
-                                                </div>
-                                                <span className="font-medium text-gray-700">Professional References</span>
-                                            </div>
-                                            <select
-                                                value={backgroundChecks.references}
-                                                onChange={(e) => setBackgroundChecks({ ...backgroundChecks, references: e.target.value })}
-                                                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none font-medium cursor-pointer"
-                                            >
-                                                <option value="verified">Verified</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="failed">Failed</option>
-                                            </select>
-                                        </div>
-
-                                        {/* Education Verification */}
-                                        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 rounded-full bg-orange-50">
-                                                    <GraduationCap className="w-4 h-4 text-orange-500" />
-                                                </div>
-                                                <span className="font-medium text-gray-700">Education Verification</span>
-                                            </div>
-                                            <select
-                                                value={backgroundChecks.education}
-                                                onChange={(e) => setBackgroundChecks({ ...backgroundChecks, education: e.target.value })}
-                                                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none font-medium cursor-pointer"
-                                            >
-                                                <option value="verified">Verified</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="unverified">Unverified</option>
-                                            </select>
-                                        </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Malpractice Insurance Provider</label>
+                                        <p className="text-base text-foreground">{therapist.malpractice_insurance_provider || 'Not provided'}</p>
                                     </div>
-                                    <button className="w-full mt-4 py-3 border border-border text-muted-foreground font-semibold rounded-xl hover:bg-muted/50 transition-colors flex items-center justify-center gap-2">
-                                        <ExternalLink className="w-4 h-4" />
-                                        View Full Report
-                                    </button>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Policy Number</label>
+                                        <p className="text-base text-foreground">{therapist.malpractice_policy_number || 'Not provided'}</p>
+                                    </div>
                                 </div>
-
-                                {/* ACTION BUTTONS */}
-                                <div className="flex gap-4">
-                                    <button
-                                        onClick={() => handleApproveStep('background_check')}
-                                        disabled={isLoading}
-                                        className="flex-1 px-8 py-4 bg-orange-500 text-white rounded-xl font-bold text-lg hover:bg-orange-600 transition-colors shadow-lg shadow-orange-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        ✓ Pass Background Check
-                                    </button>
-                                    <button
-                                        onClick={() => handleRejectStep('background_check')}
-                                        disabled={isLoading}
-                                        className="flex-1 px-8 py-4 bg-white border-2 border-red-100 text-red-600 rounded-xl font-bold text-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        ✗ Fail Check
-                                    </button>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Background Check Status</label>
+                                        <p className="text-base text-foreground capitalize">
+                                            {therapist.background_check_status?.replace('_', ' ') || 'Pending'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Background Check Consent</label>
+                                        <p className="text-base text-foreground">
+                                            {therapist.background_check_consent ? 'Provided' : 'Not provided'}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </Step>
+                        </div>
+                    </Step>
 
-                        {/* Step 4: Final Approval */}
-                        <Step>
-                            <div className="max-w-xl mx-auto py-8">
-                                {isActive ? (
-                                    <div className="text-center space-y-6 animate-in zoom-in duration-300">
-                                        <div className="w-24 h-24 bg-gradient-to-tr from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-emerald-200">
-                                            <Check className="w-12 h-12 text-white" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-3xl font-bold text-gray-900">Verification Complete!</h2>
-                                            <p className="text-gray-500 mt-2 text-lg">
-                                                {therapist.first_name} has been successfully verified and activated.
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={onClose}
-                                            className="px-8 py-3 bg-background border border-border text-foreground font-semibold rounded-xl shadow-sm hover:bg-muted transition-all w-full"
-                                        >
-                                            Close
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="text-center mb-8">
-                                            <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3 transform hover:rotate-6 transition-transform">
-                                                <Rocket className="w-10 h-10 text-white" />
-                                            </div>
-                                            <h2 className="text-3xl font-bold text-gray-900">Ready to Activate?</h2>
-                                            <p className="text-gray-500 mt-2 text-lg">
-                                                All checks passed. Confirm to enable this therapist account.
-                                            </p>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                                                <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                                    <span className="text-gray-500">License Verification</span>
-                                                    <span className="flex items-center gap-2 text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full text-sm">
-                                                        <Check className="w-4 h-4" /> Verified
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                                    <span className="text-gray-500">Background Check</span>
-                                                    <span className="flex items-center gap-2 text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full text-sm">
-                                                        <Check className="w-4 h-4" /> Clear
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                onClick={() => handleApproveStep('final')}
-                                                disabled={isLoading}
-                                                className="w-full px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-200 hover:shadow-orange-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
-                                            >
-                                                {isLoading ? (
-                                                    <span className="flex items-center justify-center gap-2">
-                                                        <Loader2 className="w-5 h-5 animate-spin" /> Activating...
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center justify-center gap-2">
-                                                        🚀 Activate Therapist Account
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
+                    {/* Step 4: Final Review */}
+                    <Step>
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-orange-100 rounded-lg">
+                                    <CheckCircle2 className="w-5 h-5 text-orange-600" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-foreground">Final Review</h3>
                             </div>
-                        </Step>
-                    </Stepper>
-                </div >
-            </div >
-        </div >
+
+                            <div className="bg-muted/30 rounded-lg p-6">
+                                <h4 className="font-semibold text-foreground mb-4">Application Summary</h4>
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Applicant:</span>
+                                        <span className="font-medium text-foreground">{therapist.first_name} {therapist.last_name}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">License:</span>
+                                        <span className="font-medium text-foreground">{therapist.license_number} ({therapist.license_state})</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Status:</span>
+                                        <span className="font-medium text-foreground capitalize">
+                                            {therapist.registration_status?.replace('_', ' ')}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Background Check:</span>
+                                        <span className="font-medium text-foreground capitalize">
+                                            {therapist.background_check_status?.replace('_', ' ') || 'Pending'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+                                    <div>
+                                        <h5 className="font-medium text-blue-900 mb-1">Ready for Activation</h5>
+                                        <p className="text-sm text-blue-700">
+                                            This therapist application has been reviewed and is ready for activation. 
+                                            Approving will create their account and grant access to the platform.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Step>
+                </Stepper>
+            </div>
+        </SheetContent>
     );
 }
 
@@ -945,16 +1001,18 @@ export default function TherapistVerificationView() {
                 </Card>
             </div>
 
-            {/* Verification Modal */}
-            {selectedTherapist && (
-                <VerificationModal
-                    therapist={selectedTherapist}
-                    onClose={() => setSelectedTherapist(null)}
-                    onUpdate={() => {
-                        fetchTherapists();
-                    }}
-                />
-            )}
+            {/* Verification Sheet */}
+            <Sheet open={!!selectedTherapist} onOpenChange={(open) => !open && setSelectedTherapist(null)}>
+                {selectedTherapist && (
+                    <VerificationSheet
+                        therapist={selectedTherapist}
+                        onClose={() => setSelectedTherapist(null)}
+                        onUpdate={() => {
+                            fetchTherapists();
+                        }}
+                    />
+                )}
+            </Sheet>
         </div>
     );
 }
