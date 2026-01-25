@@ -6,7 +6,7 @@ import { OrganizationManagementView } from './components/OrganizationManagementV
 import { UserRole } from './types/appointment';
 import { Notification } from './types/appointment';
 import { Toaster } from './components/ui/sonner';
-import { notificationService } from './api';
+
 
 import { TherapistOnboarding } from './components/onboarding/TherapistOnboarding';
 import { ComprehensiveClientRegistrationForm } from './components/ComprehensiveClientRegistrationForm';
@@ -38,7 +38,18 @@ export default function App() {
       setUserName(storedName || '');
       setUserRole(storedRole as UserRole);
       setCurrentUserId(storedUserId);
-      setCurrentView('dashboard');
+      
+      // SECURITY FIX: Don't automatically set dashboard view for therapists
+      // Instead, re-authenticate to check current verification status
+      if (storedRole === 'therapist') {
+        // For therapists, we need to check their verification status
+        // Force re-authentication to ensure they're not bypassing verification
+        setCurrentView('login');
+      } else {
+        // For non-therapists (admin, super_admin, etc.), allow direct dashboard access
+        setCurrentView('dashboard');
+      }
+      
       logger.info('Restored authentication from localStorage');
     }
   }, []);
@@ -73,13 +84,13 @@ export default function App() {
   const loadNotifications = async () => {
     if (!currentUserId) return;
     try {
-      // Seed mock notifications if needed (for demo purposes)
-      await notificationService.seedMockNotifications(currentUserId);
-
-      const data = await notificationService.getNotifications(currentUserId);
-      setNotifications(data);
+      // Skip notifications for now since service is not implemented
+      // TODO: Implement real notification service
+      logger.info('Notification service not implemented yet, skipping notification loading');
+      setNotifications([]);
     } catch (error) {
       logger.error('Failed to load notifications:', error);
+      setNotifications([]);
     }
   };
 
@@ -177,8 +188,9 @@ export default function App() {
   // Notification handlers
   const handleMarkNotificationAsRead = async (notificationId: string) => {
     try {
-      await notificationService.markAsRead(notificationId);
-      // Optimistic update
+      // TODO: Implement real notification service
+      logger.info('Notification service not implemented yet');
+      // Optimistic update for now
       setNotifications(prev => prev.map(n =>
         n.id === notificationId ? { ...n, read: true } : n
       ));
@@ -189,8 +201,9 @@ export default function App() {
 
   const handleMarkAllNotificationsAsRead = async () => {
     try {
-      await notificationService.markAllAsRead(currentUserId);
-      // Optimistic update
+      // TODO: Implement real notification service
+      logger.info('Notification service not implemented yet');
+      // Optimistic update for now
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (error) {
       logger.error('Failed to mark all notifications as read:', error);

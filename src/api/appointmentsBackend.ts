@@ -2,10 +2,31 @@
  * Appointments Backend API - Refactored to use API Abstraction Layer
  */
 
-import { appointmentService } from './index';
-import { AppointmentDetails, CreateAppointmentRequest } from './mock/appointment';
+// Define types locally since mock files are removed
+export interface AppointmentDetails {
+  id: string;
+  therapistId: string;
+  therapistName: string;
+  clientId: string;
+  clientName: string;
+  startTime: string;
+  endTime: string;
+  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
+  type: 'video' | 'audio' | 'in-person';
+  notes?: string;
+  meetingLink?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export type { AppointmentDetails, CreateAppointmentRequest };
+export interface CreateAppointmentRequest {
+  therapistId: string;
+  clientId: string;
+  startTime: string;
+  endTime: string;
+  type: 'video' | 'audio' | 'in-person';
+  notes?: string;
+}
 
 export interface JoinLinkResponse {
   joinLink: string;
@@ -13,13 +34,16 @@ export interface JoinLinkResponse {
   jwt: string;
 }
 
+// TODO: Implement real appointment service when needed
+// For now, these are placeholder functions
+
 /**
  * Create a new appointment
  */
 export async function createAppointment(
   request: CreateAppointmentRequest
 ): Promise<AppointmentDetails> {
-  return appointmentService.createAppointment(request);
+  throw new Error('Appointment service not implemented yet');
 }
 
 /**
@@ -28,7 +52,7 @@ export async function createAppointment(
 export async function getAppointmentDetails(
   appointmentId: string
 ): Promise<AppointmentDetails> {
-  return appointmentService.getAppointmentDetails(appointmentId);
+  throw new Error('Appointment service not implemented yet');
 }
 
 /**
@@ -42,7 +66,7 @@ export async function getTherapistAppointments(
     status?: string;
   }
 ): Promise<AppointmentDetails[]> {
-  return appointmentService.getTherapistAppointments(therapistId, filters);
+  throw new Error('Appointment service not implemented yet');
 }
 
 /**
@@ -56,7 +80,7 @@ export async function getClientAppointments(
     status?: string;
   }
 ): Promise<AppointmentDetails[]> {
-  return appointmentService.getClientAppointments(clientId, filters);
+  throw new Error('Appointment service not implemented yet');
 }
 
 /**
@@ -66,7 +90,7 @@ export async function cancelAppointment(
   appointmentId: string,
   reason?: string
 ): Promise<void> {
-  return appointmentService.cancelAppointment(appointmentId, reason);
+  throw new Error('Appointment service not implemented yet');
 }
 
 /**
@@ -75,7 +99,7 @@ export async function cancelAppointment(
 export async function getAppointmentJoinLink(
   appointmentId: string
 ): Promise<JoinLinkResponse> {
-  return appointmentService.getAppointmentJoinLink(appointmentId);
+  throw new Error('Appointment service not implemented yet');
 }
 
 /**
@@ -85,7 +109,7 @@ export async function updateAppointmentStatus(
   appointmentId: string,
   status: 'confirmed' | 'completed' | 'cancelled' | 'no-show'
 ): Promise<AppointmentDetails> {
-  return appointmentService.updateAppointmentStatus(appointmentId, status);
+  throw new Error('Appointment service not implemented yet');
 }
 
 /**
@@ -96,5 +120,5 @@ export async function rescheduleAppointment(
   newStartTime: string,
   newEndTime: string
 ): Promise<AppointmentDetails> {
-  return appointmentService.rescheduleAppointment(appointmentId, newStartTime, newEndTime);
+  throw new Error('Appointment service not implemented yet');
 }

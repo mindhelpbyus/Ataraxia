@@ -38,7 +38,7 @@ import {
   PaginationEllipsis,
 } from './ui/pagination';
 import { UserRole } from '../types/appointment';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { dataService } from '../api';
 
 interface Client {
@@ -87,86 +87,39 @@ export function EnhancedClientsTable({ userRole }: EnhancedClientsTableProps) {
   React.useEffect(() => {
     const fetchClients = async () => {
       try {
-        const data = await dataService.list('clients');
-        if (data && data.length > 0) {
-          setClients(data);
-        } else {
-          // Fallback to initial mock data if API returns empty
-          const initialMockData: Client[] = [
-            {
-              id: '1',
-              name: 'Robert Fox',
-              email: 'willie.jennings@example.com',
-              phone: '(671) 555-0110',
-              category: 'Customers',
-              location: 'Austin',
-              gender: 'Male',
-              status: 'active',
-            },
-            {
-              id: '2',
-              name: 'Sarah Johnson',
-              email: 'sarah.johnson@example.com',
-              phone: '(555) 123-4567',
-              category: 'Therapy',
-              location: 'New York',
-              gender: 'Female',
-              status: 'active',
-            },
-            {
-              id: '3',
-              name: 'Michael Chen',
-              email: 'michael.chen@example.com',
-              phone: '(555) 234-5678',
-              category: 'Counseling',
-              location: 'San Francisco',
-              gender: 'Male',
-              status: 'pending',
-            },
-            {
-              id: '4',
-              name: 'Emma Davis',
-              email: 'emma.davis@example.com',
-              phone: '(555) 345-6789',
-              category: 'Therapy',
-              location: 'Los Angeles',
-              gender: 'Female',
-              status: 'active',
-            },
-            {
-              id: '5',
-              name: 'James Wilson',
-              email: 'james.wilson@example.com',
-              phone: '(555) 456-7890',
-              category: 'Wellness',
-              location: 'Chicago',
-              gender: 'Male',
-              status: 'inactive',
-            },
-            {
-              id: '6',
-              name: 'Lisa Anderson',
-              email: 'lisa.anderson@example.com',
-              phone: '(555) 567-8901',
-              category: 'Customers',
-              location: 'Seattle',
-              gender: 'Female',
-              status: 'active',
-            },
-          ];
-          setClients(initialMockData);
+        // Call the real client service backend
+        const response = await fetch('http://localhost:3003/api/clients', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
 
-          // Seed the mock data service
-          initialMockData.forEach(client => {
-            dataService.create('clients', client);
-          });
+        if (response.ok) {
+          const data = await response.json();
+          // Transform backend data to frontend format
+          const transformedClients: Client[] = data.map((client: any) => ({
+            id: client.id,
+            name: `${client.first_name || ''} ${client.last_name || ''}`.trim() || client.email,
+            email: client.email,
+            phone: client.phone_number || 'N/A',
+            status: client.account_status === 'active' ? 'active' : 'inactive',
+            lastVisit: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : 'N/A',
+            therapist: client.assigned_therapist_name || 'Unassigned',
+            safetyRisk: client.safety_risk_level || 'low'
+          }));
+          setClients(transformedClients);
+        } else {
+          console.warn('Failed to fetch clients from backend, using empty list');
+          setClients([]);
         }
       } catch (error) {
         console.error('Failed to fetch clients:', error);
-        toast.error('Failed to load clients');
+        // Gracefully handle error by showing empty list
+        setClients([]);
       }
     };
-
     fetchClients();
   }, []);
 

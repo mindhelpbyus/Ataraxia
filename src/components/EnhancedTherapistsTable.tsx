@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { AvailabilityModal } from './AvailabilityModal';
-import { TherapistVerificationDetailModal } from './TherapistVerificationDetailModal';
+// REMOVED: TherapistVerificationDetailModal - verification is handled in separate screen
 import { dataService } from '../api';
 import { UserRole } from '../types/appointment';
 import { Badge } from './ui/badge';
@@ -63,7 +63,7 @@ interface EnhancedTherapistsTableProps {
 
 export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTherapistsTableProps) {
   const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
-  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+  // REMOVED: verificationModalOpen - verification handled in separate screen
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -80,109 +80,38 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
   const loadTherapists = async () => {
     try {
       setLoading(true);
-      const data = await dataService.list('therapists');
+      // Call the real therapist service backend
+      const response = await fetch('http://localhost:3004/api/therapists', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
 
-      if (data.length === 0) {
-        const mockData: Therapist[] = [
-          {
-            id: '1',
-            name: 'Dr. Sarah Anderson',
-            email: 'sarah.anderson@example.com',
-            phone: '(555) 101-2020',
-            specialty: 'Cognitive Behavioral Therapy',
-            location: 'San Francisco',
-            credentials: 'PhD, LMFT',
-            status: 'active',
-            organization: 'Wellness Center SF',
-          },
-          {
-            id: '2',
-            name: 'Dr. Michael Chen',
-            email: 'michael.chen@example.com',
-            phone: '(555) 202-3030',
-            specialty: 'Trauma & EMDR',
-            location: 'Los Angeles',
-            credentials: 'PsyD, LCSW',
-            status: 'active',
-            organization: 'LA Therapy Group',
-          },
-          {
-            id: '3',
-            name: 'Dr. Emily Rodriguez',
-            email: 'emily.rodriguez@example.com',
-            phone: '(555) 303-4040',
-            specialty: 'Family Therapy',
-            location: 'New York',
-            credentials: 'LMFT, MSW',
-            status: 'active',
-            organization: 'NYC Mental Health',
-          },
-          {
-            id: '4',
-            name: 'Dr. James Wilson',
-            email: 'james.wilson@example.com',
-            phone: '(555) 404-5050',
-            specialty: 'Anxiety & Depression',
-            location: 'Chicago',
-            credentials: 'PhD, LPC',
-            status: 'pending',
-            organization: 'Chicago Wellness',
-          },
-          {
-            id: '5',
-            name: 'Dr. Lisa Thompson',
-            email: 'lisa.thompson@example.com',
-            phone: '(555) 505-6060',
-            specialty: 'Substance Abuse',
-            location: 'Austin',
-            credentials: 'LCSW, CAC',
-            status: 'active',
-            organization: 'Austin Recovery',
-          },
-          {
-            id: '6',
-            name: 'Dr. David Kim',
-            email: 'david.kim@example.com',
-            phone: '(555) 606-7070',
-            specialty: 'Child & Adolescent',
-            location: 'Seattle',
-            credentials: 'PsyD, LPC',
-            status: 'active',
-            organization: 'Seattle Family Care',
-          },
-          {
-            id: '7',
-            name: 'Dr. Maria Garcia',
-            email: 'maria.garcia@example.com',
-            phone: '(555) 707-8080',
-            specialty: 'Couples Therapy',
-            location: 'Miami',
-            credentials: 'LMFT, PhD',
-            status: 'inactive',
-            organization: 'Miami Relationship Center',
-          },
-          {
-            id: '8',
-            name: 'Dr. Robert Taylor',
-            email: 'robert.taylor@example.com',
-            phone: '(555) 808-9090',
-            specialty: 'PTSD & Veterans',
-            location: 'Boston',
-            credentials: 'PhD, LCSW',
-            status: 'active',
-            organization: 'Boston VA Clinic',
-          },
-        ];
-
-        for (const therapist of mockData) {
-          await dataService.create('therapists', therapist);
-        }
-        setTherapists(mockData);
+      if (response.ok) {
+        const data = await response.json();
+        // Transform backend data to frontend format
+        const transformedTherapists: Therapist[] = data.map((therapist: any) => ({
+          id: therapist.id,
+          name: `${therapist.first_name || ''} ${therapist.last_name || ''}`.trim() || therapist.email,
+          email: therapist.email,
+          phone: therapist.phone_number || 'N/A',
+          specialty: therapist.clinical_specialties ? Object.keys(therapist.clinical_specialties)[0] : 'General Therapy',
+          location: 'N/A', // TODO: Get from therapist profile
+          credentials: therapist.degree || 'N/A',
+          status: therapist.account_status === 'active' ? 'active' : 'inactive',
+          organization: therapist.organization_name || 'Independent'
+        }));
+        setTherapists(transformedTherapists);
       } else {
-        setTherapists(data as Therapist[]);
+        console.warn('Failed to fetch therapists from backend, using empty list');
+        setTherapists([]);
       }
     } catch (error) {
       console.error('Failed to load therapists:', error);
+      // Gracefully handle error by showing empty list
+      setTherapists([]);
     } finally {
       setLoading(false);
     }
@@ -205,10 +134,7 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
   };
 
 
-  const handleOpenVerification = (id: string) => {
-    setSelectedTherapistId(id);
-    setVerificationModalOpen(true);
-  };
+  // REMOVED: handleOpenVerification - verification handled in separate screen
 
   const filteredByOrg = userRole === 'admin' && organizationId
     ? therapists.filter((t: Therapist) => t.organization === organizationId)
@@ -529,22 +455,8 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
                             <DropdownMenuItem>Edit Details</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleViewSchedule(therapist.id)}>View Schedule</DropdownMenuItem>
 
-                            {therapist.status === 'pending' && (
-                              <>
-                                {/* Quick Approve PROHIBITED - Must use Verify Application workflow */}
-                                {/* 
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'active')} className="text-green-600 focus:text-green-700 focus:bg-green-50">
-                                  <Check className="mr-2 h-4 w-4" /> Quick Approve
-                                </DropdownMenuItem> 
-                                */}
-                                <DropdownMenuItem onClick={() => handleOpenVerification(therapist.id)} className="text-blue-600 focus:text-blue-700 focus:bg-blue-50">
-                                  <Shield className="mr-2 h-4 w-4" /> Verify Application
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'inactive')} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                  <X className="mr-2 h-4 w-4" /> Reject
-                                </DropdownMenuItem>
-                              </>
-                            )}
+                            {/* REMOVED: Verification actions - these are handled in separate TherapistVerificationView */}
+                            {/* Therapist management screen only shows active therapists from therapists table */}
 
                             {therapist.status === 'active' && (
                               <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'inactive')} className="text-destructive focus:text-destructive focus:bg-destructive/10">
@@ -625,11 +537,7 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
         isOpen={availabilityModalOpen}
         onClose={() => setAvailabilityModalOpen(false)}
       />
-      <TherapistVerificationDetailModal
-        therapistId={selectedTherapistId}
-        isOpen={verificationModalOpen}
-        onClose={() => setVerificationModalOpen(false)}
-      />
+      {/* REMOVED: TherapistVerificationDetailModal - verification handled in separate screen */}
     </div>
   );
 }

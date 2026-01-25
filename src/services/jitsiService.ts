@@ -42,10 +42,10 @@ export async function generateJitsiJWT(
   }
 
   try {
-    // Call backend to generate token
-    // In our mock setup, we'll simulate this via dataService or a specific endpoint
-    // For now, we'll simulate a token generation if useJWT is true
-    return `mock-jwt-token-${Date.now()}`;
+    // TODO: Call backend to generate real JWT token
+    // For now, return empty string to use Jitsi without JWT
+    logger.warn('JWT token generation not implemented yet, using Jitsi without authentication');
+    return '';
   } catch (error) {
     logger.error('Error generating Jitsi token', error);
     return '';

@@ -1,7 +1,7 @@
 import { IDataService } from '../types';
-import { MockDataService } from '../mock/data';
 
 const THERAPIST_API_URL = import.meta.env.VITE_THERAPIST_SERVICE_URL || 'http://localhost:3004/api';
+const CLIENT_API_URL = import.meta.env.VITE_CLIENT_SERVICE_URL || 'http://localhost:3003/api';
 
 export const RealDataService: IDataService = {
     get: async (collection: string, id: string) => {
@@ -12,8 +12,16 @@ export const RealDataService: IDataService = {
             }
             return await response.json();
         }
-        // Fallback to mock for other collections not yet implemented
-        return MockDataService.get(collection, id);
+        
+        if (collection === 'clients') {
+            const response = await fetch(`${CLIENT_API_URL}/clients/${id}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch client');
+            }
+            return await response.json();
+        }
+        
+        throw new Error(`Collection '${collection}' not implemented yet`);
     },
 
     list: async (collection: string, filters?: any) => {
@@ -31,12 +39,27 @@ export const RealDataService: IDataService = {
             }
             return await response.json();
         }
-        return MockDataService.list(collection, filters);
+        
+        if (collection === 'clients') {
+            const params = new URLSearchParams();
+            if (filters) {
+                Object.keys(filters).forEach(key => {
+                    if (filters[key]) params.append(key, filters[key]);
+                });
+            }
+
+            const response = await fetch(`${CLIENT_API_URL}/clients?${params.toString()}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch clients');
+            }
+            return await response.json();
+        }
+        
+        throw new Error(`Collection '${collection}' not implemented yet`);
     },
 
     create: async (collection: string, data: any) => {
-        // Fallback to mock for now as per plan
-        return MockDataService.create(collection, data);
+        throw new Error(`Create operation for collection '${collection}' not implemented yet`);
     },
 
     update: async (collection: string, id: string, data: any) => {
@@ -56,11 +79,28 @@ export const RealDataService: IDataService = {
 
             return await response.json();
         }
-        return MockDataService.update(collection, id, data);
+        
+        if (collection === 'clients') {
+            const response = await fetch(`${CLIENT_API_URL}/clients/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to update client');
+            }
+
+            return await response.json();
+        }
+        
+        throw new Error(`Update operation for collection '${collection}' not implemented yet`);
     },
 
     delete: async (collection: string, id: string) => {
-        // Fallback to mock for now
-        return MockDataService.delete(collection, id);
+        throw new Error(`Delete operation for collection '${collection}' not implemented yet`);
     }
 };

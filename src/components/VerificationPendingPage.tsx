@@ -62,46 +62,48 @@ export function VerificationPendingPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const checkStatus = async () => {
-            try {
-                // Try to get user from Firebase Auth
-                let user = auth.currentUser;
+    const checkStatus = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            // Try to get user from Firebase Auth
+            let user = auth.currentUser;
 
-                // If not authenticated, try to get from localStorage (saved during registration)
-                if (!user) {
-                    const savedEmail = localStorage.getItem('therapistOnboardingEmail');
-                    const savedUid = localStorage.getItem('therapistFirebaseUid');
+            // If not authenticated, try to get from localStorage (saved during registration)
+            if (!user) {
+                const savedEmail = localStorage.getItem('therapistOnboardingEmail');
+                const savedUid = localStorage.getItem('therapistFirebaseUid');
 
-                    if (savedUid) {
-                        // Use the saved UID to fetch status
-                        const result = await verificationService.getRegistrationStatus(savedUid);
-                        setStatus(result);
-                        setLoading(false);
-                        return;
-                    } else {
-                        setError('Your session has expired. Please sign in again to view your application status.');
-                        setLoading(false);
-                        // Redirect to login after 5 seconds
-                        setTimeout(() => {
-                            window.location.href = '/?returnTo=verification-pending';
-                        }, 5000);
-                        return;
-                    }
+                if (savedUid) {
+                    // Use the saved UID to fetch status
+                    const result = await verificationService.getRegistrationStatus(savedUid);
+                    setStatus(result);
+                    setLoading(false);
+                    return;
+                } else {
+                    setError('Your session has expired. Please sign in again to view your application status.');
+                    setLoading(false);
+                    // Redirect to login after 5 seconds
+                    setTimeout(() => {
+                        window.location.href = '/?returnTo=verification-pending';
+                    }, 5000);
+                    return;
                 }
-
-                const result = await verificationService.getRegistrationStatus(user.uid);
-                setStatus(result);
-                setLoading(false);
-            } catch (err: any) {
-                console.error('Failed to get verification status:', err);
-                setError(err.message || 'Failed to load status');
-                setLoading(false);
             }
-        };
 
+            const result = await verificationService.getRegistrationStatus(user.uid);
+            setStatus(result);
+            setLoading(false);
+        } catch (err: any) {
+            console.error('Failed to get verification status:', err);
+            setError(err.message || 'Failed to load status');
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         checkStatus();
-
         // Don't auto-refresh - user can manually refresh or logout and login again
         // Polling every 30s keeps users stuck on this page
     }, []);
@@ -136,14 +138,37 @@ export function VerificationPendingPage() {
     const registrationStatus = status?.registration?.status || 'pending_review';
 
     // ROUTING LOGIC: Handle different statuses
-    // 1. If APPROVED → Redirect to dashboard (therapist home)
+    // 1. If APPROVED → Show success message and redirect to dashboard
     if (registrationStatus === 'approved') {
-        window.location.href = '/dashboard';
+        // Auto-redirect after 5 seconds
+        useEffect(() => {
+            const timer = setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 5000);
+            return () => clearTimeout(timer);
+        }, []);
+
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto" />
-                    <p className="mt-4 text-gray-600">Redirecting to your dashboard...</p>
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
+                <div className="text-center max-w-md">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle2 className="w-10 h-10 text-green-600" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                        🎉 Congratulations!
+                    </h1>
+                    <p className="text-lg text-gray-600 mb-6">
+                        Your therapist account has been approved and activated!
+                    </p>
+                    <Button
+                        onClick={() => window.location.href = '/dashboard'}
+                        className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+                    >
+                        Access Your Dashboard
+                    </Button>
+                    <p className="text-sm text-gray-500 mt-4">
+                        You will be redirected automatically in 5 seconds...
+                    </p>
                 </div>
             </div>
         );
@@ -260,9 +285,10 @@ export function VerificationPendingPage() {
                             <div className="mt-8 flex gap-4 justify-center">
                                 <Button
                                     variant="outline"
-                                    onClick={() => window.location.reload()}
+                                    onClick={checkStatus}
+                                    disabled={loading}
                                 >
-                                    Refresh Status
+                                    {loading ? 'Checking...' : 'Refresh Status'}
                                 </Button>
                                 <Button
                                     variant="outline"
