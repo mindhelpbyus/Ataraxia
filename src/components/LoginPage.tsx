@@ -134,13 +134,17 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
       let onboardingStatus = 'active';
       if (accountStatus === 'pending_verification' ||
         accountStatus === 'documents_review' ||
-        accountStatus === 'background_check') {
+        accountStatus === 'background_check' ||
+        accountStatus === 'onboarding_pending' ||
+        accountStatus === 'registration_submitted' ||
+        accountStatus === 'final_review' ||
+        accountStatus === 'account_created') {
         onboardingStatus = 'pending';
       } else if (accountStatus === 'rejected') {
         onboardingStatus = 'rejected';
       } else if (accountStatus === 'suspended') {
         onboardingStatus = 'suspended';
-      } else if (accountStatus === 'onboarding_pending' || accountStatus === 'incomplete_registration') {
+      } else if (accountStatus === 'incomplete_registration' || accountStatus === 'draft') {
         onboardingStatus = 'incomplete';
       }
 
@@ -569,13 +573,14 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                                 accountStatus === 'background_check' ||
                                 accountStatus === 'final_review' ||
                                 accountStatus === 'account_created' ||
-                                accountStatus === 'onboarding_pending') {
+                                accountStatus === 'onboarding_pending' ||
+                                accountStatus === 'registration_submitted') {
                                 onboardingStatus = 'pending';
                               } else if (accountStatus === 'rejected') {
                                 onboardingStatus = 'rejected';
                               } else if (accountStatus === 'suspended') {
                                 onboardingStatus = 'suspended';
-                              } else if (accountStatus === 'incomplete_registration') {
+                              } else if (accountStatus === 'incomplete_registration' || accountStatus === 'draft') {
                                 onboardingStatus = 'incomplete';
                               }
 
