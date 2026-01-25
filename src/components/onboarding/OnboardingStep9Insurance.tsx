@@ -377,38 +377,27 @@ export function OnboardingStep9Insurance({ data, onUpdate, onNext, onBack }: Onb
 
             {/* Background Check */}
             <div className="space-y-3">
-              <Label>Background Check Status (Optional)</Label>
-              <Select
-                value={data.backgroundCheckResults}
-                onValueChange={(value) => onUpdate({ backgroundCheckResults: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="completed">Completed - Clear</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="not-started">Not Started</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {data.backgroundCheckResults === 'completed' && (
-                <div>
-                  <Label>Upload Background Check Document (Optional)</Label>
-                  <Input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileUpload('backgroundCheckDocument', e.target.files?.[0] || null)}
-                    className="mt-2"
+              <Label>Background Check Consent</Label>
+              <div className="p-4 border border-border rounded-lg bg-muted/30">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Background checks are required for all therapists and will be conducted by our verification team after registration.
+                </p>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="backgroundCheckConsent"
+                    checked={data.backgroundCheckConsent || false}
+                    onChange={(e) => onUpdate({ 
+                      backgroundCheckConsent: e.target.checked,
+                      backgroundCheckResults: 'pending' // Always set to pending
+                    })}
+                    className="rounded border-border"
                   />
-                  {data.backgroundCheckDocument && (
-                    <p className="text-sm text-green-600 mt-2">
-                      ✓ File uploaded: {typeof data.backgroundCheckDocument === 'string' ? data.backgroundCheckDocument : data.backgroundCheckDocument.name}
-                    </p>
-                  )}
+                  <Label htmlFor="backgroundCheckConsent" className="text-sm">
+                    I consent to a background check being conducted
+                  </Label>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* W9 */}

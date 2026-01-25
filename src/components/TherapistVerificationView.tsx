@@ -325,7 +325,7 @@ function VerificationSheet({
                     totalSteps={4}
                     onStepChange={setCurrentStep}
                     canProceed={true}
-                    hideNavigation={false}
+                    hideNavigation={true}
                 >
                     {/* Step 1: Registration Complete */}
                     <Step>
