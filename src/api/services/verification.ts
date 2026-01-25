@@ -74,12 +74,12 @@ export interface RegistrationStatus {
 /**
  * Register therapist (solo or organization)
  */
-const VERIFICATION_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+const VERIFICATION_API_URL = import.meta.env.VITE_VERIFICATION_SERVICE_URL || 'http://localhost:3008/api';
 
 // Use local constant instead of config.api.baseUrl for all calls
 export const registerTherapist = async (data: TherapistRegistrationData): Promise<RegistrationResponse> => {
     try {
-        const response = await fetch(`${VERIFICATION_API_URL}/api/verification/register`, {
+        const response = await fetch(`${VERIFICATION_API_URL}/verification/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export const checkDuplicateRegistration = async (email?: string, phoneNumber?: s
     message?: string;
 }> => {
     try {
-        const response = await fetch(`${VERIFICATION_API_URL}/api/verification/check-duplicate`, {
+        const response = await fetch(`${VERIFICATION_API_URL}/verification/check-duplicate`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -181,7 +181,7 @@ export const uploadDocument = async (
 ): Promise<{ success: boolean; message: string }> => {
     try {
         const response = await fetch(
-            `${VERIFICATION_API_URL}/api/verification/${registrationId}/upload-document`,
+            `${VERIFICATION_API_URL}/verification/${registrationId}/upload-document`,
             {
                 method: 'POST',
                 headers: {
@@ -210,7 +210,7 @@ export const uploadDocument = async (
  */
 export const getPendingVerifications = async (token: string) => {
     try {
-        const response = await fetch(`${VERIFICATION_API_URL}/api/verification/pending`, {
+        const response = await fetch(`${VERIFICATION_API_URL}/verification/pending`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -234,7 +234,7 @@ export const getPendingVerifications = async (token: string) => {
 export const approveTherapist = async (registrationId: number, token: string) => {
     try {
         const response = await fetch(
-            `${VERIFICATION_API_URL}/api/verification/${registrationId}/approve`,
+            `${VERIFICATION_API_URL}/verification/${registrationId}/approve`,
             {
                 method: 'POST',
                 headers: {
@@ -265,7 +265,7 @@ export const rejectTherapist = async (
 ) => {
     try {
         const response = await fetch(
-            `${VERIFICATION_API_URL}/api/verification/${registrationId}/reject`,
+            `${VERIFICATION_API_URL}/verification/${registrationId}/reject`,
             {
                 method: 'POST',
                 headers: {
