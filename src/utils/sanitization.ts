@@ -163,37 +163,45 @@ export function validatePassword(password: string): {
 } {
     const errors: string[] = [];
 
+    // NIST SP 800-63B Guidelines
     if (password.length < 12) {
         errors.push('Password must be at least 12 characters long');
     }
 
-    if (!/[a-z]/.test(password)) {
-        errors.push('Password must contain at least one lowercase letter');
+    if (password.length > 128) {
+        errors.push('Password must be no more than 128 characters long');
     }
 
-    if (!/[A-Z]/.test(password)) {
-        errors.push('Password must contain at least one uppercase letter');
-    }
-
-    if (!/[0-9]/.test(password)) {
-        errors.push('Password must contain at least one number');
-    }
-
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-        errors.push('Password must contain at least one special character');
-    }
-
-    // Check for common weak passwords
+    // Check against common weak passwords (basic list - should integrate with Have I Been Pwned)
     const weakPasswords = [
         'password123',
         'admin123',
         'qwerty123',
         '123456789',
         'password1',
+        '12345678901234567890', // Long but weak
+        'aaaaaaaaaaaaa', // Repetitive
+        'abcdefghijklmnop', // Sequential
     ];
 
-    if (weakPasswords.some(weak => password.toLowerCase().includes(weak))) {
-        errors.push('Password is too common');
+    if (weakPasswords.some(weak => password.toLowerCase().includes(weak.toLowerCase()))) {
+        errors.push('Password is too common or predictable');
+    }
+
+    // Check for repetitive patterns
+    if (/(.)\1{4,}/.test(password)) {
+        errors.push('Password contains too many repeated characters');
+    }
+
+    // Check for sequential patterns
+    const sequential = ['abcdefghijklmnopqrstuvwxyz', '0123456789', 'qwertyuiopasdfghjklzxcvbnm'];
+    for (const seq of sequential) {
+        for (let i = 0; i <= seq.length - 6; i++) {
+            if (password.toLowerCase().includes(seq.substring(i, i + 6))) {
+                errors.push('Password contains sequential characters');
+                break;
+            }
+        }
     }
 
     return {

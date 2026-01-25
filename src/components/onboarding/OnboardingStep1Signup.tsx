@@ -15,6 +15,7 @@ import { saveOAuthUserData } from '../../services/firestoreService';
 import { isFirebaseConfigured } from '../../config/firebase';
 import { logger } from '../../services/secureLogger';
 import { verificationService } from '../../api/services/verification';
+import { validatePasswordSecurity } from '../../utils/passwordSecurity';
 
 
 interface OnboardingStep1Props {
@@ -70,8 +71,21 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
 
     if (!data.password) {
       newErrors.password = 'Password is required';
-    } else if (data.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+    } else if (data.password.length < 12) {
+      newErrors.password = 'Password must be at least 12 characters long';
+    } else if (data.password.length > 128) {
+      newErrors.password = 'Password must be no more than 128 characters long';
+    } else {
+      // Enhanced password security validation
+      try {
+        const passwordValidation = await validatePasswordSecurity(data.password);
+        if (!passwordValidation.valid) {
+          newErrors.password = passwordValidation.errors[0]; // Show first error
+        }
+      } catch (error) {
+        console.error('Password validation error:', error);
+        // Fallback to basic validation if enhanced validation fails
+      }
     }
 
     // Check for duplicates if basic validation passes
