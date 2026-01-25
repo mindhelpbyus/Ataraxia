@@ -21,4 +21,23 @@ export interface Therapist {
 
     verification_notes?: string;
     created_at: string;
+
+    // Document URLs for verification
+    license_document_url?: string;
+    degree_certificate_url?: string;
+    malpractice_document_url?: string;
+    photo_id_url?: string;
+    headshot_url?: string;
+
+    // Additional fields for verification
+    date_of_birth?: string;
+    degree?: string;
+    specializations?: string[] | string;
+    years_of_experience?: number;
+    npi_number?: string;
+    malpractice_insurance_provider?: string;
+    malpractice_policy_number?: string;
+    background_check_consent?: boolean;
+    registration_status?: string;
+    workflow_stage?: string;
 }

@@ -118,6 +118,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     organizationName?: string;
     isOrgOwner?: boolean;
     organizationId?: string;
+    canAccessFeatures?: boolean;
   } | null>(null);
 
   // Fetch subscription info on mount - only for therapists
@@ -133,8 +134,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
             status: 'active',
             tier: 'enterprise',
             trialDaysRemaining: null,
-            trialEndDate: null,
-            subscriptionEndDate: null,
             isTrialActive: false,
             canAccessFeatures: true,
             isOrgOwner: true,
@@ -156,18 +155,18 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
           return;
         }
         console.error('Failed to fetch subscription:', error);
-        // Fallback to default trial values for therapists only
-        setSubscriptionInfo({
-          status: 'trial',
-          tier: 'trial',
-          trialDaysRemaining: 30,
-          trialEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          subscriptionEndDate: null,
-          isTrialActive: true,
-          canAccessFeatures: true,
-          organizationName: 'My Practice',
-          isOrgOwner: true
-        });
+        // Only set fallback for therapists
+        if (userRole === 'therapist') {
+          setSubscriptionInfo({
+            status: 'trial',
+            tier: 'trial',
+            trialDaysRemaining: 30,
+            isTrialActive: true,
+            canAccessFeatures: true,
+            organizationName: 'My Practice',
+            isOrgOwner: true
+          });
+        }
       }
     };
 

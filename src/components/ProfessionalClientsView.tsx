@@ -1755,7 +1755,7 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
           onSave={async (data) => {
             try {
               // Update the client data in the dataService
-              await dataService.update('professional_clients', selectedClient.id, {
+              await dataService.update('clients', selectedClient.id, {
                 ...selectedClient,
                 // Map the detailed data back to the client format
                 // You can expand this mapping as needed
