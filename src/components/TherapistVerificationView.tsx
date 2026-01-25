@@ -4,7 +4,7 @@ import {
     Activity, Search, Filter, MoreVertical, Check, X,
     ChevronRight, ChevronLeft, Circle, Clock, AlertCircle, FileText, Download,
     Shield, CheckCircle2, ExternalLink, Rocket, User, Mail, GraduationCap,
-    MapPin, Calendar, Briefcase, Phone, Loader2
+    MapPin, Calendar, Briefcase, Phone, Loader2, RefreshCw, Award
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { verificationService } from '@/services/verificationService';
@@ -16,6 +16,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 
 // ==================== STEPPER COMPONENT ====================
 interface StepperProps {
@@ -601,119 +613,334 @@ export default function TherapistVerificationView() {
         total: therapists.length,
     };
 
+    // Export to CSV
+    const exportToCSV = () => {
+        try {
+            const headers = ['Name', 'Email', 'License Number', 'License State', 'Specialty', 'Status', 'Created Date', 'Verification Stage'];
+            const rows = filteredTherapists.map(t => [
+                `${t.first_name} ${t.last_name}`,
+                t.email,
+                t.license_number || 'N/A',
+                t.license_state || 'N/A',
+                t.specialty || 'N/A',
+                t.account_status === 'active' ? 'Active' : 'Pending',
+                new Date(t.created_at).toLocaleDateString(),
+                t.verification_stage || 'N/A'
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `therapist_verification_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success('Exported to CSV successfully');
+        } catch (error) {
+            toast.error('Failed to export to CSV');
+        }
+    };
+
+    // Export to Excel (using CSV format with .xlsx extension for simplicity)
+    const exportToExcel = () => {
+        try {
+            const headers = ['Name', 'Email', 'License Number', 'License State', 'Specialty', 'Status', 'Created Date', 'Verification Stage', 'Background Check', 'License Verified'];
+            const rows = filteredTherapists.map(t => [
+                `${t.first_name} ${t.last_name}`,
+                t.email,
+                t.license_number || 'N/A',
+                t.license_state || 'N/A',
+                t.specialty || 'N/A',
+                t.account_status === 'active' ? 'Active' : 'Pending',
+                new Date(t.created_at).toLocaleDateString(),
+                t.verification_stage || 'N/A',
+                t.background_check_status || 'N/A',
+                t.license_verified ? 'Yes' : 'No'
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `therapist_verification_${new Date().toISOString().split('T')[0]}.xlsx`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success('Exported to Excel successfully');
+        } catch (error) {
+            toast.error('Failed to export to Excel');
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-background font-sans">
-            {/* Header */}
-            <div className="bg-white border-b shadow-sm">
-                <div className="max-w-[1600px] mx-auto px-8 py-8">
-                    <div className="flex items-center justify-end mb-6">
-                        <div className="flex gap-4">
-                            <div className="text-center px-6 py-3 bg-blue-50 rounded-xl">
-                                <div className="text-2xl font-bold text-blue-600">{stats.pending}</div>
-                                <div className="text-xs text-gray-600">Pending</div>
-                            </div>
-                            <div className="text-center px-6 py-3 bg-emerald-50 rounded-xl">
-                                <div className="text-2xl font-bold text-emerald-600">{stats.active}</div>
-                                <div className="text-xs text-gray-600">Active</div>
-                            </div>
-                        </div>
+        <div className="min-h-screen bg-gray-50 font-sans">
+            {/* Header Section */}
+            <div className="bg-white border-b">
+                <div className="max-w-[1600px] mx-auto px-6 py-6">
+                    {/* Action Buttons Row - Top Right */}
+                    <div className="flex items-center justify-end gap-3 mb-6">
+                        <button
+                            onClick={() => {
+                                fetchTherapists();
+                                toast.success('Refreshed therapist list');
+                            }}
+                            disabled={isLoading}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                            Refresh
+                        </button>
+
+                        <button
+                            onClick={exportToCSV}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-all"
+                        >
+                            <Download className="w-4 h-4" />
+                            Export CSV
+                        </button>
+
+                        <button
+                            onClick={exportToExcel}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-all"
+                        >
+                            <Download className="w-4 h-4" />
+                            Export Excel
+                        </button>
                     </div>
 
-                    {/* Search */}
-                    <div className="flex items-center gap-3">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search by name, email, or license number..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-1.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-sm"
-                            />
+                    {/* Search and Filter Row */}
+                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow duration-200 mb-6">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                                <div className="flex-1 relative group">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                                    <Input
+                                        placeholder="Search therapists by name, email, specialty..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-9 border-border/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all duration-200"
+                                    />
+                                </div>
+                                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                                    <SelectTrigger className="w-[180px] border-border/50 focus:ring-primary/20">
+                                        <Filter className="h-4 w-4 mr-2" />
+                                        <SelectValue placeholder="Filter by status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Therapists</SelectItem>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="active">Active</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-4 gap-4">
+                        <div className="bg-orange-50 rounded-lg p-4 border border-orange-100">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Total Therapists</p>
+                                    <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+                                </div>
+                                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-orange-600" />
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="w-[180px]">
-                            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-                                <SelectTrigger className="w-full bg-white border-2 border-gray-200 font-semibold text-gray-700 h-[38px]">
-                                    <SelectValue placeholder="Filter status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All ({therapists.length})</SelectItem>
-                                    <SelectItem value="pending">Pending ({stats.pending})</SelectItem>
-                                    <SelectItem value="active">Active ({stats.active})</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Active</p>
+                                    <p className="text-3xl font-bold text-emerald-600">{stats.active}</p>
+                                </div>
+                                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Pending</p>
+                                    <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
+                                </div>
+                                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <Clock className="w-5 h-5 text-yellow-600" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-gray-600 mb-1">Inactive</p>
+                                    <p className="text-3xl font-bold text-gray-600">{stats.total - stats.active - stats.pending}</p>
+                                </div>
+                                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-gray-600" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Therapist Grid */}
-            <div className="max-w-[1600px] mx-auto px-8 py-8">
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-16">
-                        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredTherapists.map((therapist) => (
-                            <div
-                                key={therapist.id}
-                                onClick={() => setSelectedTherapist(therapist)}
-                                className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-xl cursor-pointer transition-all transform hover:-translate-y-1"
-                            >
-                                <div className="flex items-center gap-4 mb-4">
-                                    <img
-                                        src={therapist.profile_image_url || `https://ui-avatars.com/api/?name=${therapist.first_name}+${therapist.last_name}`}
-                                        alt={`${therapist.first_name} ${therapist.last_name}`}
-                                        className="w-16 h-16 rounded-full object-cover"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-lg text-gray-900 truncate">
-                                            {therapist.first_name} {therapist.last_name}
-                                        </h3>
-                                        <p className="text-sm text-gray-600 truncate">{therapist.email}</p>
-                                    </div>
-                                </div>
+            {/* Table Section */}
+            <div className="max-w-[1600px] mx-auto px-6 py-6">
+                <Card className="border-border/50 shadow-lg overflow-hidden">
+                    <CardContent className="p-0">
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-16">
+                                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="bg-muted/30 hover:bg-muted/30 border-border/50">
+                                            <TableHead className="w-[280px] font-semibold text-muted-foreground uppercase tracking-wider">Therapist</TableHead>
+                                            <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Email</TableHead>
+                                            <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Phone</TableHead>
+                                            <TableHead className="w-[180px] font-semibold text-muted-foreground uppercase tracking-wider">Specialty</TableHead>
+                                            <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Location</TableHead>
+                                            <TableHead className="w-[110px] font-semibold text-muted-foreground uppercase tracking-wider">Status</TableHead>
+                                            <TableHead className="w-[40px]"></TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredTherapists.map((therapist) => (
+                                            <TableRow
+                                                key={therapist.id}
+                                                className="group hover:bg-muted/30 transition-colors duration-200 border-b border-border/30 last:border-0 cursor-pointer"
+                                                onClick={() => setSelectedTherapist(therapist)}
+                                            >
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-10 w-10 ring-2 ring-background shadow-sm group-hover:ring-primary/20 transition-all duration-200">
+                                                            <AvatarImage src={therapist.profile_image_url} />
+                                                            <AvatarFallback className="text-xs bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                                                                {therapist.first_name?.[0]}{therapist.last_name?.[0]}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                                                {therapist.first_name} {therapist.last_name}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground truncate">
+                                                                {therapist.license_number || 'N/A'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <Mail className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                                                        <span className="text-sm text-muted-foreground truncate">{therapist.email}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Phone className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                                                        <span className="text-sm text-muted-foreground">{therapist.phone_number || '-'}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <Award className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                                                        <span className="text-sm text-muted-foreground truncate" title={therapist.specialty}>
+                                                            {therapist.specialty || 'General'}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                                                        <span className="text-sm text-muted-foreground">{therapist.license_state || 'Remote'}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    {therapist.account_status === 'active' ? (
+                                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
+                                                            <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                                            <span className="text-xs font-medium text-green-700">Active</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-50 border border-yellow-200">
+                                                            <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
+                                                            <span className="text-xs font-medium text-yellow-700">Pending</span>
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="py-4 text-right">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-muted"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedTherapist(therapist);
+                                                        }}
+                                                    >
+                                                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
 
-                                <div className="space-y-2 mb-4">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-600">License:</span>
-                                        <span className="font-semibold text-gray-900">{therapist.license_number || 'N/A'}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-600">Specialization:</span>
-                                        <span className="font-semibold text-gray-900 text-xs">{therapist.specialty || 'N/A'}</span>
-                                    </div>
+                            {/* Pagination */}
+                        {filteredTherapists.length > 0 && (
+                            <div className="w-full flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20">
+                                <div className="text-sm text-muted-foreground">
+                                    Showing <span className="font-medium text-foreground">1</span> to{' '}
+                                    <span className="font-medium text-foreground">{filteredTherapists.length}</span> of{' '}
+                                    <span className="font-medium text-foreground">{filteredTherapists.length}</span> therapists
                                 </div>
-
-                                <div className="pt-4 border-t border-gray-200">
-                                    {therapist.account_status === 'active' ? (
-                                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg font-semibold text-sm w-full justify-center">
-                                            <Check className="w-4 h-4" />
-                                            Active
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg font-semibold text-sm w-full justify-center">
-                                            <Circle className="w-4 h-4" />
-                                            Pending Review
-                                        </span>
-                                    )}
+                                <div className="flex items-center gap-2">
+                                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled>
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="default" size="sm" className="h-8 w-8 p-0">
+                                        1
+                                    </Button>
+                                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled>
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                )}
+                        )}
 
-                {!isLoading && filteredTherapists.length === 0 && (
-                    <div className="text-center py-16">
-                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Search className="w-10 h-10 text-gray-400" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No therapists found</h3>
-                        <p className="text-gray-600">Try adjusting your search criteria</p>
-                    </div>
-                )}
+                        {!isLoading && filteredTherapists.length === 0 && (
+                            <div className="text-center py-16">
+                                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Search className="w-8 h-8 text-muted-foreground" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-foreground mb-2">No therapists found</h3>
+                                <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+                            </div>
+                        )}
+                        )}
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Verification Modal */}
@@ -723,7 +950,6 @@ export default function TherapistVerificationView() {
                     onClose={() => setSelectedTherapist(null)}
                     onUpdate={() => {
                         fetchTherapists();
-                        // Do not close modal automatically - let user close it via UI buttons
                     }}
                 />
             )}
