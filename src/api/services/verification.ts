@@ -1,7 +1,7 @@
 import { config } from '../../config';
 
 export interface TherapistRegistrationData {
-    firebase_uid: string;
+    auth_provider_id: string; // Changed from firebase_uid to auth_provider_id
     email: string;
     phone_number?: string;
     first_name: string;
@@ -84,7 +84,11 @@ export const registerTherapist = async (data: TherapistRegistrationData): Promis
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({
+                ...data,
+                authProviderId: data.auth_provider_id, // Map to backend field name
+                authProviderType: 'cognito'
+            }),
         });
 
         if (!response.ok) {
@@ -149,15 +153,15 @@ export const checkDuplicateRegistration = async (email?: string, phoneNumber?: s
 };
 
 /**
- * Get registration status by firebase_uid
+ * Get registration status by auth_provider_id (Cognito sub)
  */
-export const getRegistrationStatus = async (firebase_uid: string): Promise<RegistrationStatus> => {
+export const getRegistrationStatus = async (auth_provider_id: string): Promise<RegistrationStatus> => {
     try {
         // Normalize URL to handle .env misconfiguration
         let apiUrl = VERIFICATION_API_URL;
         apiUrl = apiUrl.replace(/\/$/, '').replace(/\/api$/, ''); // Remove trailing /api or /
 
-        const response = await fetch(`${apiUrl}/api/auth/therapist/status/${firebase_uid}`);
+        const response = await fetch(`${apiUrl}/api/auth/therapist/status/${auth_provider_id}`);
 
         if (!response.ok) {
             const error = await response.json();

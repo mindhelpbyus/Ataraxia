@@ -11,8 +11,13 @@ import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
 import { toast } from 'sonner';
 import { UserRole } from '../types/appointment';
-import { updateProfilePhoto } from '../services/firestoreService';
 import { AvatarGalleryDialog } from './AvatarGalleryDialog';
+
+// Placeholder function for profile photo update (to be implemented with new auth system)
+const updateProfilePhoto = async (userId: string, photoUrl: string) => {
+  console.log('Profile photo update not yet implemented with new auth system');
+  throw new Error('Profile photo update not yet implemented');
+};
 import {
   Camera,
   Mail,
