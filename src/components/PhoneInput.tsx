@@ -142,6 +142,7 @@ interface PhoneInputProps {
   onChange?: (phone: string, countryCode: string, countryIso: string) => void;
   onPhoneChange?: (phone: string) => void;
   onCountryCodeChange?: (countryCode: string) => void;
+  onBlur?: (phone: string) => void;
   label?: string;
   required?: boolean;
   error?: string;
@@ -171,6 +172,7 @@ export function PhoneInput({
   onChange,
   onPhoneChange,
   onCountryCodeChange,
+  onBlur,
   label,
   required = false,
   error,
@@ -210,6 +212,13 @@ export function PhoneInput({
 
     if (onChange) onChange(cleanNumber, selectedCountry.code, selectedCountry.country);
     if (onPhoneChange) onPhoneChange(cleanNumber);
+  };
+
+  const handlePhoneInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (onBlur) {
+      const cleanNumber = displayValue.replace(/\D/g, '');
+      onBlur(cleanNumber);
+    }
   };
 
   const handleCountryChange = (newCountryKey: string) => {
@@ -289,6 +298,7 @@ export function PhoneInput({
           type="tel"
           value={displayValue}
           onChange={handlePhoneInputChange}
+          onBlur={handlePhoneInputBlur}
           placeholder={placeholder || selectedCountry.placeholder}
           disabled={disabled}
           className={cn(

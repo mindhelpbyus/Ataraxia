@@ -66,8 +66,14 @@ export default function App() {
       setCurrentView('client-registration');
     } else if (path === '/verification-pending') {
       setCurrentView('verification-pending');
-    } else if (path === '/register-therapist') {
+    } else if (path === '/register-therapist' || path === '/register') {
       setCurrentView('register');
+    } else if (path === '/onboarding' || path === '/therapist-onboarding') {
+      // Handle onboarding persistence - if user refreshes during onboarding
+      setCurrentView('register');
+    } else if (currentView === 'login' && (path === '/' || path === '')) {
+      // Default to login view for root path
+      setCurrentView('login');
     }
   }, []);
 
@@ -169,6 +175,9 @@ export default function App() {
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
     localStorage.removeItem('token');
+    
+    // Clear URL back to root
+    window.history.pushState({}, '', '/');
   };
 
   // Handle back to home from login
@@ -179,10 +188,14 @@ export default function App() {
   // Handle registration
   const handleRegisterTherapist = () => {
     setCurrentView('register');
+    // Update URL to maintain state on refresh
+    window.history.pushState({}, '', '/register-therapist');
   };
 
   const handleRegistrationComplete = () => {
     setCurrentView('login');
+    // Clear the URL back to root
+    window.history.pushState({}, '', '/');
   };
 
   // Notification handlers
@@ -307,6 +320,14 @@ export default function App() {
         <Toaster />
       </>
     );
+  }
+
+  // Fallback for unknown routes - redirect to login
+  if (currentView !== 'login' && currentView !== 'register' && currentView !== 'roleSelection' && 
+      currentView !== 'dashboard' && currentView !== 'orgManagement' && 
+      currentView !== 'verification-pending' && currentView !== 'client-registration') {
+    setCurrentView('login');
+    window.history.pushState({}, '', '/');
   }
 
   return null;

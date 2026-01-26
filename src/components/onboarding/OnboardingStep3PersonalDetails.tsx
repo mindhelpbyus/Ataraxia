@@ -70,7 +70,7 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
   // Set India as default country on mount (primary market)
   useEffect(() => {
     if (!data.country) {
-      onUpdate({ country: 'IN' });
+      onUpdate({ country: 'IN', countryCode: '+91' }); // Set India as default with correct country code
     }
   }, []);
 
