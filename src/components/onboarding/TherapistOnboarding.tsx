@@ -11,13 +11,11 @@ import { OnboardingStep7Review } from './OnboardingStep7Review';
 import { OnboardingStep8Demographics } from './OnboardingStep8Demographics';
 import { OnboardingStep9Insurance } from './OnboardingStep9Insurance';
 import { OnboardingStep10Profile } from './OnboardingStep10Profile';
-import { updateOnboardingProgress, completeOnboarding, getTherapistProfile } from '../../services/firestoreService';
-import { auth } from '../../config/firebase';
 import { Button } from '../ui/button';
 import { CheckCircle2 } from 'lucide-react';
 import { logger } from '../../services/secureLogger';
 import { verificationService } from '../../api/services/verification';
-import { signOut } from '../../services/firebaseAuth';
+import { signOut, getCurrentUser } from '../../services/authService';
 
 
 const TOTAL_STEPS = 10;
@@ -36,9 +34,9 @@ const initialOnboardingData: OnboardingData = {
   address2: '',
   city: '',
   state: '',
-  country: 'US',
+  country: 'IN', // Changed to India as primary market
   zipCode: '',
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timezone: 'Asia/Kolkata', // Default to India timezone
   languagesSpokenFluently: [],
   canConductSessionsInLanguage: {},
   videoCallReadinessTest: false,
@@ -275,44 +273,11 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       // Fresh start or check server for existing progress
       const hydrateFromServer = async () => {
         // Only check server if we don't have local data
-        if (auth.currentUser) {
+        if (getCurrentUser()) {
           try {
-            const profile = await getTherapistProfile(auth.currentUser.uid);
-            if (profile && !profile.onboardingCompleted && profile.onboardingStep) {
-              // Merge profile data into onboarding data
-              // We need to cast profile to OnboardingData type partial
-              const serverData = profile as unknown as Partial<OnboardingData>;
-
-              setOnboardingData(prev => ({ ...prev, ...serverData }));
-
-              const savedStep = (profile.onboardingStep as OnboardingStep) || 1;
-              if (savedStep > 1) {
-                setResumeStep(savedStep);
-                setShowResumePrompt(true);
-              } else {
-                setCurrentStep(savedStep);
-              }
-
-              logger.info('✅ Restored onboarding progress from server', { step: profile.onboardingStep });
-            } else if (!profile) {
-              // User is logged in (e.g. Google Auth) but no profile saved yet.
-              // Auto-populate from Auth User and move to Step 2 (Phone Verification)
-              const user = auth.currentUser;
-              const names = (user.displayName || '').split(' ');
-              const firstName = names[0] || '';
-              const lastName = names.slice(1).join(' ') || '';
-
-              setOnboardingData(prev => ({
-                ...prev,
-                email: user.email || prev.email,
-                firstName: firstName || prev.firstName,
-                lastName: lastName || prev.lastName,
-                authMethod: 'google'
-              }));
-
-              setCurrentStep(2);
-              logger.info('🚀 New OAuth user detected, auto-advancing to Step 2');
-            }
+            // For now, skip server hydration since we're migrating to new auth system
+            // TODO: Implement server-side onboarding progress retrieval
+            logger.info('Skipping server hydration during auth migration');
           } catch (error) {
             logger.error('Error hydrating from server', error);
           }
@@ -371,12 +336,12 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
 
   const goToNextStep = async () => {
     if (currentStep < TOTAL_STEPS) {
-      // Save progress to Firestore before moving to next step
-      const userId = auth?.currentUser?.uid;
-      if (userId) {
+      // Save progress to server before moving to next step
+      const user = getCurrentUser();
+      if (user) {
         try {
-          await updateOnboardingProgress(userId, currentStep, onboardingData);
-          logger.info(`✅ Step ${currentStep} data saved to Firestore`);
+          // TODO: Implement server-side onboarding progress saving
+          logger.info(`✅ Step ${currentStep} data would be saved to server`);
         } catch (error) {
           logger.error('Error saving onboarding progress:', error);
         }
@@ -402,14 +367,47 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       const urlParams = new URLSearchParams(window.location.search);
       const orgCode = urlParams.get('org') || '';
 
-      // Get current user
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error('User not authenticated');
+      // Get current user - try multiple sources
+      let user = getCurrentUser();
+      let userUid = user?.uid;
+
+      // Fallback 1: Check if UID is stored in onboarding data
+      if (!userUid && onboardingData.firebaseUid) {
+        userUid = onboardingData.firebaseUid;
+        console.log('🔄 Using UID from onboarding data:', userUid);
       }
 
-      // Save Firebase UID to localStorage for verification page
-      localStorage.setItem('therapistFirebaseUid', user.uid);
+      // Fallback 2: Check localStorage for stored UID
+      if (!userUid) {
+        const storedUid = localStorage.getItem('therapistAuthUid') || localStorage.getItem('authToken');
+        if (storedUid) {
+          userUid = storedUid;
+          console.log('🔄 Using UID from localStorage:', userUid);
+        }
+      }
+
+      // Fallback 3: Try to extract from stored token
+      if (!userUid) {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            userUid = payload.user?.id?.toString() || payload.sub;
+            console.log('🔄 Extracted UID from token:', userUid);
+          }
+        } catch (error) {
+          console.log('⚠️ Could not extract UID from token');
+        }
+      }
+
+      if (!userUid) {
+        throw new Error('User not authenticated. Please log in again and complete the registration.');
+      }
+
+      console.log('✅ Using UID for registration submission:', userUid);
+
+      // Save user UID to localStorage for verification page
+      localStorage.setItem('therapistAuthUid', userUid);
 
       // Map session formats
       const sessionFormats = {
@@ -421,8 +419,8 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
 
       // Construct detailed payload for Backend API
       const payload = {
-        firebaseUid: user.uid,
-        email: onboardingData.email || user.email,
+        authProviderId: userUid,
+        email: onboardingData.email || user?.email,
         firstName: onboardingData.firstName || onboardingData.fullName?.split(' ')[0],
         lastName: onboardingData.lastName || onboardingData.fullName?.split(' ').slice(1).join(' '),
 
@@ -562,7 +560,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         preferredSchedulingDensity: onboardingData.preferredSchedulingDensity,
       };
 
-      let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+      let API_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:3010';
       // Normalize URL: remove trailing slash and optional trailing /api to avoid double /api/api
       API_URL = API_URL.replace(/\/$/, '').replace(/\/api$/, '');
 
@@ -575,7 +573,54 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         payloadCountryCode: payload.countryCode
       });
 
-      const token = await user.getIdToken();
+      // Get authentication token - prioritize ID token for Cognito JWT verification
+      let token = null;
+      
+      // The backend jwtVerifier expects ID tokens, so prioritize cognitoIdToken
+      token = localStorage.getItem('cognitoIdToken') || 
+              localStorage.getItem('authToken') || 
+              localStorage.getItem('cognitoAccessToken');
+      
+      // If no token found, try to get current user and refresh token
+      if (!token) {
+        console.log('⚠️ No token found in localStorage, trying to get current user...');
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          // Try to get token from current user session (prioritize ID token)
+          token = localStorage.getItem('cognitoIdToken') || localStorage.getItem('authToken');
+          console.log('🔄 Retrieved token from current user session:', token ? 'Found' : 'Not found');
+        }
+      }
+      
+      // If still no token, check if user is logged in and try to refresh
+      if (!token) {
+        console.log('⚠️ No valid token found, checking authentication state...');
+        
+        // Try to get any stored token and check if it's just expired
+        const storedTokens = {
+          cognitoIdToken: localStorage.getItem('cognitoIdToken'),
+          authToken: localStorage.getItem('authToken'),
+          cognitoAccessToken: localStorage.getItem('cognitoAccessToken'),
+          cognitoRefreshToken: localStorage.getItem('cognitoRefreshToken')
+        };
+        
+        console.log('🔍 Stored tokens check:', {
+          cognitoIdToken: storedTokens.cognitoIdToken ? 'Present' : 'Missing',
+          authToken: storedTokens.authToken ? 'Present' : 'Missing',
+          cognitoAccessToken: storedTokens.cognitoAccessToken ? 'Present' : 'Missing',
+          cognitoRefreshToken: storedTokens.cognitoRefreshToken ? 'Present' : 'Missing'
+        });
+        
+        // Use ID token first (required by backend), then fallback to others
+        token = storedTokens.cognitoIdToken || storedTokens.authToken || storedTokens.cognitoAccessToken;
+      }
+      
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+
+      console.log('🔐 Using token for API call:', token ? 'ID Token found' : 'No token');
+
       const response = await fetch(`${API_URL}/api/auth/therapist/register`, {
         method: 'POST',
         headers: {
@@ -585,20 +630,30 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         body: JSON.stringify(payload)
       });
 
+      console.log('📡 API Response status:', response.status, response.statusText);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Registration failed');
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+        console.error('❌ API Error Response:', errorData);
+        
+        // Provide specific error messages based on status code
+        if (response.status === 401) {
+          throw new Error('Authentication failed. Please log in again and retry.');
+        } else if (response.status === 409) {
+          throw new Error(errorData.message || 'Registration already exists or conflict occurred.');
+        } else {
+          throw new Error(errorData.message || errorData.error || `Registration failed (${response.status})`);
+        }
       }
 
       const result = await response.json();
+      console.log('✅ API Success Response:', result);
 
       if (result.success) {
         // Clear onboarding data from localStorage
         clearLocalStorage();
 
-        // Also save to Firestore for backup/legacy compatibility if needed
-        await completeOnboarding(user.uid, onboardingData);
-
+        // TODO: Also save to server for backup/legacy compatibility if needed
         logger.info('Therapist registration submitted successfully', {
           registrationId: result.registrationId
         });
@@ -696,12 +751,12 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center space-y-6">
           <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-            {auth.currentUser?.email?.charAt(0).toUpperCase() || onboardingData.email?.charAt(0).toUpperCase() || 'U'}
+            {getCurrentUser()?.email?.charAt(0).toUpperCase() || onboardingData.email?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">Welcome Back!</h2>
             <p className="text-gray-500 mt-2">
-              We found an application in progress for <span className="font-medium text-gray-900">{auth.currentUser?.email || onboardingData.email}</span> at Step {resumeStep}.
+              We found an application in progress for <span className="font-medium text-gray-900">{getCurrentUser()?.email || onboardingData.email}</span> at Step {resumeStep}.
             </p>
           </div>
 
@@ -812,11 +867,11 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       {/* Session Header */}
       <div className="max-w-4xl mx-auto px-4 mb-2 flex justify-end">
         <div className="text-xs text-muted-foreground flex items-center gap-3 bg-white/80 px-4 py-2 rounded-full backdrop-blur-sm border border-gray-100 shadow-sm">
-          {auth.currentUser ? (
+          {getCurrentUser() ? (
             <>
               <span className="flex items-center gap-2 truncate max-w-[200px]">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                {auth.currentUser.email}
+                {getCurrentUser()?.email}
               </span>
               <span className="text-gray-300">|</span>
               <button

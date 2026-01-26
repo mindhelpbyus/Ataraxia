@@ -4,7 +4,7 @@ import { CheckCircle2, Clock, FileCheck, Shield, Mail } from 'lucide-react';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
 import { verificationService, RegistrationStatus } from '../api/services/verification';
-import { auth } from '../config/firebase';
+import { getCurrentUser } from '../services/authService';
 
 interface TimelineStepProps {
     title: string;
@@ -67,13 +67,13 @@ export function VerificationPendingPage() {
             setLoading(true);
             setError(null);
             
-            // Try to get user from Firebase Auth
-            let user = auth.currentUser;
+            // Try to get user from current auth system
+            let user = getCurrentUser();
 
             // If not authenticated, try to get from localStorage (saved during registration)
             if (!user) {
                 const savedEmail = localStorage.getItem('therapistOnboardingEmail');
-                const savedUid = localStorage.getItem('therapistFirebaseUid');
+                const savedUid = localStorage.getItem('therapistAuthUid');
 
                 if (savedUid) {
                     // Use the saved UID to fetch status
@@ -292,8 +292,9 @@ export function VerificationPendingPage() {
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    onClick={() => {
-                                        auth.signOut();
+                                    onClick={async () => {
+                                        const { signOut } = await import('../services/authService');
+                                        await signOut();
                                         window.location.href = '/';
                                     }}
                                 >

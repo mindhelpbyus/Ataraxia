@@ -1,5 +1,5 @@
 // Normalize API URL to handle trailing slashes and /api duplication
-let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+let apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
 
 

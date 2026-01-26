@@ -6,11 +6,18 @@ import { Card } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
 import { Badge } from '../ui/badge';
-import { Camera, X, ImageIcon } from 'lucide-react';
+import { Camera, X, ImageIcon, Clock, MapPin } from 'lucide-react';
 import { LANGUAGES } from '../../types/onboarding';
 import { Country, State, City } from 'country-state-city';
 import { UserCircle2 } from 'lucide-react';
 import { AvatarGalleryDialog } from '../AvatarGalleryDialog';
+import { 
+  getTimezonesForCountry, 
+  getDefaultTimezone, 
+  formatTimezoneWithTime,
+  getPopularTimezones,
+  TIMEZONES 
+} from '../../utils/timezones';
 // @ts-ignore
 import { lookup } from 'india-pincode-lookup';
 
@@ -73,6 +80,19 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
       onUpdate({ country: 'IN', countryCode: '+91' }); // Set India as default with correct country code
     }
   }, []);
+
+  // Auto-update timezone when country or zipCode changes
+  useEffect(() => {
+    if (data.country) {
+      const suggestedTimezone = getDefaultTimezone(data.country, data.zipCode);
+      
+      // Only update if timezone is not already set or if it's different from suggestion
+      if (!data.timezone || data.timezone !== suggestedTimezone) {
+        console.log(`🕐 Suggesting timezone for ${data.country}: ${suggestedTimezone}`);
+        onUpdate({ timezone: suggestedTimezone });
+      }
+    }
+  }, [data.country, data.zipCode]);
 
   // Populate states when country changes
   useEffect(() => {
@@ -197,6 +217,7 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
     if (!data.state) newErrors.state = 'State is required';
     if (!data.city) newErrors.city = 'City is required';
     if (!data.zipCode) newErrors.zipCode = 'Zip/Postal Code is required';
+    if (!data.timezone) newErrors.timezone = 'Timezone is required';
     if ((data.languages || []).length === 0) newErrors.languages = 'Select at least one language';
     if (!data.termsAccepted) newErrors.terms = 'You must accept the terms';
 
@@ -499,19 +520,106 @@ export function OnboardingStep3PersonalDetails({ data, onUpdate, onNext, onBack 
               )}
             </div>
 
-            {/* Timezone (Auto-populated, read-only) */}
+            {/* Timezone (Smart Selection) */}
             <div className="space-y-2">
-              <Label htmlFor="timezone">Timezone (Auto-detected)</Label>
-              <Input
-                id="timezone"
-                type="text"
-                value={data.timezone}
-                readOnly
-                className="bg-gray-50 cursor-not-allowed"
-              />
-              <p className="text-xs text-gray-500">
-                Timezone is automatically set based on your location
-              </p>
+              <Label htmlFor="timezone">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Timezone *
+                </div>
+              </Label>
+              <Select 
+                value={data.timezone} 
+                onValueChange={(value) => onUpdate({ timezone: value })}
+              >
+                <SelectTrigger className={errors.timezone ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Select timezone">
+                    {data.timezone && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-3 w-3 text-gray-400" />
+                        <span className="truncate">
+                          {formatTimezoneWithTime(data.timezone)}
+                        </span>
+                      </div>
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  {/* Country-specific timezones first */}
+                  {data.country && getTimezonesForCountry(data.country).filter(tz => tz.country === data.country).length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-xs font-medium text-gray-500 bg-gray-50">
+                        📍 {Country.getCountryByCode(data.country)?.name || 'Your Country'}
+                      </div>
+                      {getTimezonesForCountry(data.country)
+                        .filter(tz => tz.country === data.country)
+                        .map((timezone) => (
+                          <SelectItem key={timezone.value} value={timezone.value}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>{timezone.label}</span>
+                              <span className="text-xs text-gray-400 ml-2">
+                                {formatTimezoneWithTime(timezone.value).split('(')[1]?.replace(')', '')}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      <div className="border-t my-1"></div>
+                    </>
+                  )}
+                  
+                  {/* Popular timezones */}
+                  <div className="px-2 py-1 text-xs font-medium text-gray-500 bg-gray-50">
+                    🌟 Popular Timezones
+                  </div>
+                  {getPopularTimezones()
+                    .filter(tz => !data.country || tz.country !== data.country)
+                    .map((timezone) => (
+                      <SelectItem key={timezone.value} value={timezone.value}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{timezone.label}</span>
+                          <span className="text-xs text-gray-400 ml-2">
+                            {formatTimezoneWithTime(timezone.value).split('(')[1]?.replace(')', '')}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  
+                  <div className="border-t my-1"></div>
+                  
+                  {/* All other timezones */}
+                  <div className="px-2 py-1 text-xs font-medium text-gray-500 bg-gray-50">
+                    🌍 All Timezones
+                  </div>
+                  {TIMEZONES
+                    .filter(tz => !tz.popular && (!data.country || tz.country !== data.country))
+                    .map((timezone) => (
+                      <SelectItem key={timezone.value} value={timezone.value}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{timezone.label}</span>
+                          <span className="text-xs text-gray-400 ml-2">
+                            {formatTimezoneWithTime(timezone.value).split('(')[1]?.replace(')', '')}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              {errors.timezone && <p className="text-xs text-red-500">{errors.timezone}</p>}
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <Clock className="h-3 w-3" />
+                {data.timezone ? (
+                  <span>
+                    Current time: {new Date().toLocaleTimeString('en-US', {
+                      timeZone: data.timezone,
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </span>
+                ) : (
+                  <span>Select your timezone for accurate scheduling</span>
+                )}
+              </div>
             </div>
           </div>
 

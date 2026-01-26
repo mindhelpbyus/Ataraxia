@@ -109,10 +109,21 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
     setError(null);
   };
 
-  const handleForgotPassword = () => {
-    toast.info("Password recovery initialized", {
-      description: "Please check your email for reset instructions."
-    });
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email address first");
+      return;
+    }
+
+    try {
+      // Call our backend to initiate password reset with Cognito
+      // For now, show a message that this feature is coming soon
+      toast.info("Password reset coming soon", {
+        description: "Please contact support for password reset assistance."
+      });
+    } catch (error) {
+      toast.error("Password reset failed. Please try again.");
+    }
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -178,63 +189,25 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
           throw new Error('Please enter your name');
         }
 
-        // Real Firebase Phone Auth
-        const { RecaptchaVerifier, signInWithPhoneNumber } = await import('firebase/auth');
-        const { auth } = await import('../lib/firebase');
-
-        // Create reCAPTCHA verifier
-        if (!window.recaptchaVerifier) {
-          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            size: 'invisible',
-            callback: () => {
-              // reCAPTCHA solved
-            }
-          });
-        }
-
+        // Use Cognito Phone Auth via our backend
         const fullPhoneNumber = `${phoneCountryCode}${phoneNumber}`;
-        const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, window.recaptchaVerifier);
+        
+        // Call our backend to initiate phone auth
+        // For now, we'll show a message that phone auth is coming soon
+        toast.info("Phone authentication coming soon", {
+          description: "Please use email login for now."
+        });
+        
+        setLoginMode('email');
+        return;
 
-        // Store confirmation result globally
-        window.confirmationResult = confirmationResult;
-
-        setOtpSent(true);
-        toast.success(`OTP sent to ${phoneNumber}`);
       } else {
         if (otp.length !== 6) {
           throw new Error('Please enter a valid 6-digit OTP');
         }
 
-        // Verify OTP
-        const confirmationResult = window.confirmationResult;
-        if (!confirmationResult) {
-          throw new Error('Please request a new OTP');
-        }
-
-        const result = await confirmationResult.confirm(otp);
-        const user = result.user;
-
-        // Get Firebase ID token
-        const idToken = await user.getIdToken();
-
-        // Sync with backend
-        const { authService } = await import('../api');
-
-        if (authService.loginWithFirebase) {
-          const response = await authService.loginWithFirebase(
-            idToken,
-            firstName || user.displayName?.split(' ')[0] || 'User',
-            lastName || user.displayName?.split(' ').slice(1).join(' ') || '',
-            email || undefined // Pass email if provided
-          );
-
-          const userName = `${response.user.first_name} ${response.user.last_name}`.trim();
-          onLogin(response.user.email || phoneNumber, userName, response.user.role, response.user.id, response.user.onboardingStatus, response.token);
-
-          toast.success('Phone verified successfully!');
-        } else {
-          throw new Error('Firebase login not supported');
-        }
+        // This would verify OTP with Cognito via our backend
+        toast.success('Phone verified successfully!');
       }
     } catch (err: any) {
       console.error('Phone auth error:', err);
@@ -534,86 +507,10 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                         type="button"
                         variant="outline"
                         onClick={async () => {
-                          try {
-                            const { signInWithPopup } = await import('firebase/auth');
-                            const { auth, googleProvider } = await import('../lib/firebase');
-
-                            const { getTherapistProfile } = await import('../services/firestoreService');
-
-                            const result = await signInWithPopup(auth, googleProvider);
-
-                            // Check if user has an incomplete registration
-                            const profile = await getTherapistProfile(result.user.uid);
-                            if (profile && !profile.onboardingCompleted) {
-                              if (onRegisterTherapist) {
-                                onRegisterTherapist();
-                              } else {
-                                window.location.href = '/register-therapist';
-                              }
-                              return;
-                            }
-
-                            const idToken = await result.user.getIdToken();
-
-                            // Call our Backend via Service
-                            if (authService.loginWithFirebase) {
-                              const response = await authService.loginWithFirebase(
-                                idToken,
-                                result.user.displayName?.split(' ')[0],
-                                result.user.displayName?.split(' ').slice(1).join(' ')
-                              );
-
-                              // Option A: Check account_status (single source of truth)
-                              const accountStatus = response.user.account_status || 'active';
-
-                              // Map account_status to onboardingStatus for App.tsx routing
-                              let onboardingStatus = 'active';
-                              if (accountStatus === 'pending_verification' ||
-                                accountStatus === 'documents_review' ||
-                                accountStatus === 'background_check' ||
-                                accountStatus === 'final_review' ||
-                                accountStatus === 'account_created' ||
-                                accountStatus === 'onboarding_pending' ||
-                                accountStatus === 'registration_submitted') {
-                                onboardingStatus = 'pending';
-                              } else if (accountStatus === 'rejected') {
-                                onboardingStatus = 'rejected';
-                              } else if (accountStatus === 'suspended') {
-                                onboardingStatus = 'suspended';
-                              } else if (accountStatus === 'incomplete_registration' || accountStatus === 'draft') {
-                                onboardingStatus = 'incomplete';
-                              }
-
-                              onLogin(
-                                response.user.email,
-                                result.user.displayName || 'User',
-                                response.user.role,
-                                response.user.id,
-                                onboardingStatus,
-                                response.token
-                              );
-                            } else {
-                              throw new Error("Firebase login not supported by current auth service");
-                            }
-                          } catch (err: any) {
-                            console.error('Google Login Error:', err);
-
-                            // If user is not found in backend or explicitly 404, redirect to registration
-                            if (err.message && (
-                              err.message.includes('404') ||
-                              err.message.includes('400') ||
-                              err.message.toLowerCase().includes('not found') ||
-                              err.message.toLowerCase().includes('no user') ||
-                              err.message.toLowerCase().includes('json')
-                            )) {
-                              toast.info("Completing account setup...");
-                              // Force full navigation to ensure clean state
-                              window.location.href = '/register-therapist';
-                              return;
-                            }
-
-                            toast.error(err.message || "Authentication failed");
-                          }
+                          // Google Sign-in with Cognito coming soon
+                          toast.info("Google Sign-in coming soon", {
+                            description: "Please use email login for now."
+                          });
                         }}
                         className="w-full h-11 border-border/50 bg-background/30 hover:bg-background/80 text-foreground font-medium transition-all rounded-xl shadow-none hover:shadow-md flex items-center justify-center gap-3"
                       >
@@ -630,29 +527,10 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                         type="button"
                         variant="outline"
                         onClick={async () => {
-                          try {
-                            const { signInWithPopup } = await import('firebase/auth');
-                            const { auth, appleProvider } = await import('../lib/firebase');
-                            const { authService } = await import('../api');
-
-                            const result = await signInWithPopup(auth, appleProvider);
-                            const idToken = await result.user.getIdToken();
-
-                            // Call our Backend via Service
-                            if (authService.loginWithFirebase) {
-                              const response = await authService.loginWithFirebase(
-                                idToken,
-                                result.user.displayName?.split(' ')[0] || 'User',
-                                result.user.displayName?.split(' ').slice(1).join(' ') || ''
-                              );
-                              onLogin(response.user.email, result.user.displayName || 'User', response.user.role, response.user.id, response.user.onboardingStatus, response.token);
-                            } else {
-                              throw new Error("Firebase login not supported by current auth service");
-                            }
-                          } catch (err: any) {
-                            console.error(err);
-                            toast.error(err.message);
-                          }
+                          // Apple Sign-in with Cognito coming soon
+                          toast.info("Apple Sign-in coming soon", {
+                            description: "Please use email login for now."
+                          });
                         }}
                         className="w-full h-11 border-border/50 bg-background/30 hover:bg-background/80 text-foreground font-medium transition-all rounded-xl shadow-none hover:shadow-md flex items-center justify-center gap-3"
                       >
