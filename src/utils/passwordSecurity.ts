@@ -33,8 +33,8 @@ export async function checkPasswordBreach(password: string): Promise<{
             };
         }
 
-        const data = await response.text();
-        const lines = data.split('\n');
+        const responseText = await response.text();
+        const lines = responseText.split('\n');
 
         // Check if our password hash suffix appears in the results
         for (const line of lines) {
@@ -62,6 +62,7 @@ export async function checkPasswordBreach(password: string): Promise<{
 
 /**
  * Enhanced password validation with NIST SP 800-63B compliance
+ * Provides specific, helpful error messages
  */
 export async function validatePasswordSecurity(password: string): Promise<{
     valid: boolean;
@@ -73,34 +74,34 @@ export async function validatePasswordSecurity(password: string): Promise<{
 
     // Length requirements (NIST SP 800-63B)
     if (password.length < 12) {
-        errors.push('Password must be at least 12 characters long');
+        errors.push(`Password is too short. Use at least 12 characters (current: ${password.length})`);
     }
 
     if (password.length > 128) {
-        errors.push('Password must be no more than 128 characters long');
+        errors.push(`Password is too long. Use no more than 128 characters (current: ${password.length})`);
     }
 
     // Check for spaces (allowed by NIST)
     if (password.includes(' ')) {
-        warnings.push('Password contains spaces (allowed but ensure it\'s intentional)');
+        warnings.push('Password contains spaces (this is allowed, just ensure it\'s intentional)');
     }
 
     // Check for repetitive patterns
     if (/(.)\1{4,}/.test(password)) {
-        errors.push('Password contains too many repeated characters');
+        errors.push('Password contains too many repeated characters (5+ in a row). Try mixing it up more.');
     }
 
     // Check for sequential patterns
     const sequential = [
-        'abcdefghijklmnopqrstuvwxyz',
-        '0123456789',
-        'qwertyuiopasdfghjklzxcvbnm'
+        { pattern: 'abcdefghijklmnopqrstuvwxyz', name: 'alphabetical' },
+        { pattern: '0123456789', name: 'numerical' },
+        { pattern: 'qwertyuiopasdfghjklzxcvbnm', name: 'keyboard' }
     ];
 
     for (const seq of sequential) {
-        for (let i = 0; i <= seq.length - 6; i++) {
-            if (password.toLowerCase().includes(seq.substring(i, i + 6))) {
-                errors.push('Password contains sequential characters');
+        for (let i = 0; i <= seq.pattern.length - 6; i++) {
+            if (password.toLowerCase().includes(seq.pattern.substring(i, i + 6))) {
+                errors.push(`Password contains ${seq.name} sequences. Try using random characters instead.`);
                 break;
             }
         }
@@ -109,12 +110,13 @@ export async function validatePasswordSecurity(password: string): Promise<{
     // Check against common passwords
     const commonPasswords = [
         'password', '123456', 'password123', 'admin', 'qwerty',
-        'letmein', 'welcome', 'monkey', '1234567890', 'password1'
+        'letmein', 'welcome', 'monkey', '1234567890', 'password1',
+        'login', 'guest', 'hello', 'test', 'user'
     ];
 
     for (const common of commonPasswords) {
         if (password.toLowerCase().includes(common)) {
-            errors.push('Password contains common words or patterns');
+            errors.push('Password contains common words. Try using unique phrases or random words instead.');
             break;
         }
     }
@@ -123,9 +125,9 @@ export async function validatePasswordSecurity(password: string): Promise<{
     try {
         const breachCheck = await checkPasswordBreach(password);
         if (breachCheck.isBreached) {
-            errors.push(`Password has been found in ${breachCheck.breachCount} data breaches. Please choose a different password.`);
+            errors.push(`This password has been found in ${breachCheck.breachCount?.toLocaleString()} data breaches. Please choose a different password for your security.`);
         } else if (breachCheck.error) {
-            warnings.push('Unable to verify if password has been breached. Consider choosing a different password.');
+            warnings.push('Unable to verify if password has been breached. Consider choosing a different password to be safe.');
         }
     } catch (error) {
         warnings.push('Password breach check unavailable. Consider choosing a unique password.');

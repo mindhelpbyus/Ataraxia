@@ -28,10 +28,9 @@ const initialOnboardingData: OnboardingData = {
   lastName: '',
   middleName: '',
   preferredName: '',
-  fullName: '',
   email: '',
   phoneNumber: '',
-  countryCode: '+1',
+  countryCode: '+91', // Default to India (primary market)
   password: '',
   address1: '',
   address2: '',
@@ -237,6 +236,11 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
 
   // Load from localStorage on mount (for persistence) - only if it's the same session
   useEffect(() => {
+    // Set URL for onboarding to maintain state on refresh
+    if (window.location.pathname !== '/register-therapist' && window.location.pathname !== '/register') {
+      window.history.pushState({}, '', '/register-therapist');
+    }
+
     const savedData = localStorage.getItem('therapistOnboardingData');
     const savedStep = localStorage.getItem('therapistOnboardingStep');
     const savedSessionId = localStorage.getItem('therapistOnboardingSessionId');
@@ -301,7 +305,6 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
               setOnboardingData(prev => ({
                 ...prev,
                 email: user.email || prev.email,
-                fullName: user.displayName || prev.fullName,
                 firstName: firstName || prev.firstName,
                 lastName: lastName || prev.lastName,
                 authMethod: 'google'
@@ -328,7 +331,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
   // Save to localStorage whenever data or step changes
   useEffect(() => {
     // Only save if we have some data (not initial empty state)
-    if (onboardingData.email || onboardingData.fullName || currentStep > 1) {
+    if (onboardingData.email || onboardingData.firstName || onboardingData.lastName || currentStep > 1) {
       // Create a serializable copy of the data
       const serializableData = { ...onboardingData };
 
@@ -358,7 +361,12 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
   };
 
   const updateData = (newData: Partial<OnboardingData>) => {
-    setOnboardingData((prev) => ({ ...prev, ...newData }));
+    console.log('🔍 DEBUG: updateData called with:', newData);
+    setOnboardingData((prev) => {
+      const updated = { ...prev, ...newData };
+      console.log('🔍 DEBUG: Updated onboarding data countryCode:', updated.countryCode);
+      return updated;
+    });
   };
 
   const goToNextStep = async () => {
@@ -418,6 +426,10 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         firstName: onboardingData.firstName || onboardingData.fullName?.split(' ')[0],
         lastName: onboardingData.lastName || onboardingData.fullName?.split(' ').slice(1).join(' '),
 
+        // Personal Information (Step 3) - MISSING FIELDS ADDED
+        gender: onboardingData.gender,
+        dateOfBirth: onboardingData.dateOfBirth,
+
         // Address & Contact
         countryCode: onboardingData.countryCode,
         phoneNumber: onboardingData.phoneNumber,
@@ -430,9 +442,10 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
 
         // Profile
         timezone: onboardingData.timezone,
-        languages: onboardingData.languagesSpokenFluently,
+        languages: onboardingData.languagesSpokenFluently || onboardingData.languages, // Support both field names
         // Send strings for URLs if they exist (file uploads handled separately usually, but assuming strings here for now or pre-signed URLs)
         profilePhotoUrl: typeof onboardingData.profilePhoto === 'string' ? onboardingData.profilePhoto : undefined,
+        selectedAvatarUrl: onboardingData.selectedAvatarUrl,
         headshotUrl: typeof onboardingData.headshot === 'string' ? onboardingData.headshot : undefined,
 
         // Step 4 Attributes
@@ -511,6 +524,10 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         signedBaa: onboardingData.signedBaa,
 
         // Document URLs (assuming pre-signed URL strings if handled, otherwise undefined)
+        licenseDocumentUrl: typeof onboardingData.licenseDocument === 'string' ? onboardingData.licenseDocument : undefined,
+        malpracticeDocumentUrl: typeof onboardingData.malpracticeInsuranceDocument === 'string' ? onboardingData.malpracticeInsuranceDocument : undefined,
+        degreeDocumentUrl: typeof onboardingData.degreeDocument === 'string' ? onboardingData.degreeDocument : undefined,
+        photoIdUrl: typeof onboardingData.governmentId === 'string' ? onboardingData.governmentId : undefined,
         hipaaDocumentUrl: typeof onboardingData.hipaaTrainingDocument === 'string' ? onboardingData.hipaaTrainingDocument : undefined,
         ethicsDocumentUrl: typeof onboardingData.ethicsCertificationDocument === 'string' ? onboardingData.ethicsCertificationDocument : undefined,
         backgroundCheckDocumentUrl: typeof onboardingData.backgroundCheckDocument === 'string' ? onboardingData.backgroundCheckDocument : undefined,
@@ -528,7 +545,10 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         licenseType: onboardingData.licenseType,
         licenseExpiry: onboardingData.licenseExpiryDate,
         malpracticeInsuranceProvider: onboardingData.malpracticeInsurance,
+        malpracticePolicyNumber: onboardingData.malpracticePolicyNumber,
+        malpracticeExpiry: onboardingData.malpracticeExpiryDate,
         npiNumber: onboardingData.npiNumber,
+        deaNumber: onboardingData.deaNumber,
         licensingAuthority: onboardingData.licensingAuthority,
 
         // Step 6 Availability & Preferences
@@ -547,6 +567,13 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       API_URL = API_URL.replace(/\/$/, '').replace(/\/api$/, '');
 
       logger.info('Submitting therapist registration to API:', { url: `${API_URL}/api/auth/therapist/register` });
+      
+      // Debug: Log the country code being sent
+      console.log('🔍 DEBUG: Country code being sent:', {
+        countryCode: onboardingData.countryCode,
+        phoneNumber: onboardingData.phoneNumber,
+        payloadCountryCode: payload.countryCode
+      });
 
       const token = await user.getIdToken();
       const response = await fetch(`${API_URL}/api/auth/therapist/register`, {
@@ -582,7 +609,8 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         // Sign out the user
         await signOut();
 
-        // Redirect to login page
+        // Clear URL and redirect to login page
+        window.history.pushState({}, '', '/');
         window.location.href = '/';
       } else {
         throw new Error(result.message || 'Registration failed');
@@ -645,7 +673,8 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
 
     // Update onboarding data with OAuth info
     updateData({
-      fullName: displayName,
+      firstName: displayName?.split(' ')[0] || '',
+      lastName: displayName?.split(' ').slice(1).join(' ') || '',
       email: email,
       firebaseUid: uid,
       authMethod: method,
@@ -691,6 +720,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
               onClick={async () => {
                 await signOut();
                 clearLocalStorage();
+                window.history.pushState({}, '', '/');
                 window.location.reload();
               }}
               className="w-full text-gray-600 border-gray-200 hover:bg-gray-50 h-12"
@@ -759,7 +789,14 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
             <div className="mt-8">
               <Button
                 className="w-full bg-[#F97316] hover:bg-[#ea580c]"
-                onClick={onComplete}
+                onClick={() => {
+                  window.history.pushState({}, '', '/');
+                  if (onComplete) {
+                    onComplete();
+                  } else {
+                    window.location.href = '/';
+                  }
+                }}
               >
                 Back to Login
               </Button>
@@ -786,6 +823,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
                 onClick={async () => {
                   await signOut();
                   clearLocalStorage();
+                  window.history.pushState({}, '', '/');
                   window.location.reload();
                 }}
                 className="text-orange-600 hover:text-orange-700 font-medium hover:underline transition-all whitespace-nowrap"
@@ -797,6 +835,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
             <button
               onClick={() => {
                 clearLocalStorage();
+                window.history.pushState({}, '', '/');
                 if (onComplete) {
                   onComplete();
                 } else {
@@ -821,11 +860,12 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         {currentStep === 1 && (
           <OnboardingStep1Signup
             data={{
-              fullName: onboardingData.fullName,
-              email: onboardingData.email,
-              phoneNumber: onboardingData.phoneNumber,
-              countryCode: onboardingData.countryCode,
-              password: onboardingData.password,
+              firstName: onboardingData.firstName || '',
+              lastName: onboardingData.lastName || '',
+              email: onboardingData.email || '',
+              phoneNumber: onboardingData.phoneNumber || '',
+              countryCode: onboardingData.countryCode || '+91',
+              password: onboardingData.password || '',
             }}
             onUpdate={updateData}
             onNext={goToNextStep}

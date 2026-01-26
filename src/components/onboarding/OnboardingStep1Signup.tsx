@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, Phone } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -15,12 +15,13 @@ import { saveOAuthUserData } from '../../services/firestoreService';
 import { isFirebaseConfigured } from '../../config/firebase';
 import { logger } from '../../services/secureLogger';
 import { verificationService } from '../../api/services/verification';
-import { validatePasswordSecurity } from '../../utils/passwordSecurity';
+import { validatePasswordSecurity, generateSecurePassword } from '../../utils/passwordSecurity';
 
 
 interface OnboardingStep1Props {
   data: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phoneNumber: string;
     countryCode: string;
@@ -38,6 +39,27 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showUnauthorizedDomainError, setShowUnauthorizedDomainError] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Generate secure password
+  const handleGeneratePassword = () => {
+    const newPassword = generateSecurePassword(16); // Generate 16-character password
+    onUpdate({ password: newPassword });
+    clearError('password');
+    // Trigger validation for the new password
+    debouncedValidateField('password', newPassword);
+  };
   
   // Clear specific error when user starts typing
   const clearError = (field: string) => {
@@ -48,6 +70,123 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
         return newErrors;
       });
     }
+  };
+
+  // Debounced validation to prevent too many API calls
+  const debouncedValidateField = (field: string, value: string) => {
+    // Clear any existing timeout
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
+
+    // Set a new timeout for validation
+    validationTimeoutRef.current = setTimeout(() => {
+      validateField(field, value);
+    }, 500); // 500ms delay
+  };
+
+  // Real-time field validation on blur
+  const validateField = async (field: string, value: string) => {
+    // Clear any existing error for this field first
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
+
+    const newErrors: Record<string, string> = {};
+
+    switch (field) {
+      case 'email':
+        if (!value.trim()) {
+          newErrors.email = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors.email = 'Invalid email format';
+        } else {
+          // Check for duplicate email
+          try {
+            setIsValidating(true);
+            const duplicateCheck = await verificationService.checkDuplicateRegistration(value, undefined);
+            if (!duplicateCheck.success && duplicateCheck.emailExists) {
+              newErrors.email = 'This email address is already registered';
+            }
+          } catch (error) {
+            console.error('Error checking email duplicate:', error);
+            // Don't show error to user for network issues, just log it
+          } finally {
+            setIsValidating(false);
+          }
+        }
+        break;
+
+      case 'phoneNumber':
+        if (!value.trim()) {
+          newErrors.phoneNumber = 'Phone number is required';
+        } else if (!/^\d{10,15}$/.test(value.replace(/\s/g, ''))) {
+          newErrors.phoneNumber = 'Invalid phone number';
+        } else {
+          // Check for duplicate phone
+          try {
+            setIsValidating(true);
+            const duplicateCheck = await verificationService.checkDuplicateRegistration(undefined, value);
+            if (!duplicateCheck.success && duplicateCheck.phoneExists) {
+              newErrors.phoneNumber = 'This phone number is already registered';
+            }
+          } catch (error) {
+            console.error('Error checking phone duplicate:', error);
+            // Don't show error to user for network issues, just log it
+          } finally {
+            setIsValidating(false);
+          }
+        }
+        break;
+
+      case 'password':
+        if (!value) {
+          newErrors.password = 'Password is required';
+        } else if (value.length < 12) {
+          newErrors.password = 'Password must be at least 12 characters long';
+        } else if (value.length > 128) {
+          newErrors.password = 'Password must be no more than 128 characters long';
+        } else {
+          // Enhanced password security validation
+          try {
+            setIsValidating(true);
+            const passwordValidation = await validatePasswordSecurity(value);
+            if (!passwordValidation.valid) {
+              newErrors.password = passwordValidation.errors[0];
+            }
+          } catch (error) {
+            console.error('Password validation error:', error);
+            // Don't show error to user for network issues
+          } finally {
+            setIsValidating(false);
+          }
+        }
+        break;
+
+      case 'firstName':
+        if (!value.trim()) {
+          newErrors.firstName = 'First name is required';
+        }
+        break;
+
+      case 'lastName':
+        if (!value.trim()) {
+          newErrors.lastName = 'Last name is required';
+        }
+        break;
+    }
+
+    // Update errors for this specific field only
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(prev => ({
+        ...prev,
+        ...newErrors
+      }));
+    }
+
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleBackToLogin = () => {
@@ -61,88 +200,38 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
     }
   };
 
-  const validateForm = async () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!data.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
+  const validateForm = () => {
+    // Simple validation - just check if required fields are filled and no errors exist
+    const requiredFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'password'];
+    const missingFields = requiredFields.filter(field => !data[field as keyof typeof data]?.trim());
+    
+    if (missingFields.length > 0) {
+      const newErrors: Record<string, string> = {};
+      missingFields.forEach(field => {
+        const fieldName = field === 'firstName' ? 'first name' : 
+                         field === 'lastName' ? 'last name' :
+                         field.replace(/([A-Z])/g, ' $1').toLowerCase();
+        newErrors[field] = `${fieldName} is required`;
+      });
+      setErrors(prev => ({ ...prev, ...newErrors }));
+      return false;
     }
 
-    if (!data.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!data.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required';
-    } else if (!/^\d{10,15}$/.test(data.phoneNumber.replace(/\s/g, ''))) {
-      newErrors.phoneNumber = 'Invalid phone number';
-    }
-
-    if (!data.password) {
-      newErrors.password = 'Password is required';
-    } else if (data.password.length < 12) {
-      newErrors.password = 'Password must be at least 12 characters long';
-    } else if (data.password.length > 128) {
-      newErrors.password = 'Password must be no more than 128 characters long';
-    } else {
-      // Enhanced password security validation
-      try {
-        const passwordValidation = await validatePasswordSecurity(data.password);
-        if (!passwordValidation.valid) {
-          newErrors.password = passwordValidation.errors[0]; // Show first error
-        }
-      } catch (error) {
-        console.error('Password validation error:', error);
-        // Fallback to basic validation if enhanced validation fails
-      }
-    }
-
-    // Check for duplicates if basic validation passes
-    if (!newErrors.email && !newErrors.phoneNumber) {
-      setIsValidating(true);
-      try {
-        const duplicateCheck = await verificationService.checkDuplicateRegistration(
-          data.email,
-          data.phoneNumber
-        );
-
-        if (!duplicateCheck.success) {
-          if (duplicateCheck.emailExists) {
-            newErrors.email = 'This email address is already registered';
-          }
-          if (duplicateCheck.phoneExists) {
-            newErrors.phoneNumber = 'This phone number is already registered';
-          }
-        }
-      } catch (error) {
-        console.error('Error checking duplicates:', error);
-        // Don't block registration if duplicate check fails - log and continue
-        logger.error('Duplicate check failed:', error);
-      } finally {
-        setIsValidating(false);
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    // Check if there are any existing validation errors
+    const hasErrors = Object.keys(errors).length > 0;
+    return !hasErrors;
   };
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting || isValidating) return;
 
-    // First validate the form
-    const isValid = await validateForm();
+    // Simple validation check
+    const isValid = validateForm();
     if (!isValid) {
-      // If validation fails, don't proceed but keep form interactive
       return;
     }
 
-    // Only set submitting state if validation passes
     setIsSubmitting(true);
 
     if (!isFirebaseConfigured) {
@@ -193,7 +282,8 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
       );
 
       onUpdate({
-        fullName: userProfile.displayName,
+        firstName: userProfile.displayName?.split(' ')[0] || '',
+        lastName: userProfile.displayName?.split(' ').slice(1).join(' ') || '',
         email: userProfile.email,
       });
 
@@ -238,7 +328,8 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
       );
 
       onUpdate({
-        fullName: userProfile.displayName,
+        firstName: userProfile.displayName?.split(' ')[0] || '',
+        lastName: userProfile.displayName?.split(' ').slice(1).join(' ') || '',
         email: userProfile.email,
       });
 
@@ -287,25 +378,58 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Full Name */}
+          {/* First Name */}
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name *</Label>
+            <Label htmlFor="firstName">First Name *</Label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                id="fullName"
+                id="firstName"
                 type="text"
-                placeholder="Dr. Jane Smith"
-                className={`pl-10 ${errors.fullName ? 'border-red-500' : ''}`}
-                value={data.fullName}
+                placeholder="John"
+                className={`pl-10 ${errors.firstName ? 'border-red-500' : ''}`}
+                value={data.firstName || ''}
                 onChange={(e) => {
-                  onUpdate({ fullName: e.target.value });
-                  clearError('fullName');
+                  onUpdate({ firstName: e.target.value });
+                  clearError('firstName');
+                }}
+                onBlur={(e) => {
+                  const field = 'firstName';
+                  const value = e.target.value;
+                  // Immediate validation for non-API fields
+                  validateField(field, value);
                 }}
                 disabled={isSubmitting}
               />
             </div>
-            {errors.fullName && <p className="text-xs text-red-500">{errors.fullName}</p>}
+            {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
+          </div>
+
+          {/* Last Name */}
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name *</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Smith"
+                className={`pl-10 ${errors.lastName ? 'border-red-500' : ''}`}
+                value={data.lastName || ''}
+                onChange={(e) => {
+                  onUpdate({ lastName: e.target.value });
+                  clearError('lastName');
+                }}
+                onBlur={(e) => {
+                  const field = 'lastName';
+                  const value = e.target.value;
+                  // Immediate validation for non-API fields
+                  validateField(field, value);
+                }}
+                disabled={isSubmitting}
+              />
+            </div>
+            {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
           </div>
 
           {/* Email */}
@@ -318,13 +442,24 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
                 type="email"
                 placeholder="jane.smith@example.com"
                 className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
-                value={data.email}
+                value={data.email || ''}
                 onChange={(e) => {
                   onUpdate({ email: e.target.value });
                   clearError('email');
                 }}
+                onBlur={(e) => {
+                  const field = 'email';
+                  const value = e.target.value;
+                  // Debounced validation for API fields
+                  debouncedValidateField(field, value);
+                }}
                 disabled={isSubmitting}
               />
+              {isValidating && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
+                </div>
+              )}
             </div>
             {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
           </div>
@@ -332,42 +467,122 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
           {/* Phone Number */}
           <PhoneInput
             label="Phone Number"
-            value={data.phoneNumber}
-            countryCode={data.countryCode}
+            value={data.phoneNumber || ''}
+            countryCode={data.countryCode || '+91'}
             onChange={(phone, code, iso) => {
+              console.log('🔍 DEBUG: PhoneInput onChange called:', { phone, code, iso });
               onUpdate({ phoneNumber: phone, countryCode: code, country: iso });
               clearError('phoneNumber');
             }}
+            onBlur={(phone) => {
+              // Debounced validation for API fields
+              debouncedValidateField('phoneNumber', phone);
+            }}
             error={errors.phoneNumber}
             required
-            helperText={errors.phoneNumber || "We'll use this for verification"}
+            helperText={errors.phoneNumber || (isValidating ? "Checking availability..." : "We'll use this for verification")}
             disabled={isSubmitting}
           />
 
           {/* Password */}
           <div className="space-y-2">
-            <Label htmlFor="password">Password *</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password *</Label>
+              <button
+                type="button"
+                onClick={handleGeneratePassword}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+                disabled={isSubmitting}
+              >
+                Generate Secure Password
+              </button>
+            </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Minimum 12 characters"
-                className={`pl-10 ${errors.password ? 'border-red-500' : ''}`}
-                value={data.password}
+                className={`pl-10 pr-20 ${errors.password ? 'border-red-500' : ''}`}
+                value={data.password || ''}
                 onChange={(e) => {
                   onUpdate({ password: e.target.value });
                   clearError('password');
                 }}
+                onBlur={(e) => {
+                  const field = 'password';
+                  const value = e.target.value;
+                  // Debounced validation for password (API call for breach check)
+                  debouncedValidateField(field, value);
+                }}
                 disabled={isSubmitting}
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {isValidating && (
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={isSubmitting}
+                >
+                  {showPassword ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
-            {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+            
+            {/* Password Requirements - Simplified */}
+            <div className="text-xs text-gray-600 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className={`${(data.password || '').length >= 12 ? 'text-green-600' : 'text-gray-500'}`}>
+                  ✓ At least 12 characters ({(data.password || '').length}/128)
+                </span>
+                {(data.password || '').length >= 12 && (
+                  <span className="text-green-600 text-xs">✓ Good</span>
+                )}
+              </div>
+              
+              {/* Show generated password warning */}
+              {data.password && data.password.length === 16 && /[A-Z]/.test(data.password) && /[a-z]/.test(data.password) && /[0-9]/.test(data.password) && /[^a-zA-Z0-9]/.test(data.password) && (
+                <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-800">
+                  <p className="text-xs font-medium">⚠️ Save this generated password!</p>
+                  <p className="text-xs">Copy it to your password manager or write it down securely before continuing.</p>
+                </div>
+              )}
+              
+              <p className="text-xs text-blue-600">
+                💡 Tip: Use a memorable passphrase or click "Generate Secure Password" above
+              </p>
+            </div>
+
+            {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password}</p>}
           </div>
 
           {/* Continue Button */}
           <Button type="submit" disabled={isSubmitting || isValidating} className="w-full bg-[#F97316] hover:bg-[#ea580c] rounded-full">
-            {isValidating ? 'Checking availability...' : isSubmitting ? 'Processing...' : 'Continue'}
+            {isValidating ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Validating...
+              </div>
+            ) : isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Processing...
+              </div>
+            ) : (
+              'Continue'
+            )}
           </Button>
         </form>
 
