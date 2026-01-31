@@ -15,7 +15,13 @@ export interface User {
 
 export interface AuthResponse {
     user: User;
-    token: string;
+    token?: string; // Legacy field
+    tokens?: {
+        accessToken: string;
+        refreshToken?: string;
+        idToken?: string;
+        expiresIn?: number;
+    };
     pending_registration?: boolean;
     registration_status?: string;
     message?: string;

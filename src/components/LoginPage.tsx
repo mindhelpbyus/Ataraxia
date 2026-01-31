@@ -138,6 +138,12 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
 
       const response = await authService.login(email, password);
 
+      // Defensive check for response structure
+      if (!response || !response.user) {
+        console.error('Invalid login response:', response);
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
       // Option A: Check account_status (single source of truth)
       const accountStatus = response.user.account_status || 'active';
 
@@ -165,7 +171,7 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
         response.user.role as any,
         response.user.id,
         onboardingStatus,
-        response.token
+        response.tokens?.accessToken || response.token
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid credentials');
@@ -191,13 +197,13 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
 
         // Use Cognito Phone Auth via our backend
         const fullPhoneNumber = `${phoneCountryCode}${phoneNumber}`;
-        
+
         // Call our backend to initiate phone auth
         // For now, we'll show a message that phone auth is coming soon
         toast.info("Phone authentication coming soon", {
           description: "Please use email login for now."
         });
-        
+
         setLoginMode('email');
         return;
 

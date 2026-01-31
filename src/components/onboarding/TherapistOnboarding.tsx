@@ -16,6 +16,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { logger } from '../../services/secureLogger';
 import { verificationService } from '../../api/services/verification';
 import { signOut, getCurrentUser } from '../../services/authService';
+import { post } from '../../api/client';
 
 
 const TOTAL_STEPS = 10;
@@ -565,7 +566,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       API_URL = API_URL.replace(/\/$/, '').replace(/\/api$/, '');
 
       logger.info('Submitting therapist registration to API:', { url: `${API_URL}/api/auth/therapist/register` });
-      
+
       // Debug: Log the country code being sent
       console.log('🔍 DEBUG: Country code being sent:', {
         countryCode: onboardingData.countryCode,
@@ -575,12 +576,12 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
 
       // Get authentication token - prioritize ID token for Cognito JWT verification
       let token = null;
-      
+
       // The backend jwtVerifier expects ID tokens, so prioritize cognitoIdToken
-      token = localStorage.getItem('cognitoIdToken') || 
-              localStorage.getItem('authToken') || 
-              localStorage.getItem('cognitoAccessToken');
-      
+      token = localStorage.getItem('cognitoIdToken') ||
+        localStorage.getItem('authToken') ||
+        localStorage.getItem('cognitoAccessToken');
+
       // If no token found, try to get current user and refresh token
       if (!token) {
         console.log('⚠️ No token found in localStorage, trying to get current user...');
@@ -591,11 +592,11 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
           console.log('🔄 Retrieved token from current user session:', token ? 'Found' : 'Not found');
         }
       }
-      
+
       // If still no token, check if user is logged in and try to refresh
       if (!token) {
         console.log('⚠️ No valid token found, checking authentication state...');
-        
+
         // Try to get any stored token and check if it's just expired
         const storedTokens = {
           cognitoIdToken: localStorage.getItem('cognitoIdToken'),
@@ -603,53 +604,48 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
           cognitoAccessToken: localStorage.getItem('cognitoAccessToken'),
           cognitoRefreshToken: localStorage.getItem('cognitoRefreshToken')
         };
-        
+
         console.log('🔍 Stored tokens check:', {
           cognitoIdToken: storedTokens.cognitoIdToken ? 'Present' : 'Missing',
           authToken: storedTokens.authToken ? 'Present' : 'Missing',
           cognitoAccessToken: storedTokens.cognitoAccessToken ? 'Present' : 'Missing',
           cognitoRefreshToken: storedTokens.cognitoRefreshToken ? 'Present' : 'Missing'
         });
-        
+
         // Use ID token first (required by backend), then fallback to others
         token = storedTokens.cognitoIdToken || storedTokens.authToken || storedTokens.cognitoAccessToken;
       }
-      
+
       if (!token) {
         throw new Error('Authentication token not found. Please log in again.');
       }
 
       console.log('🔐 Using token for API call:', token ? 'ID Token found' : 'No token');
 
-      const response = await fetch(`${API_URL}/api/auth/therapist/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      console.log('📡 API Response status:', response.status, response.statusText);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
-        console.error('❌ API Error Response:', errorData);
-        
-        // Provide specific error messages based on status code
-        if (response.status === 401) {
-          throw new Error('Authentication failed. Please log in again and retry.');
-        } else if (response.status === 409) {
-          throw new Error(errorData.message || 'Registration already exists or conflict occurred.');
-        } else {
-          throw new Error(errorData.message || errorData.error || `Registration failed (${response.status})`);
-        }
+      interface RegistrationResponse {
+        success?: boolean;
+        registrationId?: string;
+        message?: string;
       }
 
-      const result = await response.json();
+      console.log('🔐 Using token for API call:', token ? 'ID Token found' : 'No token');
+
+      // Use the robust API client which handles token refreshing automatically
+      // This fixes the issue where tokens expire during the long onboarding process
+      const result = await post<RegistrationResponse>('/auth/therapist/register', payload);
+
       console.log('✅ API Success Response:', result);
 
-      if (result.success) {
+      // The post method throws on error, so we don't need manual response.ok checks here
+      // If we get here, it was successful.
+
+      /* 
+       * Legacy fetch code removed in favor of api/client.ts
+       * This ensures 401s trigger a refresh token flow
+       */
+      console.log('✅ API Success Response:', result);
+
+      if (result.success || result.message === 'Registration submitted') {
         // Clear onboarding data from localStorage
         clearLocalStorage();
 

@@ -64,7 +64,7 @@ const saveOAuthUserData = async (uid: string, email: string, displayName: string
 const sendPhoneVerificationCode = async (phoneNumber: string, countryCode: string) => {
   try {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
-    
+
     const response = await fetch(`${API_BASE_URL}/api/auth/phone/send-code`, {
       method: 'POST',
       headers: {
@@ -92,7 +92,7 @@ const sendPhoneVerificationCode = async (phoneNumber: string, countryCode: strin
 const verifyPhoneCode = async (phoneNumber: string, code: string) => {
   try {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
-    
+
     const response = await fetch(`${API_BASE_URL}/api/auth/phone/verify-code`, {
       method: 'POST',
       headers: {
@@ -118,71 +118,96 @@ const verifyPhoneCode = async (phoneNumber: string, code: string) => {
 };
 
 // Google Sign-in with Cognito - REAL IMPLEMENTATION
+// Google Sign-in with OAuth2 Popup (Correct for Custom Buttons)
 const signInWithGoogle = async () => {
   try {
+    // Check for Client ID
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || clientId.includes('1234567890')) {
+      alert('Missing Google Client ID! Please add VITE_GOOGLE_CLIENT_ID to your .env file.');
+      throw new Error('Google Client ID not configured.');
+    }
+
     // Load Google Identity Services
     if (!window.google) {
-      throw new Error('Google Identity Services not loaded. Please check your internet connection.');
+      throw new Error('Google Identity Services not loaded.');
     }
 
     return new Promise((resolve, reject) => {
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com',
-        callback: async (response: any) => {
-          try {
-            // Send the ID token to our backend
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
-            
-            const authResponse = await fetch(`${API_BASE_URL}/api/auth/google`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                idToken: response.credential
-              })
-            });
+      try {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'email profile openid',
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse && tokenResponse.access_token) {
+              try {
+                // 1. Fetch User Info from Google using the Access Token
+                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                });
+                const userInfo = await userInfoResponse.json();
 
-            const result = await authResponse.json();
+                // 2. Send to Backend for Session Creation
+                const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
 
-            if (!authResponse.ok) {
-              throw new Error(result.message || 'Google sign-in failed');
-            }
+                // We send the access token so the backend can verify it if needed, 
+                // or we trust the frontend fetch (less secure, but OK for dev pending backend implementation).
+                // Ideally, backend should verify.
+                const authResponse = await fetch(`${API_BASE_URL}/api/auth/google`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    accessToken: tokenResponse.access_token,
+                    email: userInfo.email,
+                    googleId: userInfo.sub,
+                    firstName: userInfo.given_name,
+                    lastName: userInfo.family_name,
+                    photoUrl: userInfo.picture
+                  })
+                });
 
-            // Store the token
-            if (result.token) {
-              localStorage.setItem('authToken', result.token);
-            }
+                const result = await authResponse.json();
 
-            resolve({
-              user: {
-                uid: result.user.auth_provider_id,
-                email: result.user.email,
-                displayName: result.user.name
-              },
-              userProfile: {
-                email: result.user.email,
-                displayName: result.user.name,
-                firstName: result.user.first_name,
-                lastName: result.user.last_name
+                if (!authResponse.ok) {
+                  throw new Error(result.message || 'Google sign-in failed on server');
+                }
+
+                if (result.token) {
+                  localStorage.setItem('authToken', result.token);
+                }
+
+                resolve({
+                  user: {
+                    uid: result.user?.auth_provider_id || result.userId || userInfo.sub,
+                    email: result.user?.email || result.email || userInfo.email,
+                    displayName: result.user?.name || userInfo.name
+                  },
+                  userProfile: {
+                    email: userInfo.email,
+                    displayName: userInfo.name,
+                    firstName: userInfo.given_name,
+                    lastName: userInfo.family_name
+                  }
+                });
+              } catch (err) {
+                reject(err);
               }
-            });
-          } catch (error) {
-            reject(error);
+            } else {
+              reject(new Error('No access token received from Google'));
+            }
+          },
+          error_callback: (err: any) => {
+            console.error('Google Auth Error:', err);
+            reject(err);
           }
-        }
-      });
+        });
 
-      // Trigger the sign-in popup
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fallback to manual sign-in
-          window.google.accounts.id.renderButton(
-            document.createElement('div'),
-            { theme: 'outline', size: 'large' }
-          );
-        }
-      });
+        // Trigger Popup
+        client.requestAccessToken();
+
+      } catch (err) {
+        reject(err);
+      }
     });
   } catch (error) {
     logger.error('Google sign-in failed:', error);
@@ -190,17 +215,7 @@ const signInWithGoogle = async () => {
   }
 };
 
-// Apple Sign-in with Cognito - REAL IMPLEMENTATION (placeholder for now)
-const signInWithApple = async () => {
-  try {
-    // Apple Sign-in implementation would go here
-    // For now, show a helpful message
-    throw new Error('Apple Sign-in is coming soon. Please use email registration or Google Sign-in for now.');
-  } catch (error) {
-    logger.error('Apple sign-in failed:', error);
-    throw error;
-  }
-};
+
 
 // Create user with email using Cognito
 const createUserWithEmail = async (email: string, password: string, additionalData?: any) => {
@@ -256,7 +271,7 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
     // Trigger validation for the new password
     debouncedValidateField('password', newPassword);
   };
-  
+
   // Clear specific error when user starts typing
   const clearError = (field: string) => {
     if (errors[field]) {
@@ -374,13 +389,13 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
     // Simple validation - just check if required fields are filled and no errors exist
     const requiredFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'password'];
     const missingFields = requiredFields.filter(field => !data[field as keyof typeof data]?.trim());
-    
+
     if (missingFields.length > 0) {
       const newErrors: Record<string, string> = {};
       missingFields.forEach(field => {
-        const fieldName = field === 'firstName' ? 'first name' : 
-                         field === 'lastName' ? 'last name' :
-                         field.replace(/([A-Z])/g, ' $1').toLowerCase();
+        const fieldName = field === 'firstName' ? 'first name' :
+          field === 'lastName' ? 'last name' :
+            field.replace(/([A-Z])/g, ' $1').toLowerCase();
         newErrors[field] = `${fieldName} is required`;
       });
       setErrors(prev => ({ ...prev, ...newErrors }));
@@ -503,58 +518,16 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
     }
   };
 
-  const handleAppleSignup = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
 
-    if (!isCognitoConfigured()) {
-      alert('Cognito authentication is not configured. Please contact support.');
-      setIsSubmitting(false);
-      return;
-    }
 
-    setShowUnauthorizedDomainError(false);
 
-    try {
-      console.log('🔐 Starting Apple Sign-in with Cognito...');
-      const result = await signInWithApple();
-      const { user, userProfile } = result;
 
-      await saveOAuthUserData(
-        user.uid,
-        userProfile.email,
-        userProfile.displayName,
-        'apple'
-      );
-
-      onUpdate({
-        firstName: userProfile.firstName || userProfile.displayName?.split(' ')[0] || '',
-        lastName: userProfile.lastName || userProfile.displayName?.split(' ').slice(1).join(' ') || '',
-        email: userProfile.email,
-        authMethod: 'apple',
-        firebaseUid: user.uid
-      });
-
-      logger.info('✅ Apple sign-in successful:', user.uid);
-
-      if (onOAuthSignup) {
-        onOAuthSignup(userProfile.email, userProfile.displayName, user.uid, 'apple');
-      } else {
-        onNext();
-      }
-    } catch (error: any) {
-      logger.error('Apple signup error:', error);
-      setIsSubmitting(false);
-
-      if (error.code === 'auth/unauthorized-domain' || error.message?.includes('unauthorized-domain')) {
-        setShowUnauthorizedDomainError(true);
-      } else {
-        alert(getCognitoErrorMessage(error));
-      }
-    }
+  const handlePhoneSignup = async () => {
+    // Logic for phone signup (e.g., OTP modal or focus phone field)
+    console.log('Phone signup clicked');
+    // For now, we might just want to focus the phone input or trigger a specific flow
+    document.getElementById('phoneNumber')?.focus();
   };
-
-
 
   return (
     <motion.div
@@ -744,7 +717,7 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
                 </button>
               </div>
             </div>
-            
+
             {/* Password Requirements - Simplified */}
             <div className="text-xs text-gray-600 space-y-2">
               <div className="flex items-center justify-between">
@@ -755,7 +728,7 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
                   <span className="text-green-600 text-xs">✓ Good</span>
                 )}
               </div>
-              
+
               {/* Show generated password warning */}
               {data.password && data.password.length === 16 && /[A-Z]/.test(data.password) && /[a-z]/.test(data.password) && /[0-9]/.test(data.password) && /[^a-zA-Z0-9]/.test(data.password) && (
                 <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-800">
@@ -763,7 +736,7 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
                   <p className="text-xs">Copy it to your password manager or write it down securely before continuing.</p>
                 </div>
               )}
-              
+
               <p className="text-xs text-blue-600">
                 💡 Tip: Use a memorable passphrase or click "Generate Secure Password" above
               </p>
@@ -830,12 +803,10 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
             type="button"
             variant="outline"
             className="w-full"
-            onClick={handleAppleSignup}
+            onClick={handlePhoneSignup}
           >
-            <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-            </svg>
-            Apple
+            <Phone className="mr-2 h-4 w-4" />
+            Phone
           </Button>
         </div>
 

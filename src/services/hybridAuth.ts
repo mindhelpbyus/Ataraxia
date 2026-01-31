@@ -8,7 +8,7 @@
  * - Maintains Firebase interface compatibility
  */
 
-import { 
+import {
   CognitoIdentityProviderClient,
   InitiateAuthCommand,
   SignUpCommand,
@@ -24,14 +24,14 @@ import { CognitoJwtVerifier } from 'aws-jwt-verify';
 const CONFIG = {
   // Lambda API (Primary)
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'https://zojyvoao3c.execute-api.us-west-2.amazonaws.com/dev/',
-  
+
   // Direct Cognito (Fallback)
   cognito: {
     userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'us-west-2_xeXlyFBMH',
     clientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '7ek8kg1td2ps985r21m7727q98',
     region: import.meta.env.VITE_AWS_REGION || 'us-west-2'
   },
-  
+
   // Strategy selection
   useApiFirst: true, // Set to false to use direct Cognito first
   timeout: 10000
@@ -105,7 +105,7 @@ class ApiAuthService {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         return {
           success: false,
@@ -133,17 +133,43 @@ class ApiAuthService {
     const response = await this.apiCall('api/auth/register', 'POST', {
       email,
       password,
-      first_name: additionalData?.firstName || '',
-      last_name: additionalData?.lastName || '',
+      firstName: additionalData?.firstName || '',
+      lastName: additionalData?.lastName || '',
       role: additionalData?.role || 'client',
-      phone_number: additionalData?.phoneNumber
+      phoneNumber: additionalData?.phoneNumber
     });
 
     if (!response.success) {
       throw new Error(response.error || 'Registration failed');
     }
 
-    const user = this.mapApiUser(response.data.user);
+    // If tokens are returned (therapist auto-login), store them
+    if (response.data?.tokens) {
+      if (response.data.tokens.accessToken) {
+        localStorage.setItem('authToken', response.data.tokens.accessToken);
+      }
+      if (response.data.tokens.idToken) {
+        localStorage.setItem('cognitoIdToken', response.data.tokens.idToken);
+      }
+      if (response.data.tokens.refreshToken) {
+        localStorage.setItem('cognitoRefreshToken', response.data.tokens.refreshToken);
+      }
+      console.log('✅ Tokens stored for auto-login (hybridAuth)');
+    }
+
+    // Backend returns { requiresVerification: true, email, userId, message }
+    // For therapists, also returns { user, tokens }
+    // Create user object from response
+    const user: User = {
+      uid: response.data?.userId || response.data?.user?.auth_provider_id || response.data?.user?.id || '',
+      email: response.data?.email || response.data?.user?.email || email,
+      displayName: response.data?.user?.name || (additionalData?.firstName && additionalData?.lastName
+        ? `${additionalData.firstName} ${additionalData.lastName}`
+        : null),
+      phoneNumber: response.data?.user?.phone_number || additionalData?.phoneNumber || null,
+      photoURL: null
+    };
+
     return { user };
   }
 
@@ -214,7 +240,7 @@ class ApiAuthService {
 
   async getTherapistStatus(uid: string): Promise<any> {
     const response = await this.apiCall(`api/auth/therapist/status/${uid}`);
-    
+
     if (!response.success) {
       throw new Error(response.error || 'Failed to get therapist status');
     }
@@ -226,8 +252,8 @@ class ApiAuthService {
     return {
       uid: apiUser.auth_provider_id || apiUser.id?.toString(),
       email: apiUser.email || null,
-      displayName: apiUser.first_name && apiUser.last_name 
-        ? `${apiUser.first_name} ${apiUser.last_name}` 
+      displayName: apiUser.first_name && apiUser.last_name
+        ? `${apiUser.first_name} ${apiUser.last_name}`
         : null,
       phoneNumber: apiUser.phone_number || null,
       photoURL: null
@@ -254,12 +280,12 @@ class DirectCognitoService {
       });
 
       const result = await cognitoClient.send(command);
-      
+
       const user: User = {
         uid: result.UserSub || email,
         email: email,
-        displayName: additionalData?.firstName && additionalData?.lastName 
-          ? `${additionalData.firstName} ${additionalData.lastName}` 
+        displayName: additionalData?.firstName && additionalData?.lastName
+          ? `${additionalData.firstName} ${additionalData.lastName}`
           : null,
         phoneNumber: additionalData?.phoneNumber || null,
         photoURL: null
@@ -284,14 +310,14 @@ class DirectCognitoService {
       });
 
       const result = await cognitoClient.send(command);
-      
+
       if (!result.AuthenticationResult?.IdToken) {
         throw new Error('Authentication failed');
       }
 
       // Verify and decode the JWT token
       const payload = await jwtVerifier.verify(result.AuthenticationResult.IdToken);
-      
+
       // Store tokens
       localStorage.setItem('cognitoIdToken', result.AuthenticationResult.IdToken);
       localStorage.setItem('cognitoAccessToken', result.AuthenticationResult.AccessToken || '');
@@ -300,8 +326,8 @@ class DirectCognitoService {
       const user: User = {
         uid: payload.sub,
         email: payload.email || null,
-        displayName: payload.given_name && payload.family_name 
-          ? `${payload.given_name} ${payload.family_name}` 
+        displayName: payload.given_name && payload.family_name
+          ? `${payload.given_name} ${payload.family_name}`
           : null,
         phoneNumber: payload.phone_number || null,
         photoURL: null
@@ -417,7 +443,7 @@ class HybridAuthService {
 
   // Public API methods (Firebase compatible)
   async createUserWithEmailAndPassword(
-    email: string, 
+    email: string,
     password: string,
     additionalData?: any
   ): Promise<UserCredential> {
@@ -507,8 +533,8 @@ class HybridAuthService {
           return {
             uid: payload.sub,
             email: payload.email || null,
-            displayName: payload.given_name && payload.family_name 
-              ? `${payload.given_name} ${payload.family_name}` 
+            displayName: payload.given_name && payload.family_name
+              ? `${payload.given_name} ${payload.family_name}`
               : null,
             phoneNumber: payload.phone_number || null,
             photoURL: null

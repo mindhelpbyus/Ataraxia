@@ -12,7 +12,7 @@
  * - Therapist verification integration
  */
 
-import hybridAuth, { 
+import hybridAuth, {
   createUserWithEmailAndPassword as cognitoCreateUser,
   signInWithEmailAndPassword as cognitoSignIn,
   confirmSignUp as cognitoConfirmSignUp,
@@ -95,7 +95,7 @@ export async function signInWithEmailAndPassword(email: string, password: string
   try {
     const result = await cognitoSignIn(email, password);
     logAuthUsage('signIn', true, 'hybrid');
-    
+
     // Convert to AuthResult format
     return {
       user: result.user,
@@ -119,7 +119,7 @@ export async function signInWithEmailAndPassword(email: string, password: string
  * Create user with email and password
  */
 export async function createUserWithEmailAndPassword(
-  email: string, 
+  email: string,
   password: string,
   additionalData?: {
     firstName?: string;
@@ -132,7 +132,7 @@ export async function createUserWithEmailAndPassword(
   try {
     // Use our local API server for registration
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
-    
+
     const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
@@ -156,13 +156,30 @@ export async function createUserWithEmailAndPassword(
     }
 
     logAuthUsage('createUser', true, 'api');
-    
-    // Convert API response to AuthResult format
+
+    // Backend returns { requiresVerification: true, email, userId, message }
+    // For therapists, it also returns { user, tokens } for auto-login
+
+    // If tokens are returned, store them (therapist auto-login)
+    if (result.tokens) {
+      if (result.tokens.accessToken) {
+        localStorage.setItem('authToken', result.tokens.accessToken);
+      }
+      if (result.tokens.idToken) {
+        localStorage.setItem('cognitoIdToken', result.tokens.idToken);
+      }
+      if (result.tokens.refreshToken) {
+        localStorage.setItem('cognitoRefreshToken', result.tokens.refreshToken);
+      }
+      console.log('✅ Tokens stored for auto-login');
+    }
+
+    // Create a temporary user object for the frontend
     const user: User = {
-      uid: result.user.auth_provider_id,
-      email: result.user.email,
-      displayName: result.user.name,
-      phoneNumber: result.user.phone_number || null,
+      uid: result.userId || result.user?.auth_provider_id || result.user?.id || '',
+      email: result.email || result.user?.email || email,
+      displayName: result.user?.name || `${additionalData?.firstName || ''} ${additionalData?.lastName || ''}`.trim(),
+      phoneNumber: additionalData?.phoneNumber || result.user?.phone_number || null,
       photoURL: null
     };
 
@@ -170,19 +187,25 @@ export async function createUserWithEmailAndPassword(
       user,
       isNewUser: true,
       userProfile: {
-        uid: result.user.auth_provider_id,
-        email: result.user.email,
-        displayName: result.user.name,
+        uid: result.userId || result.user?.id || '',
+        email: result.email || result.user?.email || email,
+        displayName: result.user?.name || `${additionalData?.firstName || ''} ${additionalData?.lastName || ''}`.trim(),
         firstName: additionalData?.firstName || '',
         lastName: additionalData?.lastName || '',
         role: (additionalData?.role as any) || 'therapist',
-        phoneNumber: result.user.phone_number || '',
+        phoneNumber: additionalData?.phoneNumber || '',
         createdAt: new Date(),
         updatedAt: new Date()
       }
     };
   } catch (error: any) {
     logAuthUsage('createUser', false, 'api');
+    console.error('❌ Cognito signup error:', {
+      error,
+      message: error?.message,
+      stack: error?.stack,
+      fullError: JSON.stringify(error, null, 2)
+    });
     throw error;
   }
 }
@@ -280,7 +303,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
     // For now, return basic profile from token
     const user = cognitoGetCurrentUser();
     if (!user) return null;
-    
+
     return {
       uid: user.uid,
       email: user.email || '',
@@ -347,7 +370,7 @@ export function isAuthenticated(): boolean {
 export function getUserRole(): string | null {
   const user = getCurrentUser();
   if (!user) return null;
-  
+
   // Try to get role from stored token
   try {
     const token = localStorage.getItem('authToken');
@@ -358,7 +381,7 @@ export function getUserRole(): string | null {
   } catch (error) {
     console.error('Failed to get user role:', error);
   }
-  
+
   return 'client'; // Default role
 }
 
@@ -411,7 +434,7 @@ export default {
   onAuthStateChanged,
   getUserProfile,
   getTherapistStatus,
-  
+
   // Utility functions
   needsEmailVerification,
   getAuthSystemInfo,
@@ -421,11 +444,11 @@ export default {
   isAdmin,
   isTherapist,
   isClient,
-  
+
   // Configuration
   setAuthStrategy,
   getAuthConfig,
-  
+
   // Direct access to hybrid auth
   hybridAuth
 };

@@ -3,13 +3,13 @@
  * Centralized HTTP client with authentication, error handling, and retry logic
  */
 
-import { getAuth } from 'firebase/auth';
+
 import { logger } from '../services/secureLogger';
 import { sanitizeURL } from '../utils/sanitization';
 import type { ApiLogEntry } from '../components/ApiDebugPanel';
 
-// Direct Firebase backend URL - no proxy, direct internet calls
-export const API_BASE_URL = 'https://us-central1-ataraxia-c150f.cloudfunctions.net/bedrockBackendApi/api';
+// Use environment variable or default to local backend
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3010/api';
 
 // Debug event emitter
 type DebugListener = (entry: ApiLogEntry) => void;
