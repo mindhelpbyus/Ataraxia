@@ -26,6 +26,7 @@ export interface IdentityContactData {
   languagesSpokenFluently: string[]; // AI Match Required
   canConductSessionsInLanguage: { [language: string]: boolean }; // AI Match Required
   videoCallReadinessTest: boolean;
+  selectedAvatarUrl?: string; // Added for avatar selection
 }
 
 // ============================================================================
@@ -42,6 +43,9 @@ export interface LicenseCredentialsData {
   malpracticeInsuranceDocument?: File | string;
   npiNumber: string;
   deaNumber: string; // If prescribing
+  degreeDocument?: File | string; // Evidence of degree
+  malpracticePolicyNumber?: string;
+  malpracticeExpiryDate?: string;
 }
 
 // ============================================================================
@@ -264,7 +268,7 @@ export interface LegacyData {
 
   // OAuth fields
   firebaseUid?: string;
-  authMethod?: 'email' | 'google' | 'apple';
+  authMethod?: 'email' | 'google' | 'apple' | 'phone';
 }
 
 // ============================================================================

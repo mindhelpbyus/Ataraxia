@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { RoleSelectionPage } from './components/RoleSelectionPage';
@@ -7,14 +8,20 @@ import { UserRole } from './types/appointment';
 import { Notification } from './types/appointment';
 import { Toaster } from './components/ui/sonner';
 
+// Enhanced Auth Components
+import SecurityDashboard from './components/SecurityDashboard';
+import MFASetup from './components/MFASetup';
+import SessionManager from './components/SessionManager';
 
 import { TherapistOnboarding } from './components/onboarding/TherapistOnboarding';
+import { TherapistWelcomeDashboard } from './components/TherapistWelcomeDashboard';
 import { ComprehensiveClientRegistrationForm } from './components/ComprehensiveClientRegistrationForm';
 import { logger } from './services/secureLogger';
 
 import { VerificationPendingPage } from './components/VerificationPendingPage';
+import { TherapistRegistrationPage } from './components/TherapistRegistrationPage';
 
-type AppView = 'login' | 'roleSelection' | 'dashboard' | 'orgManagement' | 'register' | 'client-registration' | 'verification-pending';
+type AppView = 'login' | 'roleSelection' | 'dashboard' | 'orgManagement' | 'register' | 'client-registration' | 'verification-pending' | 'security' | 'mfa-setup' | 'sessions' | 'welcome-dashboard';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('login');
@@ -22,6 +29,7 @@ export default function App() {
   const [currentUserId, setCurrentUserId] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userName, setUserName] = useState('');
+  const [accountStatus, setAccountStatus] = useState('active');
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Check for existing authentication on mount
@@ -31,6 +39,7 @@ export default function App() {
     const storedName = localStorage.getItem('userName');
     const storedRole = localStorage.getItem('userRole');
     const storedUserId = localStorage.getItem('userId');
+    const storedAccountStatus = localStorage.getItem('accountStatus');
 
     if (token && storedEmail && storedRole && storedUserId) {
       // Restore authentication state
@@ -38,18 +47,26 @@ export default function App() {
       setUserName(storedName || '');
       setUserRole(storedRole as UserRole);
       setCurrentUserId(storedUserId);
-      
+      setAccountStatus(storedAccountStatus || 'active');
+
       // SECURITY FIX: Don't automatically set dashboard view for therapists
-      // Instead, re-authenticate to check current verification status
       if (storedRole === 'therapist') {
-        // For therapists, we need to check their verification status
-        // Force re-authentication to ensure they're not bypassing verification
-        setCurrentView('login');
+        // Check if they are mid-onboarding
+        const onboardingStep = localStorage.getItem('therapistOnboardingStep');
+        // If status is 'registered' (Step 1 done) or 'onboarding_pending', go to Welcome Dashboard
+        if (storedAccountStatus === 'registered' || storedAccountStatus === 'onboarding_pending') {
+          setCurrentView('welcome-dashboard');
+        } else if (onboardingStep && parseInt(onboardingStep) < 10 && storedAccountStatus !== 'verified') {
+          setCurrentView('welcome-dashboard');
+        } else if (storedAccountStatus === 'active' || storedAccountStatus === 'verified' || storedAccountStatus === 'onboarding_completed') {
+          setCurrentView('dashboard');
+        } else {
+          setCurrentView('login'); // Force re-auth if status unclear
+        }
       } else {
-        // For non-therapists (admin, super_admin, etc.), allow direct dashboard access
         setCurrentView('dashboard');
       }
-      
+
       logger.info('Restored authentication from localStorage');
     }
   }, []);
@@ -68,11 +85,9 @@ export default function App() {
       setCurrentView('verification-pending');
     } else if (path === '/register-therapist' || path === '/register') {
       setCurrentView('register');
-    } else if (path === '/onboarding' || path === '/therapist-onboarding') {
-      // Handle onboarding persistence - if user refreshes during onboarding
-      setCurrentView('register');
+    } else if (path === '/welcome-dashboard') {
+      setCurrentView('welcome-dashboard');
     } else if (currentView === 'login' && (path === '/' || path === '')) {
-      // Default to login view for root path
       setCurrentView('login');
     }
   }, []);
@@ -81,7 +96,6 @@ export default function App() {
   useEffect(() => {
     if (currentUserId && currentView === 'dashboard') {
       loadNotifications();
-      // Poll for new notifications every minute
       const interval = setInterval(loadNotifications, 60000);
       return () => clearInterval(interval);
     }
@@ -90,8 +104,6 @@ export default function App() {
   const loadNotifications = async () => {
     if (!currentUserId) return;
     try {
-      // Skip notifications for now since service is not implemented
-      // TODO: Implement real notification service
       logger.info('Notification service not implemented yet, skipping notification loading');
       setNotifications([]);
     } catch (error) {
@@ -105,122 +117,101 @@ export default function App() {
     setUserEmail(emailOrIdentifier);
     setUserName(passwordOrName);
     setCurrentUserId(userId);
+    setAccountStatus(onboardingStatus || 'active');
 
-    // Save to localStorage for persistence
     localStorage.setItem('userEmail', emailOrIdentifier);
     localStorage.setItem('userName', passwordOrName);
     localStorage.setItem('userId', userId);
+    localStorage.setItem('accountStatus', onboardingStatus || 'active');
     if (token) {
       localStorage.setItem('token', token);
     }
 
-    // Convert role to UserRole type and go directly to dashboard
-    // Convert backend role to frontend state
-    // We now support direct mapping of super_admin and org_admin
     if (role === 'therapist') {
       setUserRole('therapist');
       localStorage.setItem('userRole', 'therapist');
 
-      // Strict Onboarding Status Check
-      const pendingStatuses = ['pending', 'onboarding_pending', 'pending_verification', 'documents_review', 'background_check', 'final_review', 'account_created'];
-
-      if (pendingStatuses.includes(onboardingStatus || '')) {
-        setCurrentView('verification-pending');
-      } else if (onboardingStatus === 'active' || onboardingStatus === 'approved') {
+      // DASHBOARD-FIRST LOGIC
+      if (onboardingStatus === 'registered' || onboardingStatus === 'onboarding_pending') {
+        setCurrentView('welcome-dashboard');
+        window.history.pushState({}, '', '/welcome-dashboard');
+      } else if (onboardingStatus === 'verified' || onboardingStatus === 'active') {
         setCurrentView('dashboard');
       } else if (onboardingStatus === 'draft' || onboardingStatus === 'incomplete') {
-        setCurrentView('register'); // Resume onboarding
+        setCurrentView('welcome-dashboard');
+        window.history.pushState({}, '', '/welcome-dashboard');
       } else {
-        // Fallback: If status is unknown but role is therapist, safer to show pending than dashboard
-        // unless we know for sure it's legacy active. 
-        // For now, let's log warning and default to pending if it looks like a verification flow
-        console.warn(`Unknown status for therapist: ${onboardingStatus}`);
-        setCurrentView('verification-pending');
+        setCurrentView('welcome-dashboard');
       }
-    } else if (role === 'super_admin' || role === 'superadmin') {
-      setUserRole('super_admin'); // Use snake_case internally
-      localStorage.setItem('userRole', 'super_admin');
-      setCurrentView('dashboard');
-    } else if (role === 'org_admin' || role === 'admin') {
-      setUserRole('org_admin'); // Use snake_case internally
-      localStorage.setItem('userRole', 'org_admin');
-      setCurrentView('dashboard');
     } else {
-      // Fallback for any other roles
+      // Admin roles
       setUserRole(role as UserRole);
       localStorage.setItem('userRole', role);
       setCurrentView('dashboard');
     }
   };
 
-  // Handle role selection (for admins who can switch roles)
   const handleRoleSelected = (role: UserRole, userId: string) => {
     setUserRole(role);
     setCurrentUserId(userId);
     setCurrentView('dashboard');
   };
 
-  // Handle logout
   const handleLogout = () => {
     setCurrentView('login');
     setUserRole('admin');
     setCurrentUserId('');
     setUserEmail('');
     setUserName('');
+    setAccountStatus('active');
     setNotifications([]);
 
-    // Clear localStorage
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
+    localStorage.removeItem('accountStatus');
     localStorage.removeItem('token');
-    
-    // Clear URL back to root
+
     window.history.pushState({}, '', '/');
   };
 
-  // Handle back to home from login
   const handleBackToHome = () => {
     setCurrentView('login');
   };
 
-  // Handle registration
   const handleRegisterTherapist = () => {
     setCurrentView('register');
-    // Update URL to maintain state on refresh
     window.history.pushState({}, '', '/register-therapist');
   };
 
   const handleRegistrationComplete = () => {
-    setCurrentView('login');
-    // Clear the URL back to root
-    window.history.pushState({}, '', '/');
+    // When wizard completes (Step 10), go to dashboard
+    setCurrentView('welcome-dashboard');
+    window.history.pushState({}, '', '/welcome-dashboard');
+    localStorage.setItem('accountStatus', 'onboarding_completed');
   };
 
-  // Notification handlers
-  const handleMarkNotificationAsRead = async (notificationId: string) => {
-    try {
-      // TODO: Implement real notification service
-      logger.info('Notification service not implemented yet');
-      // Optimistic update for now
-      setNotifications(prev => prev.map(n =>
-        n.id === notificationId ? { ...n, read: true } : n
-      ));
-    } catch (error) {
-      logger.error('Failed to mark notification as read:', error);
+  const handleNavigateFromDashboard = (view: string, data?: any) => {
+    if (view === 'register') {
+      setCurrentView('register');
+      window.history.pushState({}, '', '/register-therapist');
+      if (data?.step) {
+        localStorage.setItem('therapistOnboardingStep', data.step.toString());
+      }
+    } else {
+      setCurrentView(view as AppView);
     }
+  };
+
+  const handleMarkNotificationAsRead = async (notificationId: string) => {
+    setNotifications(prev => prev.map(n =>
+      n.id === notificationId ? { ...n, read: true } : n
+    ));
   };
 
   const handleMarkAllNotificationsAsRead = async () => {
-    try {
-      // TODO: Implement real notification service
-      logger.info('Notification service not implemented yet');
-      // Optimistic update for now
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    } catch (error) {
-      logger.error('Failed to mark all notifications as read:', error);
-    }
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   // Render current view
@@ -237,10 +228,23 @@ export default function App() {
     );
   }
 
+  // New Welcome Dashboard View
+  if (currentView === 'welcome-dashboard') {
+    return (
+      <>
+        <TherapistWelcomeDashboard
+          onNavigate={handleNavigateFromDashboard}
+          onLogout={handleLogout}
+        />
+        <Toaster />
+      </>
+    );
+  }
+
   if (currentView === 'register') {
     return (
       <>
-        <TherapistOnboarding onComplete={handleRegistrationComplete} />
+        <TherapistRegistrationPage />
         <Toaster />
       </>
     );
@@ -280,11 +284,75 @@ export default function App() {
           currentUserId={currentUserId}
           userEmail={userEmail}
           userName={userName}
+          accountStatus={accountStatus}
           onLogout={handleLogout}
           notifications={notifications}
           onMarkNotificationAsRead={handleMarkNotificationAsRead}
           onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
+          onNavigateToSecurity={() => setCurrentView('security')}
+          onNavigateToMFA={() => setCurrentView('mfa-setup')}
+          onNavigateToSessions={() => setCurrentView('sessions')}
         />
+        <Toaster />
+      </>
+    );
+  }
+
+  if (currentView === 'security') {
+    return (
+      <>
+        <div className="min-h-screen bg-background p-4 md:p-8">
+          <div className="max-w-6xl mx-auto">
+            <SecurityDashboard />
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setCurrentView('dashboard')}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+        <Toaster />
+      </>
+    );
+  }
+
+  if (currentView === 'mfa-setup') {
+    return (
+      <>
+        <div className="min-h-screen bg-background p-4 md:p-8">
+          <div className="max-w-4xl mx-auto">
+            <MFASetup
+              onComplete={() => {
+                setCurrentView('dashboard');
+              }}
+              onCancel={() => setCurrentView('dashboard')}
+            />
+          </div>
+        </div>
+        <Toaster />
+      </>
+    );
+  }
+
+  if (currentView === 'sessions') {
+    return (
+      <>
+        <div className="min-h-screen bg-background p-4 md:p-8">
+          <div className="max-w-6xl mx-auto">
+            <SessionManager />
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setCurrentView('dashboard')}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
         <Toaster />
       </>
     );
@@ -322,13 +390,6 @@ export default function App() {
     );
   }
 
-  // Fallback for unknown routes - redirect to login
-  if (currentView !== 'login' && currentView !== 'register' && currentView !== 'roleSelection' && 
-      currentView !== 'dashboard' && currentView !== 'orgManagement' && 
-      currentView !== 'verification-pending' && currentView !== 'client-registration') {
-    setCurrentView('login');
-    window.history.pushState({}, '', '/');
-  }
-
+  // Fallback
   return null;
 }

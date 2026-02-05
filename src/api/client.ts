@@ -8,8 +8,9 @@ import { logger } from '../services/secureLogger';
 import { sanitizeURL } from '../utils/sanitization';
 import type { ApiLogEntry } from '../components/ApiDebugPanel';
 
-// Use environment variable or default to local backend
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3010/api';
+// Use environment variable with localhost:3002 as development fallback
+// Production should ALWAYS set VITE_API_BASE_URL in .env files
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
 // Debug event emitter
 type DebugListener = (entry: ApiLogEntry) => void;
@@ -295,6 +296,10 @@ export async function apiRequest<T>(
     const text = await response.text();
     const parsedResponse = text ? JSON.parse(text) : {};
 
+    console.log('🔍 CLIENT DEBUG: parsedResponse:', parsedResponse);
+    console.log('🔍 CLIENT DEBUG: parsedResponse.data:', parsedResponse.data);
+    console.log('🔍 CLIENT DEBUG: parsedResponse.data !== undefined:', parsedResponse.data !== undefined);
+
     // Extract response headers
     const responseHeaders: Record<string, string> = {};
     response.headers.forEach((value, key) => {
@@ -310,9 +315,11 @@ export async function apiRequest<T>(
 
     // Backend wraps responses in { data: {...} }, unwrap if present
     if (parsedResponse.data !== undefined) {
+      console.log('🔍 CLIENT DEBUG: Unwrapping response.data:', parsedResponse.data);
       return parsedResponse.data as T;
     }
 
+    console.log('🔍 CLIENT DEBUG: Returning full response:', parsedResponse);
     return parsedResponse as T;
   } catch (error) {
     if (error instanceof ApiException) {
@@ -363,7 +370,10 @@ async function tryRefreshToken(): Promise<boolean> {
       return false;
     }
 
-    const data = await response.json();
+    const responseBody = await response.json();
+    // Handle wrapped response (standard backend format) or direct response
+    const data = responseBody.data || responseBody;
+
     if (data.accessToken) {
       setAuthTokens(data.accessToken, data.refreshToken);
       return true;

@@ -52,14 +52,22 @@ export interface UserInfo {
 /**
  * Login user (Standard Email/Password)
  */
+/**
+ * Login user (Standard Email/Password)
+ */
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const response = await post<any>('/auth/login', { email, password }, false);
 
-  // Response is: { user, tokens, message }
+  // Backend now returns the old format: { token, user }
   const loginResponse: LoginResponse = {
-    tokens: response.tokens,
+    tokens: {
+      accessToken: response.token,
+      refreshToken: response.token, // Use same token for now
+      idToken: response.token,
+      expiresIn: '3600'
+    },
     user: response.user,
-    message: response.message
+    message: 'Login successful'
   };
 
   // Store tokens
@@ -94,7 +102,9 @@ export async function logout(): Promise<void> {
  */
 export async function getCurrentUser(): Promise<UserInfo> {
   const response = await get<any>('/auth/me');
-  return response.user || response;
+  // Handle nested response format: { success: true, data: { user }, message }
+  const responseData = response.data || response;
+  return responseData.user || responseData;
 }
 
 /**

@@ -1,454 +1,287 @@
-/**
- * Ataraxia Authentication Service
- * 
- * Pure Cognito/Lambda authentication service without Firebase dependencies.
- * Uses hybrid approach: Lambda API (primary) + Direct Cognito (fallback)
- * 
- * FEATURES:
- * - Lambda API service (recommended for business logic)
- * - Direct AWS Cognito fallback (for reliability)
- * - Automatic token management
- * - Healthcare-grade security
- * - Therapist verification integration
- */
 
-import hybridAuth, {
-  createUserWithEmailAndPassword as cognitoCreateUser,
-  signInWithEmailAndPassword as cognitoSignIn,
-  confirmSignUp as cognitoConfirmSignUp,
-  resendConfirmationCode as cognitoResendCode,
-  sendPasswordResetEmail as cognitoResetEmail,
-  confirmPasswordReset as cognitoConfirmReset,
-  signOut as cognitoSignOut,
-  getCurrentUser as cognitoGetCurrentUser,
-  onAuthStateChanged as cognitoOnAuthStateChanged,
-  getTherapistStatus as cognitoGetTherapistStatus,
-  isCognitoConfigured
-} from './hybridAuth';
-
-// Configuration
-const USE_API_FIRST = import.meta.env.VITE_USE_API_FIRST !== 'false'; // Default to API first
-
-// Types for Ataraxia
-export type User = {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  phoneNumber: string | null;
-  photoURL: string | null;
-};
-
-export type UserProfile = {
-  uid: string;
-  email?: string;
-  phoneNumber?: string;
-  displayName?: string;
-  firstName?: string;
-  lastName?: string;
-  role: 'admin' | 'therapist' | 'client';
-  createdAt: any;
-  updatedAt: any;
-  mfaEnabled?: boolean;
-};
-
-export type UserCredential = {
-  user: User;
-};
-
-export type AuthResult = {
-  user: User;
-  isNewUser: boolean;
-  userProfile: UserProfile;
-};
+import { post, get, setAuthTokens, clearAuthTokens, isAuthenticated } from '../api/client';
+import { logger } from './secureLogger';
 
 /**
- * Log auth system usage for monitoring
+ * Standardized Auth Service
+ * Uses the API Client (and thus the Backend) as the primary source of truth.
+ * Handles token management via client.ts
  */
-function logAuthUsage(action: string, success: boolean, method?: string) {
-  const methodInfo = method ? ` (${method})` : '';
-  console.log(`[AUTH] COGNITO${methodInfo} - ${action} - ${success ? 'SUCCESS' : 'FAILED'}`);
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isVerified: boolean;
 }
 
-/**
- * Configure authentication strategy
- */
-function setAuthStrategy(useApiFirst: boolean): void {
-  hybridAuth.setUseApiFirst(useApiFirst);
-  console.log(`🔧 Auth strategy set to: ${useApiFirst ? 'Lambda API First' : 'Direct Cognito First'}`);
+export interface AuthResponse {
+  user: AuthUser;
+  token?: string; // Legacy support
+  accessToken?: string;
+  refreshToken?: string;
+  sessionId?: string;
+  requiresVerification?: boolean;
 }
 
-/**
- * Get current auth configuration
- */
-function getAuthConfig() {
-  return {
-    useApiFirst: USE_API_FIRST,
-    cognitoConfigured: isCognitoConfigured,
-    hybridConfig: hybridAuth.getConfig()
-  };
-}
+import { RegisterRequest } from '../api/types';
 
-/**
- * Sign in with email and password
- */
-export async function signInWithEmailAndPassword(email: string, password: string): Promise<AuthResult> {
-  try {
-    const result = await cognitoSignIn(email, password);
-    logAuthUsage('signIn', true, 'hybrid');
+class AuthService {
 
-    // Convert to AuthResult format
-    return {
-      user: result.user,
-      isNewUser: false, // Existing user logging in
-      userProfile: {
-        uid: result.user.uid,
-        email: result.user.email || '',
-        displayName: result.user.displayName || '',
-        role: 'client', // Default, will be updated from database
-        createdAt: new Date(),
-        updatedAt: new Date()
+  /**
+   * Register a new user (Email/Password)
+   * Hybrid auth: Supports Firebase (primary), Cognito (fallback), and local DB
+   */
+  async register(data: RegisterRequest): Promise<AuthResponse> {
+    try {
+      // Call the backend /auth/register endpoint which handles hybrid auth
+      // Pass false for requireAuth since registration is public
+      const response = await post<AuthResponse>('/auth/register', data, false);
+
+      if (response.accessToken || response.token) {
+        this.handleSessionStart(response.accessToken || response.token!, response.refreshToken);
       }
+
+      return response;
+    } catch (error) {
+      logger.error('Registration failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Login with Email/Password
+   */
+  async login(data: any): Promise<AuthResponse> {
+    try {
+      const response = await post<AuthResponse>('/auth/login', data, false);
+
+      if (response.accessToken || response.token) {
+        this.handleSessionStart(response.accessToken || response.token!, response.refreshToken);
+      }
+
+      return response;
+    } catch (error) {
+      logger.error('Login failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle Social Login (Google/Phone exchange)
+   * Exchanges a Firebase/Provider token for a Backend Access Token
+   */
+  async exchangeSocialToken(provider: 'google' | 'phone', token: string, profile?: any): Promise<AuthResponse> {
+    try {
+      const endpoint = provider === 'google' ? '/auth/google' : '/auth/phone-login';
+      const payload = {
+        token, // The ID token from Firebase/Google
+        ...profile
+      };
+
+      const response = await post<AuthResponse>(endpoint, payload, false);
+
+      if (response.accessToken || response.token) {
+        this.handleSessionStart(response.accessToken || response.token!, response.refreshToken);
+      }
+
+      return response;
+    } catch (error) {
+      logger.error('Social auth exchange failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Logout
+   */
+  async logout(): Promise<void> {
+    try {
+      if (isAuthenticated()) {
+        await post('/auth/logout', {});
+      }
+    } catch (error) {
+      // Ignore network errors on logout
+    } finally {
+      this.handleSessionEnd();
+    }
+  }
+
+  /**
+   * Get Current User Profile
+   */
+  async getCurrentUser(): Promise<AuthUser | null> {
+    if (!isAuthenticated()) return null;
+
+    try {
+      return await get<AuthUser>('/auth/me');
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // --- MFA Methods ---
+
+  async setupMFA(method: 'totp' | 'sms', phoneNumber?: string): Promise<any> {
+    try {
+      const endpoint = method === 'totp' ? '/auth/mfa/setup-totp' : '/auth/mfa/setup-sms';
+      const payload = method === 'sms' ? { phoneNumber } : {};
+      return await post(endpoint, payload);
+    } catch (error) {
+      logger.error('MFA setup failed:', error);
+      throw error;
+    }
+  }
+
+  async verifyMFA(method: 'totp' | 'sms', code: string, phoneNumber?: string): Promise<any> {
+    try {
+      const endpoint = method === 'totp' ? '/auth/mfa/verify-totp' : '/auth/mfa/verify-sms';
+      const payload = { code, phoneNumber };
+      return await post(endpoint, payload);
+    } catch (error) {
+      logger.error('MFA verification failed:', error);
+      throw error;
+    }
+  }
+
+  async getMFAStatus(): Promise<any> {
+    try {
+      return await get('/auth/mfa/status');
+    } catch (error) {
+      logger.error('Failed to get MFA status:', error);
+      throw error;
+    }
+  }
+
+  // --- Session Management Methods ---
+
+  async getActiveSessions(): Promise<any> {
+    try {
+      return await get('/auth/sessions/active');
+    } catch (error) {
+      logger.error('Failed to get active sessions:', error);
+      throw error;
+    }
+  }
+
+  async invalidateAllSessions(excludeCurrent: boolean = true): Promise<any> {
+    try {
+      return await post('/auth/sessions/invalidate-all', { excludeCurrent });
+    } catch (error) {
+      logger.error('Failed to invalidate sessions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if account is locked
+   */
+  async checkAccountLockout(email: string): Promise<any> {
+    try {
+      // This might be a public endpoint or part of login pre-check
+      return await post('/auth/check-lockout', { email }, false);
+    } catch (error) {
+      return { locked: false }; // Default favor open
+    }
+  }
+
+  // --- Internal Session Helpers ---
+
+  private handleSessionStart(accessToken: string, refreshToken?: string) {
+    setAuthTokens(accessToken, refreshToken);
+  }
+
+  private handleSessionEnd() {
+    clearAuthTokens();
+    localStorage.removeItem('therapistOnboardingSessionId');
+  }
+
+  // --- Mobile/Hybrid Support Helpers (Simulating Firebase/Cognito SDK interface) ---
+
+  /**
+   * Get current auth system status
+   */
+  getAuthSystemStatus() {
+    return {
+      primary: 'firebase',
+      status: 'operational'
     };
-  } catch (error: any) {
-    logAuthUsage('signIn', false, 'hybrid');
-    throw error;
   }
-}
 
-/**
- * Create user with email and password
- */
-export async function createUserWithEmailAndPassword(
-  email: string,
-  password: string,
-  additionalData?: {
-    firstName?: string;
-    lastName?: string;
-    role?: string;
-    phoneNumber?: string;
-    countryCode?: string;
-  }
-): Promise<AuthResult> {
-  try {
-    // Use our local API server for registration
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
-
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+  /**
+   * Facade for login (aliasing to our unified login)
+   */
+  async signInWithEmailAndPassword(email: string, password: string) {
+    const response = await this.login({ email, password });
+    return {
+      user: {
+        uid: response.user.id,
+        email: response.user.email,
+        ...response.user
       },
-      body: JSON.stringify({
-        email,
-        password,
-        firstName: additionalData?.firstName || '',
-        lastName: additionalData?.lastName || '',
-        role: additionalData?.role || 'therapist',
-        phoneNumber: additionalData?.phoneNumber || '',
-        countryCode: additionalData?.countryCode || '+91'
-      })
+      userProfile: response.user
+    };
+  }
+
+  /**
+   * Facade for registration
+   */
+  async createUserWithEmailAndPassword(email: string, password: string) {
+    return await this.register({
+      email,
+      password,
+      firstName: 'User',
+      lastName: 'N/A',
+      role: 'client'
     });
+  }
 
-    const result = await response.json();
+  /**
+   * Facade for confirmation
+   */
+  async confirmSignUp(email: string, code: string) {
+    return await post('/auth/confirm', { email, code }, false);
+  }
 
-    if (!response.ok) {
-      throw new Error(result.message || 'Registration failed');
-    }
+  /**
+   * Facade for password reset
+   */
+  async sendPasswordResetEmail(email: string) {
+    return await post('/auth/forgot-password', { email }, false);
+  }
 
-    logAuthUsage('createUser', true, 'api');
-
-    // Backend returns { requiresVerification: true, email, userId, message }
-    // For therapists, it also returns { user, tokens } for auto-login
-
-    // If tokens are returned, store them (therapist auto-login)
-    if (result.tokens) {
-      if (result.tokens.accessToken) {
-        localStorage.setItem('authToken', result.tokens.accessToken);
-      }
-      if (result.tokens.idToken) {
-        localStorage.setItem('cognitoIdToken', result.tokens.idToken);
-      }
-      if (result.tokens.refreshToken) {
-        localStorage.setItem('cognitoRefreshToken', result.tokens.refreshToken);
-      }
-      console.log('✅ Tokens stored for auto-login');
-    }
-
-    // Create a temporary user object for the frontend
-    const user: User = {
-      uid: result.userId || result.user?.auth_provider_id || result.user?.id || '',
-      email: result.email || result.user?.email || email,
-      displayName: result.user?.name || `${additionalData?.firstName || ''} ${additionalData?.lastName || ''}`.trim(),
-      phoneNumber: additionalData?.phoneNumber || result.user?.phone_number || null,
-      photoURL: null
-    };
-
-    return {
-      user,
-      isNewUser: true,
-      userProfile: {
-        uid: result.userId || result.user?.id || '',
-        email: result.email || result.user?.email || email,
-        displayName: result.user?.name || `${additionalData?.firstName || ''} ${additionalData?.lastName || ''}`.trim(),
-        firstName: additionalData?.firstName || '',
-        lastName: additionalData?.lastName || '',
-        role: (additionalData?.role as any) || 'therapist',
-        phoneNumber: additionalData?.phoneNumber || '',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    };
-  } catch (error: any) {
-    logAuthUsage('createUser', false, 'api');
-    console.error('❌ Cognito signup error:', {
-      error,
-      message: error?.message,
-      stack: error?.stack,
-      fullError: JSON.stringify(error, null, 2)
-    });
-    throw error;
+  /**
+   * Helper to format auth errors
+   */
+  getAuthErrorMessage(error: any): string {
+    return error.message || error.msg || 'An authentication error occurred';
   }
 }
 
-/**
- * Confirm email signup
- */
-export async function confirmSignUp(email: string, confirmationCode: string): Promise<void> {
-  try {
-    await cognitoConfirmSignUp(email, confirmationCode);
-    logAuthUsage('confirmSignUp', true, 'hybrid');
-  } catch (error: any) {
-    logAuthUsage('confirmSignUp', false, 'hybrid');
-    throw error;
-  }
-}
+export const authService = new AuthService();
+export default authService;
 
-/**
- * Resend confirmation code
- */
-export async function resendConfirmationCode(email: string): Promise<void> {
-  try {
-    await cognitoResendCode(email);
-    logAuthUsage('resendCode', true, 'hybrid');
-  } catch (error: any) {
-    logAuthUsage('resendCode', false, 'hybrid');
-    throw error;
-  }
-}
+// Standalone exports for backward compatibility/direct use
+export const setupMFA = (method: 'totp' | 'sms', phoneNumber?: string) => authService.setupMFA(method, phoneNumber);
+export const verifyMFA = (method: 'totp' | 'sms', code: string, phoneNumber?: string) => authService.verifyMFA(method, code, phoneNumber);
+export const getMFAStatus = () => authService.getMFAStatus();
 
-/**
- * Send password reset email
- */
-export async function sendPasswordResetEmail(email: string): Promise<void> {
-  try {
-    await cognitoResetEmail(email);
-    logAuthUsage('resetEmail', true, 'hybrid');
-  } catch (error: any) {
-    logAuthUsage('resetEmail', false, 'hybrid');
-    throw error;
-  }
-}
+// Session Management Exports
+export const getActiveSessions = () => authService.getActiveSessions();
+export const invalidateAllSessions = (excludeCurrent?: boolean) => authService.invalidateAllSessions(excludeCurrent);
+// Auth Exports (Legacy Support)
+export const logout = () => authService.logout();
+export const register = (data: any) => authService.register(data);
+export const login = (data: any) => authService.login(data);
+export const getCurrentUser = () => authService.getCurrentUser();
+// Standalone exports for Backward Compatibility
+export const getAuthSystemStatus = () => authService.getAuthSystemStatus();
+export const signInWithEmailAndPassword = (e: string, p: string) => authService.signInWithEmailAndPassword(e, p);
+export const createUserWithEmailAndPassword = (e: string, p: string) => authService.createUserWithEmailAndPassword(e, p);
+export const confirmSignUp = (e: string, c: string) => authService.confirmSignUp(e, c);
+export const sendPasswordResetEmail = (e: string) => authService.sendPasswordResetEmail(e);
+export const getAuthErrorMessage = (err: any) => authService.getAuthErrorMessage(err);
 
-/**
- * Confirm password reset
- */
-export async function confirmPasswordReset(email: string, code: string, newPassword: string): Promise<void> {
-  try {
-    await cognitoConfirmReset(email, code, newPassword);
-    logAuthUsage('confirmReset', true, 'hybrid');
-  } catch (error: any) {
-    logAuthUsage('confirmReset', false, 'hybrid');
-    throw error;
-  }
-}
-
-/**
- * Sign out user
- */
-export async function signOut(): Promise<void> {
-  try {
-    await cognitoSignOut();
-    logAuthUsage('signOut', true, 'hybrid');
-  } catch (error: any) {
-    logAuthUsage('signOut', false, 'hybrid');
-    // Don't throw on sign out errors, just log them
-    console.error('Sign out error:', error);
-  }
-}
-
-/**
- * Get current user
- */
-export function getCurrentUser(): User | null {
-  try {
-    return cognitoGetCurrentUser();
-  } catch (error: any) {
-    console.error('Get current user error:', error);
-    return null;
-  }
-}
-
-/**
- * Listen to auth state changes
- */
-export function onAuthStateChanged(callback: (user: User | null) => void): () => void {
-  return cognitoOnAuthStateChanged(callback);
-}
-
-/**
- * Get user profile
- */
-export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  try {
-    // For now, return basic profile from token
-    const user = cognitoGetCurrentUser();
-    if (!user) return null;
-
-    return {
-      uid: user.uid,
-      email: user.email || '',
-      displayName: user.displayName || '',
-      role: 'client', // Default, should be fetched from database
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-  } catch (error: any) {
-    console.error('Get user profile error:', error);
-    return null;
-  }
-}
-
-/**
- * Get therapist verification status
- */
-export async function getTherapistStatus(uid: string): Promise<any> {
-  try {
-    return await cognitoGetTherapistStatus(uid);
-  } catch (error: any) {
-    logAuthUsage('getTherapistStatus', false, 'hybrid');
-    throw error;
-  }
-}
-
-/**
- * Check if user needs email verification
- */
-export function needsEmailVerification(): boolean {
-  return true; // Cognito always requires email verification
-}
-
-/**
- * Get authentication system info
- */
-export function getAuthSystemInfo() {
-  return {
-    provider: 'cognito',
-    cognitoConfigured: isCognitoConfigured,
-    useApiFirst: USE_API_FIRST,
-    features: [
-      'email_password_auth',
-      'email_verification',
-      'password_reset',
-      'therapist_verification',
-      'jwt_tokens',
-      'lambda_api_integration',
-      'direct_cognito_fallback'
-    ]
-  };
-}
-
-/**
- * Utility function to check if user is authenticated
- */
-export function isAuthenticated(): boolean {
-  return getCurrentUser() !== null;
-}
-
-/**
- * Utility function to get user role
- */
-export function getUserRole(): string | null {
-  const user = getCurrentUser();
-  if (!user) return null;
-
-  // Try to get role from stored token
-  try {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.user?.role || 'client';
-    }
-  } catch (error) {
-    console.error('Failed to get user role:', error);
-  }
-
-  return 'client'; // Default role
-}
-
-/**
- * Utility function to check if user has specific role
- */
-export function hasRole(role: string): boolean {
-  const userRole = getUserRole();
-  return userRole === role;
-}
-
-/**
- * Utility function to check if user is admin
- */
-export function isAdmin(): boolean {
-  return hasRole('admin');
-}
-
-/**
- * Utility function to check if user is therapist
- */
-export function isTherapist(): boolean {
-  return hasRole('therapist');
-}
-
-/**
- * Utility function to check if user is client
- */
-export function isClient(): boolean {
-  return hasRole('client');
-}
-
-// Export the hybrid auth instance for direct access
-export { hybridAuth };
-
-// Export configuration functions
-export { setAuthStrategy, getAuthConfig };
-
-// Default export for convenience
-export default {
-  // Core authentication
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  confirmSignUp,
-  resendConfirmationCode,
-  sendPasswordResetEmail,
-  confirmPasswordReset,
-  signOut,
-  getCurrentUser,
-  onAuthStateChanged,
-  getUserProfile,
-  getTherapistStatus,
-
-  // Utility functions
-  needsEmailVerification,
-  getAuthSystemInfo,
-  isAuthenticated,
-  getUserRole,
-  hasRole,
-  isAdmin,
-  isTherapist,
-  isClient,
-
-  // Configuration
-  setAuthStrategy,
-  getAuthConfig,
-
-  // Direct access to hybrid auth
-  hybridAuth
-};
+export const signOut = logout; // Alias for compatibility

@@ -15,7 +15,8 @@ import { Button } from '../ui/button';
 import { CheckCircle2 } from 'lucide-react';
 import { logger } from '../../services/secureLogger';
 import { verificationService } from '../../api/services/verification';
-import { signOut, getCurrentUser } from '../../services/authService';
+import { authService, signOut } from '../../services/authService';
+import { isAuthenticated } from '../../api/client'; // Direct check for tokens
 import { post } from '../../api/client';
 
 
@@ -27,6 +28,7 @@ const initialOnboardingData: OnboardingData = {
   lastName: '',
   middleName: '',
   preferredName: '',
+  fullName: '', // Added
   email: '',
   phoneNumber: '',
   countryCode: '+91', // Default to India (primary market)
@@ -222,16 +224,37 @@ const initialOnboardingData: OnboardingData = {
 
 interface TherapistOnboardingProps {
   onComplete?: () => void;
+  onExit?: () => void;
 }
 
-export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {}) {
+export function TherapistOnboarding({ onComplete, onExit }: TherapistOnboardingProps = {}) {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(1);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>(initialOnboardingData);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resumeStep, setResumeStep] = useState<OnboardingStep | null>(null);
-  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [showResumePrompt, setShowResumePrompt] = useState(false); // Restored
+  const [lastActivity, setLastActivity] = useState(Date.now());
+  const [idleTimer, setIdleTimer] = useState<NodeJS.Timeout | null>(null);
+  const [authenticatedUser, setAuthenticatedUser] = useState<any>(null);
+
+  // Helper for synchronous checks
+  const getCurrentUserSync = () => {
+    const email = localStorage.getItem('userEmail');
+    if (email) return { email };
+    return null;
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (isAuthenticated()) {
+        const user = await authService.getCurrentUser();
+        if (user) setAuthenticatedUser(user);
+      }
+    };
+    fetchUser();
+  }, [currentStep]);
 
   // Load from localStorage on mount (for persistence) - only if it's the same session
   useEffect(() => {
@@ -274,7 +297,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       // Fresh start or check server for existing progress
       const hydrateFromServer = async () => {
         // Only check server if we don't have local data
-        if (getCurrentUser()) {
+        if (getCurrentUserSync()) {
           try {
             // For now, skip server hydration since we're migrating to new auth system
             // TODO: Implement server-side onboarding progress retrieval
@@ -292,7 +315,89 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
 
       clearLocalStorage();
     }
+
+    // Setup idle timeout monitoring
+    setupIdleTimeout();
+
+    // Setup periodic token refresh (every 10 minutes as backup)
+    const refreshInterval = setInterval(async () => {
+      const sessionId = localStorage.getItem('onboardingSessionId');
+      const token = localStorage.getItem('authToken');
+
+      if (sessionId && token && currentStep > 1) {
+        try {
+          logger.info('🔄 Periodic token refresh...');
+          await handleStepTransition(currentStep, currentStep); // Refresh current step
+        } catch (error) {
+          logger.warn('Periodic token refresh failed:', error);
+        }
+      }
+    }, 10 * 60 * 1000); // Every 10 minutes
+
+    // Cleanup on unmount
+    return () => {
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+      clearInterval(refreshInterval);
+    };
   }, []);
+
+  // NEW: Setup idle timeout monitoring (30 minutes)
+  const setupIdleTimeout = () => {
+    const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+
+    const resetIdleTimer = () => {
+      setLastActivity(Date.now());
+
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+
+      const timer = setTimeout(() => {
+        // Auto-logout after 30 minutes of inactivity
+        logger.warn('Session expired due to inactivity');
+        alert('Your session has expired due to inactivity. Please log in again to continue.');
+
+        // Clear tokens and redirect to login
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('onboardingSessionId');
+
+        // Preserve onboarding data for resume
+        // Don't clear therapistOnboardingData, therapistOnboardingStep, etc.
+
+        window.location.href = '/';
+      }, IDLE_TIMEOUT);
+
+      setIdleTimer(timer);
+    };
+
+    // Track user activity
+    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    const handleActivity = () => {
+      resetIdleTimer();
+    };
+
+    // Add event listeners
+    activityEvents.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    // Initial timer setup
+    resetIdleTimer();
+
+    // Cleanup function
+    return () => {
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+    };
+  };
 
   // Save to localStorage whenever data or step changes
   useEffect(() => {
@@ -336,20 +441,180 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
   };
 
   const goToNextStep = async () => {
-    if (currentStep < TOTAL_STEPS) {
-      // Save progress to server before moving to next step
-      const user = getCurrentUser();
-      if (user) {
-        try {
-          // TODO: Implement server-side onboarding progress saving
-          logger.info(`✅ Step ${currentStep} data would be saved to server`);
-        } catch (error) {
-          logger.error('Error saving onboarding progress:', error);
-        }
+    // NEW: After Step 1 (Registration), immediately exit to dashboard/verification
+    if (currentStep === 1) {
+      if (onExit) {
+        onExit();
+        return;
       }
+      // If no onExit provided, fallback to redirection manually
+      window.location.href = '/welcome-dashboard';
+      return;
+    }
 
+    // ENHANCED: Auto-refresh token and save progress on EVERY step transition
+    if (currentStep > 1) {
+      await handleStepTransition(currentStep, currentStep + 1);
+    }
+
+    // EXISTING: Continue to next step (preserve resume UX)
+    if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => (prev + 1) as OnboardingStep);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // NEW: Handle step transitions with token refresh and data persistence
+  const handleStepTransition = async (fromStep: number, toStep: number) => {
+    try {
+      const sessionId = localStorage.getItem('onboardingSessionId');
+      const token = localStorage.getItem('authToken');
+
+      if (!sessionId || !token) {
+        logger.warn('No session or token found for step transition');
+        return;
+      }
+
+      // Prepare current step data for saving
+      const stepData = getCurrentStepData(fromStep);
+
+      logger.info(`🔄 Step transition: ${fromStep} → ${toStep}, refreshing token and saving data...`);
+
+      // Call refresh endpoint with current step data
+      const response = await post('/auth/refresh-onboarding', {
+        sessionId: sessionId,
+        currentStep: toStep,
+        stepData: stepData
+      });
+
+      if ((response as any).success) {
+        // Update token in localStorage
+        localStorage.setItem('authToken', (response as any).token);
+        localStorage.setItem('accessToken', (response as any).token);
+
+        logger.info(`✅ Step ${toStep}: Token refreshed, session extended, data saved`);
+      } else {
+        throw new Error((response as any).message || 'Token refresh failed');
+      }
+    } catch (error: any) {
+      logger.error(`❌ Step transition failed (${fromStep} → ${toStep}):`, error);
+
+      // Don't block UX, but warn user
+      console.warn('Session refresh failed, you may need to login again if idle too long');
+    }
+  };
+
+  // NEW: Extract current step data for persistence
+  const getCurrentStepData = (step: number) => {
+    switch (step) {
+      case 2: // Phone verification
+        return {
+          phoneNumber: onboardingData.phoneNumber,
+          countryCode: onboardingData.countryCode,
+          isVerified: onboardingData.isVerified
+        };
+      case 3: // Personal details
+        return {
+          gender: onboardingData.gender,
+          dateOfBirth: onboardingData.dateOfBirth,
+          address1: onboardingData.address1,
+          address2: onboardingData.address2,
+          city: onboardingData.city,
+          state: onboardingData.state,
+          zipCode: onboardingData.zipCode,
+          country: onboardingData.country,
+          timezone: onboardingData.timezone,
+          languages: onboardingData.languages
+        };
+      case 4: // Credentials
+        return {
+          highestDegree: onboardingData.highestDegree,
+          institutionName: onboardingData.institutionName,
+          graduationYear: onboardingData.graduationYear,
+          yearsOfExperience: onboardingData.yearsOfExperience,
+          specializations: onboardingData.specializations,
+          clinicalSpecialties: onboardingData.clinicalSpecialties,
+          therapeuticModalities: {
+            cbt: onboardingData.cbt,
+            dbt: onboardingData.dbt,
+            act: onboardingData.act,
+            emdr: onboardingData.emdr
+          }
+        };
+      case 5: // License
+        return {
+          licenseType: onboardingData.licenseType,
+          licenseNumber: onboardingData.licenseNumber,
+          licenseState: onboardingData.issuingStates?.[0],
+          licenseExpiry: onboardingData.licenseExpiryDate,
+          npiNumber: onboardingData.npiNumber
+        };
+      case 6: // Availability
+        return {
+          sessionFormats: {
+            video: onboardingData.video,
+            inPerson: onboardingData.inPerson,
+            phone: onboardingData.phone,
+            messaging: onboardingData.messaging
+          },
+          newClientsCapacity: onboardingData.newClientsCapacity,
+          weeklySchedule: onboardingData.weeklySchedule
+        };
+      default:
+        return {}; // Return empty object for steps without specific data
+    }
+  };
+
+  // NEW: Lightweight registration after Step 1
+  const handleLightweightRegistration = async () => {
+    try {
+      const step1Data = {
+        email: onboardingData.email,
+        password: onboardingData.password,
+        firstName: onboardingData.firstName,
+        lastName: onboardingData.lastName,
+        phoneNumber: onboardingData.phoneNumber,
+        countryCode: onboardingData.countryCode,
+        role: 'therapist'
+      };
+
+      logger.info('🔄 Creating user profile after Step 1...', { email: step1Data.email });
+
+      // Call lightweight registration endpoint
+      const response = await post<any>('/auth/register-lightweight', step1Data);
+
+      if (response.success) {
+        logger.info('✅ Step 1 registration successful - user can now login', {
+          userId: response.user?.id,
+          email: response.user?.email,
+          canLogin: response.canLogin,
+          sessionId: response.sessionId
+        });
+
+        // Store auth info for potential login and API calls
+        if (response.token) {
+          localStorage.setItem('authToken', response.token);
+          localStorage.setItem('accessToken', response.token); // For API client
+        }
+        if (response.user?.id) {
+          localStorage.setItem('therapistAuthUid', response.user.id);
+        }
+        // CRITICAL: Store session ID for token refresh
+        if (response.sessionId) {
+          localStorage.setItem('onboardingSessionId', response.sessionId);
+        }
+
+        // Continue with existing UX - no interruption
+        logger.info('🔄 Continuing to Step 2 with existing UX...');
+      } else {
+        throw new Error(response.message || 'Registration failed');
+      }
+    } catch (error: any) {
+      logger.error('❌ Step 1 registration failed:', error);
+
+      // Don't block the UX - just log the error and continue
+      // User can still complete onboarding and register at the end
+      console.warn('Step 1 registration failed, continuing with existing flow:', error.message);
     }
   };
 
@@ -369,7 +634,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       const orgCode = urlParams.get('org') || '';
 
       // Get current user - try multiple sources
-      let user = getCurrentUser();
+      let user: any = getCurrentUserSync();
       let userUid = user?.uid;
 
       // Fallback 1: Check if UID is stored in onboarding data
@@ -393,7 +658,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
           const token = localStorage.getItem('authToken');
           if (token) {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            userUid = payload.user?.id?.toString() || payload.sub;
+            userUid = payload.user?.id?.toString() || payload.sub || payload.userId;
             console.log('🔄 Extracted UID from token:', userUid);
           }
         } catch (error) {
@@ -405,59 +670,39 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         throw new Error('User not authenticated. Please log in again and complete the registration.');
       }
 
-      console.log('✅ Using UID for registration submission:', userUid);
+      console.log('✅ Using UID for onboarding completion:', userUid);
 
       // Save user UID to localStorage for verification page
       localStorage.setItem('therapistAuthUid', userUid);
 
-      // Map session formats
-      const sessionFormats = {
-        video: onboardingData.video,
-        inPerson: onboardingData.inPerson,
-        phone: onboardingData.phone,
-        messaging: onboardingData.messaging
-      };
-
-      // Construct detailed payload for Backend API
-      const payload = {
-        authProviderId: userUid,
-        email: onboardingData.email || user?.email,
-        firstName: onboardingData.firstName || onboardingData.fullName?.split(' ')[0],
-        lastName: onboardingData.lastName || onboardingData.fullName?.split(' ').slice(1).join(' '),
-
-        // Personal Information (Step 3) - MISSING FIELDS ADDED
+      // CHANGE: Construct payload for onboarding completion (not full registration)
+      const businessData = {
+        // Personal Information (Step 3)
         gender: onboardingData.gender,
         dateOfBirth: onboardingData.dateOfBirth,
-
-        // Address & Contact
-        countryCode: onboardingData.countryCode,
-        phoneNumber: onboardingData.phoneNumber,
         address1: onboardingData.address1,
         address2: onboardingData.address2,
         city: onboardingData.city,
         state: onboardingData.state,
         zipCode: onboardingData.zipCode,
         country: onboardingData.country,
-
-        // Profile
         timezone: onboardingData.timezone,
-        languages: onboardingData.languagesSpokenFluently || onboardingData.languages, // Support both field names
-        // Send strings for URLs if they exist (file uploads handled separately usually, but assuming strings here for now or pre-signed URLs)
+        languages: onboardingData.languagesSpokenFluently || onboardingData.languages,
         profilePhotoUrl: typeof onboardingData.profilePhoto === 'string' ? onboardingData.profilePhoto : undefined,
         selectedAvatarUrl: onboardingData.selectedAvatarUrl,
         headshotUrl: typeof onboardingData.headshot === 'string' ? onboardingData.headshot : undefined,
 
-        // Step 4 Attributes
-        degree: onboardingData.highestDegree,
+        // Step 4 Credentials
+        highestDegree: onboardingData.highestDegree,
         institutionName: onboardingData.institutionName,
         graduationYear: onboardingData.graduationYear,
         yearsOfExperience: onboardingData.yearsOfExperience,
         bio: onboardingData.bio,
-        specializations: onboardingData.specializations, // Legacy list
-        clinicalSpecialties: onboardingData.clinicalSpecialties, // Enhanced object
+        specializations: onboardingData.specializations,
+        clinicalSpecialties: onboardingData.clinicalSpecialties,
         lifeContextSpecialties: onboardingData.lifeContextSpecialties,
 
-        // Group Flattened Modalities
+        // Therapeutic Modalities
         therapeuticModalities: {
           cbt: onboardingData.cbt,
           dbt: onboardingData.dbt,
@@ -479,7 +724,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
           solutionFocused: onboardingData.solutionFocused
         },
 
-        // Group Flattened Personal Style
+        // Personal Style
         personalStyle: {
           warmCompassionate: onboardingData.warmCompassionate,
           structuredGoalOriented: onboardingData.structuredGoalOriented,
@@ -491,7 +736,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
           lgbtqAffirming: onboardingData.lgbtqAffirming
         },
 
-        // Group Demographic Preferences (Step 8)
+        // Demographic Preferences (Step 8)
         demographicPreferences: {
           kids: onboardingData.kids,
           teens: onboardingData.teens,
@@ -516,13 +761,12 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         selfPayAccepted: onboardingData.selfPayAccepted,
         slidingScale: onboardingData.slidingScale,
         employerEaps: onboardingData.employerEaps,
-
-        backgroundCheckStatus: onboardingData.backgroundCheckResults || 'pending',
+        backgroundCheckResults: onboardingData.backgroundCheckResults || 'pending',
         hipaaTrainingCompleted: onboardingData.hipaaTrainingCompleted,
         ethicsCertification: onboardingData.ethicsCertification,
         signedBaa: onboardingData.signedBaa,
 
-        // Document URLs (assuming pre-signed URL strings if handled, otherwise undefined)
+        // Document URLs
         licenseDocumentUrl: typeof onboardingData.licenseDocument === 'string' ? onboardingData.licenseDocument : undefined,
         malpracticeDocumentUrl: typeof onboardingData.malpracticeInsuranceDocument === 'string' ? onboardingData.malpracticeInsuranceDocument : undefined,
         degreeDocumentUrl: typeof onboardingData.degreeDocument === 'string' ? onboardingData.degreeDocument : undefined,
@@ -532,7 +776,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         backgroundCheckDocumentUrl: typeof onboardingData.backgroundCheckDocument === 'string' ? onboardingData.backgroundCheckDocument : undefined,
         w9DocumentUrl: typeof onboardingData.w9Document === 'string' ? onboardingData.w9Document : undefined,
 
-        // Step 10 Profile (New)
+        // Step 10 Profile
         shortBio: onboardingData.shortBio,
         extendedBio: onboardingData.extendedBio,
         whatClientsCanExpect: onboardingData.whatClientsCanExpect,
@@ -540,10 +784,10 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
 
         // Step 5 License
         licenseNumber: onboardingData.licenseNumber,
-        licenseState: onboardingData.issuingStates?.[0] || '', // Single select now
+        licenseState: onboardingData.issuingStates?.[0] || '',
         licenseType: onboardingData.licenseType,
         licenseExpiry: onboardingData.licenseExpiryDate,
-        malpracticeInsuranceProvider: onboardingData.malpracticeInsurance,
+        malpracticeInsurance: onboardingData.malpracticeInsurance,
         malpracticePolicyNumber: onboardingData.malpracticePolicyNumber,
         malpracticeExpiry: onboardingData.malpracticeExpiryDate,
         npiNumber: onboardingData.npiNumber,
@@ -551,7 +795,12 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         licensingAuthority: onboardingData.licensingAuthority,
 
         // Step 6 Availability & Preferences
-        sessionFormats,
+        sessionFormats: {
+          video: onboardingData.video,
+          inPerson: onboardingData.inPerson,
+          phone: onboardingData.phone,
+          messaging: onboardingData.messaging
+        },
         newClientsCapacity: onboardingData.newClientsCapacity,
         maxCaseloadCapacity: onboardingData.maxCaseloadCapacity,
         clientIntakeSpeed: onboardingData.clientIntakeSpeed,
@@ -561,101 +810,23 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         preferredSchedulingDensity: onboardingData.preferredSchedulingDensity,
       };
 
-      let API_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:3010';
-      // Normalize URL: remove trailing slash and optional trailing /api to avoid double /api/api
-      API_URL = API_URL.replace(/\/$/, '').replace(/\/api$/, '');
+      logger.info('Submitting onboarding completion to API');
 
-      logger.info('Submitting therapist registration to API:', { url: `${API_URL}/api/auth/therapist/register` });
+      // CHANGE: Call new onboarding completion endpoint
+      const result = await post('/onboarding/therapist-complete', businessData) as any;
 
-      // Debug: Log the country code being sent
-      console.log('🔍 DEBUG: Country code being sent:', {
-        countryCode: onboardingData.countryCode,
-        phoneNumber: onboardingData.phoneNumber,
-        payloadCountryCode: payload.countryCode
-      });
+      console.log('✅ Onboarding completion response:', result);
 
-      // Get authentication token - prioritize ID token for Cognito JWT verification
-      let token = null;
-
-      // The backend jwtVerifier expects ID tokens, so prioritize cognitoIdToken
-      token = localStorage.getItem('cognitoIdToken') ||
-        localStorage.getItem('authToken') ||
-        localStorage.getItem('cognitoAccessToken');
-
-      // If no token found, try to get current user and refresh token
-      if (!token) {
-        console.log('⚠️ No token found in localStorage, trying to get current user...');
-        const currentUser = getCurrentUser();
-        if (currentUser) {
-          // Try to get token from current user session (prioritize ID token)
-          token = localStorage.getItem('cognitoIdToken') || localStorage.getItem('authToken');
-          console.log('🔄 Retrieved token from current user session:', token ? 'Found' : 'Not found');
-        }
-      }
-
-      // If still no token, check if user is logged in and try to refresh
-      if (!token) {
-        console.log('⚠️ No valid token found, checking authentication state...');
-
-        // Try to get any stored token and check if it's just expired
-        const storedTokens = {
-          cognitoIdToken: localStorage.getItem('cognitoIdToken'),
-          authToken: localStorage.getItem('authToken'),
-          cognitoAccessToken: localStorage.getItem('cognitoAccessToken'),
-          cognitoRefreshToken: localStorage.getItem('cognitoRefreshToken')
-        };
-
-        console.log('🔍 Stored tokens check:', {
-          cognitoIdToken: storedTokens.cognitoIdToken ? 'Present' : 'Missing',
-          authToken: storedTokens.authToken ? 'Present' : 'Missing',
-          cognitoAccessToken: storedTokens.cognitoAccessToken ? 'Present' : 'Missing',
-          cognitoRefreshToken: storedTokens.cognitoRefreshToken ? 'Present' : 'Missing'
-        });
-
-        // Use ID token first (required by backend), then fallback to others
-        token = storedTokens.cognitoIdToken || storedTokens.authToken || storedTokens.cognitoAccessToken;
-      }
-
-      if (!token) {
-        throw new Error('Authentication token not found. Please log in again.');
-      }
-
-      console.log('🔐 Using token for API call:', token ? 'ID Token found' : 'No token');
-
-      interface RegistrationResponse {
-        success?: boolean;
-        registrationId?: string;
-        message?: string;
-      }
-
-      console.log('🔐 Using token for API call:', token ? 'ID Token found' : 'No token');
-
-      // Use the robust API client which handles token refreshing automatically
-      // This fixes the issue where tokens expire during the long onboarding process
-      const result = await post<RegistrationResponse>('/auth/therapist/register', payload);
-
-      console.log('✅ API Success Response:', result);
-
-      // The post method throws on error, so we don't need manual response.ok checks here
-      // If we get here, it was successful.
-
-      /* 
-       * Legacy fetch code removed in favor of api/client.ts
-       * This ensures 401s trigger a refresh token flow
-       */
-      console.log('✅ API Success Response:', result);
-
-      if (result.success || result.message === 'Registration submitted') {
+      if (result.success) {
         // Clear onboarding data from localStorage
         clearLocalStorage();
 
-        // TODO: Also save to server for backup/legacy compatibility if needed
-        logger.info('Therapist registration submitted successfully', {
-          registrationId: result.registrationId
+        logger.info('Therapist onboarding completed successfully', {
+          accountStatus: result.accountStatus
         });
 
         // Show success message
-        alert('✅ Registration Submitted Successfully!\n\nYour application has been received and is under review.\n\nYou will receive an email notification once your application is approved (typically 2-5 business days).\n\nYou can now log in to check your application status.');
+        alert('✅ Onboarding Completed Successfully!\n\nYour application has been received and is under review.\n\nYou can now log in to access your dashboard. You\'ll get full access to clients once approved (typically 24-48 hours).');
 
         // Sign out the user
         await signOut();
@@ -664,16 +835,15 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
         window.history.pushState({}, '', '/');
         window.location.href = '/';
       } else {
-        throw new Error(result.message || 'Registration failed');
+        throw new Error(result.message || 'Onboarding completion failed');
       }
 
-
     } catch (error: any) {
-      logger.error('Registration submission failed:', error);
+      logger.error('Onboarding completion failed:', error);
 
       // Parse error response
-      let errorMessage = 'Registration failed. Please try again or contact support.';
-      let errorTitle = 'Registration Error';
+      let errorMessage = 'Onboarding completion failed. Please try again or contact support.';
+      let errorTitle = 'Onboarding Error';
 
       try {
         // Try to parse JSON error from backend
@@ -690,7 +860,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
           }
         } else if (errorData.error === 'ALREADY_REGISTERED') {
           errorTitle = 'Application Already Submitted';
-          errorMessage = errorData.message || 'You have already submitted a registration. Please login to check your application status.';
+          errorMessage = errorData.message || 'You have already submitted an onboarding application. Please login to check your application status.';
 
           // Redirect to login
           alert(errorMessage);
@@ -719,7 +889,7 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
   };
 
   // ✅ NEW: Handler for OAuth signup - skip phone verification
-  const handleOAuthSignup = (email: string, displayName: string, uid: string, method: 'google' | 'apple') => {
+  const handleOAuthSignup = (email: string, displayName: string, uid: string, method: 'google' | 'phone' | 'apple') => {
     logger.info(`✅ OAuth signup with ${method}:`, { email, displayName, uid });
 
     // Update onboarding data with OAuth info
@@ -747,12 +917,12 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center space-y-6">
           <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-            {getCurrentUser()?.email?.charAt(0).toUpperCase() || onboardingData.email?.charAt(0).toUpperCase() || 'U'}
+            {getCurrentUserSync()?.email?.charAt(0).toUpperCase() || onboardingData.email?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">Welcome Back!</h2>
             <p className="text-gray-500 mt-2">
-              We found an application in progress for <span className="font-medium text-gray-900">{getCurrentUser()?.email || onboardingData.email}</span> at Step {resumeStep}.
+              We found an application in progress for <span className="font-medium text-gray-900">{getCurrentUserSync()?.email || onboardingData.email}</span> at Step {resumeStep}.
             </p>
           </div>
 
@@ -861,18 +1031,32 @@ export function TherapistOnboarding({ onComplete }: TherapistOnboardingProps = {
   return (
     <div className="min-h-screen bg-background py-8">
       {/* Session Header */}
-      <div className="max-w-4xl mx-auto px-4 mb-2 flex justify-end">
+      <div className="max-w-4xl mx-auto px-4 mb-2 flex justify-between items-center">
+        {/* Left Side: Save & Exit (Only for Steps > 1) */}
+        <div>
+          {currentStep > 1 && (
+            <button
+              onClick={() => onExit && onExit()}
+              className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-white px-3 py-1.5 rounded-md shadow-sm border border-blue-100 transition-colors"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Save & Exit
+            </button>
+          )}
+        </div>
+
+        {/* Right Side: User Info */}
         <div className="text-xs text-muted-foreground flex items-center gap-3 bg-white/80 px-4 py-2 rounded-full backdrop-blur-sm border border-gray-100 shadow-sm">
-          {getCurrentUser() ? (
+          {isAuthenticated() ? (
             <>
               <span className="flex items-center gap-2 truncate max-w-[200px]">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                {getCurrentUser()?.email}
+                {authenticatedUser?.email || localStorage.getItem('userEmail')}
               </span>
               <span className="text-gray-300">|</span>
               <button
                 onClick={async () => {
-                  await signOut();
+                  await authService.logout();
                   clearLocalStorage();
                   window.history.pushState({}, '', '/');
                   window.location.reload();

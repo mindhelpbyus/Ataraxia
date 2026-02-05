@@ -1,20 +1,26 @@
-// Helper to sanitize base URL
+// Helper to get production API base URL
 const getBaseUrl = () => {
-    let url = import.meta.env.VITE_THERAPIST_SERVICE_URL || 'http://localhost:3002';
+    const url = import.meta.env.VITE_API_BASE_URL;
+    if (!url) {
+        throw new Error('VITE_API_BASE_URL not configured');
+    }
     // Remove trailing slash
-    if (url.endsWith('/')) url = url.slice(0, -1);
+    let cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
     // If url ends with /api, remove it so we can append it consistently
-    if (url.endsWith('/api')) url = url.slice(0, -4);
-    return url;
+    if (cleanUrl.endsWith('/api')) cleanUrl = cleanUrl.slice(0, -4);
+    return cleanUrl;
 };
 
 const getVerificationServiceUrl = () => {
-    let url = import.meta.env.VITE_VERIFICATION_SERVICE_URL || 'http://localhost:3008';
+    const url = import.meta.env.VITE_API_BASE_URL;
+    if (!url) {
+        throw new Error('VITE_API_BASE_URL not configured');
+    }
     // Remove trailing slash
-    if (url.endsWith('/')) url = url.slice(0, -1);
+    let cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
     // If url ends with /api, remove it so we can append it consistently
-    if (url.endsWith('/api')) url = url.slice(0, -4);
-    return url;
+    if (cleanUrl.endsWith('/api')) cleanUrl = cleanUrl.slice(0, -4);
+    return cleanUrl;
 };
 
 const BASE_URL = getBaseUrl();

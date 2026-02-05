@@ -19,6 +19,7 @@ import { SettingsSidebar } from './SettingsSidebar';
 import { ReportsView } from './ReportsView';
 import { ClientDashboardView } from './ClientDashboardView';
 import TherapistVerificationView from './TherapistVerificationView';
+import { VerificationBanner } from './VerificationBanner';
 import { BedrockLogo } from '../imports/BedrockLogo';
 import { UserRole, Notification } from '../types/appointment';
 import { Toaster } from './ui/sonner';
@@ -53,7 +54,8 @@ import {
   Gift,
   Zap,
   Moon,
-  Sun
+  Sun,
+  Shield
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -75,15 +77,19 @@ interface DashboardLayoutProps {
   currentUserId: string;
   userEmail: string;
   userName?: string; // User's display name (from Firebase or extracted from email)
+  accountStatus?: string; // Account status for verification banner
   onLogout: () => void;
   notifications: Notification[];
   onMarkNotificationAsRead: (notificationId: string) => void;
   onMarkAllNotificationsAsRead: () => void;
+  onNavigateToSecurity?: () => void;
+  onNavigateToMFA?: () => void;
+  onNavigateToSessions?: () => void;
 }
 
 type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'therapist-verification' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance' | 'logs' | 'data-explorer' | 'api-monitoring';
 
-export function DashboardLayout({ userRole, currentUserId, userEmail, userName, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead }: DashboardLayoutProps) {
+export function DashboardLayout({ userRole, currentUserId, userEmail, userName, accountStatus, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead, onNavigateToSecurity, onNavigateToMFA, onNavigateToSessions }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [activeSettingsTab, setActiveSettingsTab] = useState<string>('apps'); // Settings sub-navigation
   const [showSettingsNav, setShowSettingsNav] = useState(false); // Track if settings navigation is visible
@@ -681,6 +687,10 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                         <DropdownMenuItem className="rounded-lg text-xs">
                           <Zap className="w-4 h-4 mr-2" /> What's new
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator className="my-1" />
+                        <DropdownMenuItem onClick={onNavigateToSecurity} className="rounded-lg text-xs">
+                          <Shield className="w-4 h-4 mr-2" /> Security Dashboard
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleTabChange('settings')} className="rounded-lg text-xs">
                           <Settings className="w-4 h-4 mr-2" /> Settings
                         </DropdownMenuItem>
@@ -750,6 +760,10 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                         <DropdownMenuItem className="rounded-lg text-xs">
                           <Zap className="w-4 h-4 mr-2" /> What's new
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator className="my-1" />
+                        <DropdownMenuItem onClick={onNavigateToSecurity} className="rounded-lg text-xs">
+                          <Shield className="w-4 h-4 mr-2" /> Security Dashboard
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleTabChange('settings')} className="rounded-lg text-xs">
                           <Settings className="w-4 h-4 mr-2" /> Settings
                         </DropdownMenuItem>
@@ -802,6 +816,12 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
 
             {/* Content Render Area */}
             <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background relative">
+              {/* Verification Banner for Therapists */}
+              <VerificationBanner 
+                accountStatus={accountStatus || 'active'} 
+                userRole={userRole} 
+              />
+              
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, y: 10 }}

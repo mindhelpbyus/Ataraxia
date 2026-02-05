@@ -233,7 +233,10 @@ class OnboardingSessionManager {
 
     try {
       // Call backend API to send SMS
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      if (!API_BASE_URL) {
+        throw new Error('API_BASE_URL not configured');
+      }
       
       const response = await fetch(`${API_BASE_URL}/api/auth/phone/send-code`, {
         method: 'POST',
@@ -268,7 +271,10 @@ class OnboardingSessionManager {
 
     try {
       // Call backend API to verify SMS code
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      if (!API_BASE_URL) {
+        throw new Error('API_BASE_URL not configured');
+      }
       
       const response = await fetch(`${API_BASE_URL}/api/auth/phone/verify-code`, {
         method: 'POST',
@@ -394,7 +400,10 @@ class OnboardingSessionManager {
     if (!this.currentSession) return;
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      if (!API_BASE_URL) {
+        throw new Error('API_BASE_URL not configured');
+      }
       
       const response = await fetch(`${API_BASE_URL}/api/onboarding/backup`, {
         method: 'POST',
@@ -417,7 +426,10 @@ class OnboardingSessionManager {
   private async submitCompleteProfile(): Promise<void> {
     if (!this.currentSession) return;
 
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    if (!API_BASE_URL) {
+      throw new Error('API_BASE_URL not configured');
+    }
     
     const response = await fetch(`${API_BASE_URL}/api/therapist/complete-onboarding`, {
       method: 'POST',

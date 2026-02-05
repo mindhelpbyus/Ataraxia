@@ -16,9 +16,10 @@ import {
 } from "./ui/tooltip";
 import { Alert, AlertDescription } from "./ui/alert";
 import illustrationImage from 'figma:asset/25680757734faa188ce1cb1feebb30b3ebb124bb.png';
-import { authService } from '../api';
+import { RealAuthService as authService } from '../api/services/auth';
 import { PhoneInput, validatePhoneNumber as validatePhone } from './PhoneInput';
 import { Spotlight } from './ui/spotlight';
+import { firebasePhoneAuth, firebaseGoogleAuth } from '../services/firebase';
 
 type LoginMode = 'email' | 'phone';
 
@@ -45,6 +46,7 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
   const [otpSent, setOtpSent] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
   // Daily Quote
   const [dailyQuote, setDailyQuote] = useState<string>('');
@@ -187,6 +189,7 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
 
     try {
       if (!otpSent) {
+        // Send OTP via Firebase
         if (!validatePhone(phoneNumber, phoneCountryCode)) {
           throw new Error('Please enter a valid phone number');
         }
@@ -195,29 +198,122 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
           throw new Error('Please enter your name');
         }
 
-        // Use Cognito Phone Auth via our backend
-        const fullPhoneNumber = `${phoneCountryCode}${phoneNumber}`;
+        const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
 
-        // Call our backend to initiate phone auth
-        // For now, we'll show a message that phone auth is coming soon
-        toast.info("Phone authentication coming soon", {
-          description: "Please use email login for now."
-        });
+        // Use Firebase Phone Auth
+        const confirmation = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber);
+        setConfirmationResult(confirmation);
+        setOtpSent(true);
 
-        setLoginMode('email');
-        return;
+        toast.success('Verification code sent to your phone');
 
       } else {
+        // Verify OTP
         if (otp.length !== 6) {
           throw new Error('Please enter a valid 6-digit OTP');
         }
 
-        // This would verify OTP with Cognito via our backend
-        toast.success('Phone verified successfully!');
+        const result = await firebasePhoneAuth.verifyPhoneCode(confirmationResult, otp);
+
+        if (result.user) {
+          // Get Firebase ID token
+          const idToken = await result.user.getIdToken();
+
+          try {
+            // Check if user exists and what type they are
+            const userCheck = await authService.checkPhoneUserExists(idToken);
+
+            if (userCheck.exists) {
+              // User exists - login them
+              if (userCheck.userType === 'therapist') {
+                const response = await authService.loginTherapistWithPhone(idToken);
+                if (response.user) {
+                  onLogin(
+                    response.user.email,
+                    response.user.name,
+                    response.user.role as any,
+                    response.user.id,
+                    response.user.account_status,
+                    response.token
+                  );
+                }
+              } else {
+                // Client login
+                const response = await authService.loginWithFirebase(
+                  idToken,
+                  userCheck.user?.first_name || '',
+                  userCheck.user?.last_name || '',
+                  userCheck.user?.email || ''
+                );
+                if (response.user) {
+                  onLogin(
+                    response.user.email,
+                    response.user.name,
+                    response.user.role as any,
+                    response.user.id,
+                    response.user.account_status,
+                    response.token
+                  );
+                }
+              }
+            } else {
+              // User doesn't exist
+              if (isSignup) {
+                // User wants to register - collect additional info if needed
+                if (!firstName || !lastName) {
+                  setError('Please enter your name to create an account');
+                  return;
+                }
+
+                // Create new client account (default for phone registration)
+                const response = await authService.loginWithFirebase(
+                  idToken,
+                  firstName,
+                  lastName,
+                  result.user.email || `${result.user.phoneNumber}@phone.local`
+                );
+
+                if (response.user) {
+                  onLogin(
+                    response.user.email,
+                    response.user.name,
+                    response.user.role as any,
+                    response.user.id,
+                    response.user.account_status,
+                    response.token
+                  );
+                }
+              } else {
+                // User trying to sign in but account doesn't exist
+                setError('No account found with this phone number. Would you like to sign up?');
+                setIsSignup(true);
+              }
+            }
+          } catch (error: any) {
+            console.error('Phone authentication error:', error);
+            if (error.message.includes('constraint')) {
+              setError('Account already exists. Please try signing in instead.');
+              setIsSignup(false);
+            } else {
+              throw error;
+            }
+          }
+        }
       }
     } catch (err: any) {
       console.error('Phone auth error:', err);
-      setError(err.message || 'An error occurred');
+
+      // Handle specific Firebase errors
+      if (err.code === 'auth/invalid-phone-number') {
+        setError('Invalid phone number format');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many requests. Please try again later.');
+      } else if (err.code === 'auth/invalid-verification-code') {
+        setError('Invalid verification code');
+      } else {
+        setError(err.message || 'Authentication failed');
+      }
+
       toast.error(err.message || 'Authentication failed');
     } finally {
       setIsLoading(false);
@@ -226,8 +322,126 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
 
   const handleSendOTP = async () => {
     // Resend logic
-    toast.success("OTP resent successfully");
+    if (confirmationResult) {
+      try {
+        const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
+        const confirmation = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber);
+        setConfirmationResult(confirmation);
+        toast.success("OTP resent successfully");
+      } catch (error: any) {
+        toast.error("Failed to resend OTP");
+      }
+    }
   };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await firebaseGoogleAuth.signInWithPopup();
+
+      if (result.user && result.idToken) {
+        // ENHANCED: Check if user already exists with this email before proceeding
+        try {
+          const userCheck = await authService.checkEmailPhoneExists(result.user.email);
+
+          if (userCheck.emailExists) {
+            // User already exists with this email - attempt to link accounts
+            console.log('Existing user found with Gmail address, attempting account linking...');
+
+            // Try to login/link the existing account
+            const response = await authService.loginWithFirebase(
+              result.idToken,
+              result.user.displayName?.split(' ')[0] || '',
+              result.user.displayName?.split(' ')[1] || '',
+              result.user.email || '',
+              true // linkAccount flag
+            );
+
+            if (response.user) {
+              toast.success('Welcome back! Your Google account has been linked.');
+              onLogin(
+                response.user.email,
+                response.user.name,
+                response.user.role as any,
+                response.user.id,
+                response.user.account_status,
+                response.token
+              );
+            }
+          } else {
+            // New user - proceed with normal Google OAuth registration
+            const response = await authService.loginWithFirebase(
+              result.idToken,
+              result.user.displayName?.split(' ')[0] || '',
+              result.user.displayName?.split(' ')[1] || '',
+              result.user.email || ''
+            );
+
+            if (response.user) {
+              toast.success('Welcome! Your Google account has been created.');
+              onLogin(
+                response.user.email,
+                response.user.name,
+                response.user.role as any,
+                response.user.id,
+                response.user.account_status,
+                response.token
+              );
+            }
+          }
+        } catch (checkError: any) {
+          console.error('User existence check failed:', checkError);
+
+          // Fallback: Try normal login flow
+          const response = await authService.loginWithFirebase(
+            result.idToken,
+            result.user.displayName?.split(' ')[0] || '',
+            result.user.displayName?.split(' ')[1] || '',
+            result.user.email || ''
+          );
+
+          if (response.user) {
+            onLogin(
+              response.user.email,
+              response.user.name,
+              response.user.role as any,
+              response.user.id,
+              response.user.account_status,
+              response.token
+            );
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+
+      // Handle specific Google OAuth errors
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in was cancelled');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Popup was blocked. Please allow popups and try again.');
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        setError('Another sign-in popup is already open');
+      } else if (err.message?.includes('already exists')) {
+        setError('An account with this email already exists. Your accounts have been linked successfully.');
+      } else {
+        setError(err.message || 'Google sign-in failed');
+      }
+
+      toast.error(err.message || 'Google sign-in failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Cleanup Firebase auth on unmount
+  useEffect(() => {
+    return () => {
+      firebasePhoneAuth.cleanup();
+    };
+  }, []);
 
   return (
     <TooltipProvider>
@@ -512,12 +726,8 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={async () => {
-                          // Google Sign-in with Cognito coming soon
-                          toast.info("Google Sign-in coming soon", {
-                            description: "Please use email login for now."
-                          });
-                        }}
+                        onClick={handleGoogleSignIn}
+                        disabled={isLoading}
                         className="w-full h-11 border-border/50 bg-background/30 hover:bg-background/80 text-foreground font-medium transition-all rounded-xl shadow-none hover:shadow-md flex items-center justify-center gap-3"
                       >
                         <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
@@ -526,7 +736,7 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                           <path d="M12 24C15.0995 24 17.9159 22.8138 20.0452 20.8849L16.3313 17.7421C15.0861 18.6891 13.5644 19.2013 12 19.2001C8.87883 19.2001 6.22868 17.2099 5.2303 14.4326L1.31716 17.4475C3.30313 21.3336 7.37626 24 12 24Z" fill="#4CAF50" />
                           <path d="M23.7662 9.64963H22.7996V9.59983H11.9998V14.3998H18.7815C18.3082 15.7296 17.4557 16.8916 16.3293 17.7423L16.3311 17.7411L20.0451 20.8838C19.7823 21.1226 23.9996 17.9997 23.9996 11.9998C23.9996 11.1952 23.9168 10.4098 23.7662 9.64963Z" fill="#1976D2" />
                         </svg>
-                        <span>Continue with Google</span>
+                        <span>{isLoading ? 'Signing in...' : 'Continue with Google'}</span>
                       </Button>
 
                       <Button
@@ -562,15 +772,17 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
 
                 {loginMode === 'email' && onRegisterTherapist && (
                   <div className="text-center text-sm mt-6">
-                    <span className="text-muted-foreground">Don't have an account yet?</span>{' '}
-                    <button
-                      type="button"
-                      onClick={onRegisterTherapist}
-                      className="hover:underline font-bold transition-all"
-                      style={{ color: '#ea580c' }}
-                    >
-                      Register for free
-                    </button>
+                    <div>
+                      <span className="text-muted-foreground">Don't have an account yet?</span>{' '}
+                      <button
+                        type="button"
+                        onClick={onRegisterTherapist}
+                        className="hover:underline font-bold transition-all"
+                        style={{ color: '#ea580c' }}
+                      >
+                        Register for free
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

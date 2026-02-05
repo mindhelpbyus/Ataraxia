@@ -10,7 +10,8 @@
  * ✅ Client-side SDK functionality
  */
 
-import { CognitoProvider } from '../../Ataraxia-Next/src/lib/auth/providers/CognitoProvider';
+// Remove broken import - will use AWS SDK directly
+// import { CognitoProvider } from '../../Ataraxia-Next/src/lib/auth/providers/CognitoProvider';
 
 interface TokenSet {
   accessToken: string;

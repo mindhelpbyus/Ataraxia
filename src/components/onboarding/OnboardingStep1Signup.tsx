@@ -10,14 +10,12 @@ import { Separator } from '../ui/separator';
 import { PhoneInput } from '../PhoneInput';
 import { UnauthorizedDomainAlert } from '../UnauthorizedDomainAlert';
 import { BedrockLogo } from '../../imports/BedrockLogo';
-import { createUserWithEmailAndPassword, getAuthSystemInfo } from '../../services/authService';
+import { authService } from '../../services/authService';
 import { logger } from '../../services/secureLogger';
 import { validatePasswordSecurity, generateSecurePassword } from '../../utils/passwordSecurity';
 
-// Cognito configuration check
 const isCognitoConfigured = () => {
-  const authInfo = getAuthSystemInfo();
-  return authInfo.cognitoConfigured && authInfo.provider === 'cognito';
+  return true; // Always enabled in hybrid mode
 };
 
 // Cognito error message handler
@@ -63,7 +61,7 @@ const saveOAuthUserData = async (uid: string, email: string, displayName: string
 // Phone number authentication with Cognito
 const sendPhoneVerificationCode = async (phoneNumber: string, countryCode: string) => {
   try {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
     const response = await fetch(`${API_BASE_URL}/api/auth/phone/send-code`, {
       method: 'POST',
@@ -135,7 +133,7 @@ const signInWithGoogle = async () => {
 
     return new Promise((resolve, reject) => {
       try {
-        const client = window.google.accounts.oauth2.initTokenClient({
+        const client = (window as any).google.accounts.oauth2.initTokenClient({
           client_id: clientId,
           scope: 'email profile openid',
           callback: async (tokenResponse: any) => {
@@ -217,13 +215,21 @@ const signInWithGoogle = async () => {
 
 
 
-// Create user with email using Cognito
-const createUserWithEmail = async (email: string, password: string, additionalData?: any) => {
+// Create user with email using hybrid auth service
+const createUserWithEmail = async (email: string, password: string, additionalData: any) => {
   try {
-    const result = await createUserWithEmailAndPassword(email, password, additionalData);
+    const result = await authService.register({
+      email,
+      password,
+      firstName: additionalData.firstName,
+      lastName: additionalData.lastName,
+      role: 'therapist',
+      phoneNumber: additionalData.phoneNumber,
+      countryCode: additionalData.countryCode
+    });
     return result;
   } catch (error) {
-    logger.error('Cognito user creation failed:', error);
+    logger.error('User creation failed:', error);
     throw error;
   }
 };
@@ -240,7 +246,7 @@ interface OnboardingStep1Props {
   };
   onUpdate: (data: any) => void;
   onNext: () => void;
-  onOAuthSignup?: (email: string, displayName: string, uid: string, method: 'google' | 'apple') => void;
+  onOAuthSignup?: (email: string, displayName: string, uid: string, method: 'google' | 'phone') => void;
   onBackToLogin?: () => void;
 }
 
@@ -265,7 +271,8 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
 
   // Generate secure password
   const handleGeneratePassword = () => {
-    const newPassword = generateSecurePassword(16); // Generate 16-character password
+    // Generate a secure 2-word, 16-18 char password
+    const newPassword = generateSecurePassword(2, 18);
     onUpdate({ password: newPassword });
     clearError('password');
     // Trigger validation for the new password
@@ -419,14 +426,8 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
 
     setIsSubmitting(true);
 
-    if (!isCognitoConfigured()) {
-      alert('Cognito authentication is not configured. Please contact support.');
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
-      console.log('🔐 Creating Cognito user with:', {
+      logger.info('🔐 Creating user with hybrid auth:', {
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -434,7 +435,7 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
         countryCode: data.countryCode
       });
 
-      // Create user with Cognito via our authService
+      // Create user via hybrid auth service (supports Firebase, Cognito, and local DB)
       const result = await createUserWithEmail(data.email, data.password, {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -444,7 +445,7 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
       });
 
       const { user } = result;
-      logger.info('✅ Cognito user created successfully:', user.uid);
+      logger.info('✅ User created successfully:', { userId: user.id });
 
       // Update onboarding data with user info
       onUpdate({
@@ -453,15 +454,15 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
         lastName: data.lastName,
         phoneNumber: data.phoneNumber,
         countryCode: data.countryCode,
-        firebaseUid: user.uid,
+        firebaseUid: user.id,
         authMethod: 'email'
       });
 
       // Move to next step
       onNext();
     } catch (error: any) {
-      logger.error('❌ Cognito signup error:', error);
-      alert(getCognitoErrorMessage(error));
+      logger.error('❌ Registration error:', error);
+      alert(error.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -471,62 +472,190 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    if (!isCognitoConfigured()) {
-      alert('Cognito authentication is not configured. Please contact support.');
-      setIsSubmitting(false);
-      return;
-    }
-
-    setShowUnauthorizedDomainError(false);
-
     try {
-      console.log('🔐 Starting Google Sign-in with Cognito...');
-      const result = await signInWithGoogle();
-      const { user, userProfile } = result;
+      console.log('🔐 Starting Google OAuth for therapist registration...');
 
-      await saveOAuthUserData(
-        user.uid,
-        userProfile.email,
-        userProfile.displayName,
-        'google'
-      );
+      // Import the Google OAuth service
+      const { firebaseGoogleAuth } = await import('../../services/firebase');
 
-      onUpdate({
-        firstName: userProfile.firstName || userProfile.displayName?.split(' ')[0] || '',
-        lastName: userProfile.lastName || userProfile.displayName?.split(' ').slice(1).join(' ') || '',
-        email: userProfile.email,
-        authMethod: 'google',
-        firebaseUid: user.uid
-      });
+      // Trigger Google OAuth popup
+      const result = await firebaseGoogleAuth.signInWithPopup();
 
-      logger.info('✅ Google sign-in successful:', user.uid);
+      if (result.user && result.idToken) {
+        // Auto-populate form fields from Google profile
+        const displayName = result.user.displayName || '';
+        const nameParts = displayName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        const email = result.user.email || '';
 
-      if (onOAuthSignup) {
-        onOAuthSignup(userProfile.email, userProfile.displayName, user.uid, 'google');
-      } else {
-        onNext();
+        // Update the form data
+        onUpdate({
+          firstName,
+          lastName,
+          email,
+          authMethod: 'google',
+          googleIdToken: result.idToken
+        });
+
+        // Check if user already exists
+        const { RealAuthService } = await import('../../api/services/auth');
+        try {
+          const userCheck = await RealAuthService.checkEmailPhoneExists(email);
+
+          if (userCheck.emailExists) {
+            // User already exists - show error
+            alert('An account already exists with this email. Please try signing in instead.');
+            setIsSubmitting(false);
+            return;
+          }
+
+          // User doesn't exist - proceed with Google registration
+          const response = await RealAuthService.registerTherapistWithGoogle(
+            result.idToken,
+            firstName,
+            lastName,
+            email
+          );
+
+          if (response.user) {
+            logger.info('✅ Google therapist registration successful', { userId: response.user.id });
+
+            // Call the onOAuthSignup callback if provided, or proceed to next step
+            if (onOAuthSignup) {
+              onOAuthSignup(response.user.email, response.user.name, response.user.id, 'google');
+            } else {
+              onNext();
+            }
+          }
+
+        } catch (checkError: any) {
+          console.error('Google registration error:', checkError);
+          alert(checkError.message || 'Google registration failed');
+        }
       }
     } catch (error: any) {
       logger.error('Google signup error:', error);
-      setIsSubmitting(false);
 
-      if (error.code === 'auth/unauthorized-domain' || error.message?.includes('unauthorized-domain')) {
-        setShowUnauthorizedDomainError(true);
+      // Handle specific Google OAuth errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        // User cancelled - just reset loading state
+      } else if (error.code === 'auth/popup-blocked') {
+        alert('Popup was blocked. Please allow popups and try again.');
       } else {
-        alert(getCognitoErrorMessage(error));
+        alert(error.message || 'Google sign-in failed');
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-
-
-
-
   const handlePhoneSignup = async () => {
-    // Logic for phone signup (e.g., OTP modal or focus phone field)
-    console.log('Phone signup clicked');
-    // For now, we might just want to focus the phone input or trigger a specific flow
-    document.getElementById('phoneNumber')?.focus();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      console.log('📱 Starting phone registration for therapist...');
+      console.log('🔍 DEBUG: Current data state:', data);
+
+      // Import the phone auth service
+      const { firebasePhoneAuth } = await import('../../services/firebase');
+
+      // Check if phone number is provided
+      if (!data.phoneNumber || !data.phoneNumber.trim()) {
+        alert('Please enter your phone number first');
+        // Try to focus the phone input field
+        const phoneInput = document.querySelector('input[type="tel"]') as HTMLInputElement;
+        if (phoneInput) {
+          phoneInput.focus();
+        }
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate phone number format
+      const { validatePhoneNumber } = await import('../PhoneInput');
+      if (!validatePhoneNumber(data.phoneNumber, data.countryCode.replace('+', ''))) {
+        alert('Please enter a valid phone number');
+        const phoneInput = document.querySelector('input[type="tel"]') as HTMLInputElement;
+        if (phoneInput) {
+          phoneInput.focus();
+        }
+        setIsSubmitting(false);
+        return;
+      }
+
+      const fullPhoneNumber = `${data.countryCode}${data.phoneNumber}`;
+
+      // Send OTP via Firebase
+      const confirmation = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber);
+
+      // Prompt user for OTP
+      const otp = prompt('Enter the 6-digit verification code sent to your phone:');
+      if (!otp || otp.length !== 6) {
+        alert('Please enter a valid 6-digit code');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Verify OTP
+      const result = await firebasePhoneAuth.verifyPhoneCode(confirmation, otp);
+
+      if (result.user) {
+        // Get Firebase ID token
+        const idToken = await result.user.getIdToken();
+
+        // Check if required fields are filled
+        if (!data.firstName || !data.lastName || !data.email) {
+          alert('Please fill in your name and email address first');
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Register therapist with phone
+        const { RealAuthService } = await import('../../api/services/auth');
+        const response = await RealAuthService.registerTherapistWithPhone(
+          idToken,
+          data.firstName,
+          data.lastName,
+          data.email,
+          data.password
+        );
+
+        if (response.user) {
+          logger.info('✅ Phone therapist registration successful', { userId: response.user.id });
+
+          // Update form data
+          onUpdate({
+            authMethod: 'phone',
+            phoneVerified: true,
+            firebaseIdToken: idToken
+          });
+
+          // Call the onOAuthSignup callback if provided, or proceed to next step
+          if (onOAuthSignup) {
+            onOAuthSignup(response.user.email, response.user.name, response.user.id, 'phone');
+          } else {
+            onNext();
+          }
+        }
+      }
+    } catch (error: any) {
+      logger.error('Phone signup error:', error);
+
+      // Handle specific phone auth errors
+      if (error.code === 'auth/invalid-phone-number') {
+        alert('Invalid phone number format');
+      } else if (error.code === 'auth/too-many-requests') {
+        alert('Too many requests. Please try again later.');
+      } else if (error.code === 'auth/invalid-verification-code') {
+        alert('Invalid verification code');
+      } else {
+        alert(error.message || 'Phone verification failed');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -730,15 +859,15 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
               </div>
 
               {/* Show generated password warning */}
-              {data.password && data.password.length === 16 && /[A-Z]/.test(data.password) && /[a-z]/.test(data.password) && /[0-9]/.test(data.password) && /[^a-zA-Z0-9]/.test(data.password) && (
+              {data.password && data.password.length >= 8 && /[A-Z]/.test(data.password) && /[0-9]/.test(data.password) && (
                 <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-800">
                   <p className="text-xs font-medium">⚠️ Save this generated password!</p>
                   <p className="text-xs">Copy it to your password manager or write it down securely before continuing.</p>
                 </div>
               )}
 
-              <p className="text-xs text-blue-600">
-                💡 Tip: Use a memorable passphrase or click "Generate Secure Password" above
+              <p className="text-xs text-gray-500">
+                💡 Tip: Use a memorable passphrase or "Generate Secure Password" for temporary setup
               </p>
             </div>
 
@@ -763,52 +892,6 @@ export function OnboardingStep1Signup({ data, onUpdate, onNext, onOAuthSignup, o
           </Button>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-6">
-          <Separator />
-          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-gray-500">
-            or sign up with
-          </span>
-        </div>
-
-        {/* Social Login */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignup}
-          >
-            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Google
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handlePhoneSignup}
-          >
-            <Phone className="mr-2 h-4 w-4" />
-            Phone
-          </Button>
-        </div>
 
         {/* Footer */}
         <p className="mt-6 text-center text-sm text-gray-600">
