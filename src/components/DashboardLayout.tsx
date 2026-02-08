@@ -25,13 +25,7 @@ import { UserRole, Notification } from '../types/appointment';
 import { Toaster } from './ui/sonner';
 
 import {
-  LayoutDashboard,
-  Calendar,
-  Users,
-  MessageSquare,
-  CheckSquare,
-  FileText,
-  BarChart3,
+  Plus,
   Settings,
   Bell,
   Search,
@@ -39,7 +33,6 @@ import {
   LogOut,
   User,
   HelpCircle,
-  Plus,
   X,
   ChevronLeft,
   ChevronRight,
@@ -55,7 +48,14 @@ import {
   Zap,
   Moon,
   Sun,
-  Shield
+  LayoutDashboard,
+  Calendar,
+  Users,
+  MessageSquare,
+  CheckSquare,
+  FileText,
+  BarChart3,
+  Shield // Explicitly import Shield from lucide-react
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -91,7 +91,7 @@ type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'therapist-
 
 export function DashboardLayout({ userRole, currentUserId, userEmail, userName, accountStatus, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead, onNavigateToSecurity, onNavigateToMFA, onNavigateToSessions }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [activeSettingsTab, setActiveSettingsTab] = useState<string>('apps'); // Settings sub-navigation
+  const [activeSettingsTab, setActiveSettingsTab] = useState<string>('account'); // Default to account, not apps
   const [showSettingsNav, setShowSettingsNav] = useState(false); // Track if settings navigation is visible
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -114,7 +114,35 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     'Billing': true,
     'Data & Intelligence': true,
   });
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
+  // Initialize theme
+  useEffect(() => {
+    // Check local storage or system preference
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+    const initialTheme = savedTheme || systemTheme;
+    setTheme(initialTheme);
+
+    if (initialTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
   // Subscription state
   const [subscriptionInfo, setSubscriptionInfo] = useState<{
     status: string;
@@ -182,12 +210,15 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   }, [currentUserId, userRole]);
 
   // Clear search when switching tabs
-  const handleTabChange = (tab: TabType) => {
+  const handleTabChange = (tab: TabType, subTab?: string) => {
     setActiveTab(tab);
 
     // Show settings navigation if switching to settings
     if (tab === 'settings') {
       setShowSettingsNav(true);
+      if (subTab) {
+        setActiveSettingsTab(subTab);
+      }
     } else {
       setShowSettingsNav(false);
     }
@@ -312,31 +343,46 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     },
   ];
 
-  const getStandardNavigation = () => [
-    {
-      section: '',
-      items: [
-        { id: 'dashboard' as TabType, label: 'Home', icon: LayoutDashboard },
-        { id: 'calendar' as TabType, label: 'Appointments', icon: Calendar },
-        { id: 'clients' as TabType, label: 'Clients', icon: Users },
-        ...(userRole === 'admin' || userRole === 'org_admin' ? [{ id: 'therapists' as TabType, label: 'Therapists', icon: UserCog }] : []),
-        { id: 'messages' as TabType, label: 'Messages', icon: MessageSquare, badge: unreadCount > 0 ? unreadCount : undefined },
-        { id: 'tasks' as TabType, label: 'Tasks', icon: CheckSquare },
-        { id: 'notes' as TabType, label: 'Notes', icon: FileText },
-        { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
-      ]
-    },
-    // Add billing section for therapists and org admins (not super admins or clients)
-    ...(userRole === 'therapist' || userRole === 'org_admin' || userRole === 'admin' ? [{
-      section: 'Billing',
-      items: [
-        { id: 'billing' as TabType, label: 'Billing & Subscriptions', icon: FileText },
-        { id: 'invoices' as TabType, label: 'Invoices', icon: Invoice },
-        { id: 'payments' as TabType, label: 'Payments', icon: Wallet },
-        { id: 'plans' as TabType, label: 'Plans & Pricing', icon: FileText },
-      ]
-    }] : []),
-  ];
+  const getStandardNavigation = () => {
+    // Restricted access for newly registered therapists
+    if (userRole === 'therapist' && accountStatus === 'registered') {
+      return [
+        {
+          section: '',
+          items: [
+            { id: 'dashboard' as TabType, label: 'Home', icon: LayoutDashboard },
+            { id: 'settings' as TabType, label: 'Settings', icon: Settings },
+          ]
+        }
+      ];
+    }
+
+    return [
+      {
+        section: '',
+        items: [
+          { id: 'dashboard' as TabType, label: 'Home', icon: LayoutDashboard },
+          { id: 'calendar' as TabType, label: 'Appointments', icon: Calendar },
+          { id: 'clients' as TabType, label: 'Clients', icon: Users },
+          ...(userRole === 'admin' || userRole === 'org_admin' ? [{ id: 'therapists' as TabType, label: 'Therapists', icon: UserCog }] : []),
+          { id: 'messages' as TabType, label: 'Messages', icon: MessageSquare, badge: unreadCount > 0 ? unreadCount : undefined },
+          { id: 'tasks' as TabType, label: 'Tasks', icon: CheckSquare },
+          { id: 'notes' as TabType, label: 'Notes', icon: FileText },
+          { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
+        ]
+      },
+      // Add billing section for therapists and org admins (not super admins or clients)
+      ...(userRole === 'therapist' || userRole === 'org_admin' || userRole === 'admin' ? [{
+        section: 'Billing',
+        items: [
+          { id: 'billing' as TabType, label: 'Billing & Subscriptions', icon: FileText },
+          { id: 'invoices' as TabType, label: 'Invoices', icon: Invoice },
+          { id: 'payments' as TabType, label: 'Payments', icon: Wallet },
+          { id: 'plans' as TabType, label: 'Plans & Pricing', icon: FileText },
+        ]
+      }] : []),
+    ];
+  };
 
   const getClientNavigation = () => [
     {
@@ -681,19 +727,21 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border p-2">
-                        <DropdownMenuItem className="rounded-lg text-xs">
-                          <Moon className="w-4 h-4 mr-2" /> Dark mode
+                        <DropdownMenuItem onClick={toggleTheme} className="rounded-lg text-xs">
+                          {theme === 'light' ? (
+                            <>
+                              <Moon className="w-4 h-4 mr-2" /> Dark mode
+                            </>
+                          ) : (
+                            <>
+                              <Sun className="w-4 h-4 mr-2" /> Light mode
+                            </>
+                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="rounded-lg text-xs">
                           <Zap className="w-4 h-4 mr-2" /> What's new
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="my-1" />
-                        <DropdownMenuItem onClick={onNavigateToSecurity} className="rounded-lg text-xs">
-                          <Shield className="w-4 h-4 mr-2" /> Security Dashboard
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleTabChange('settings')} className="rounded-lg text-xs">
-                          <Settings className="w-4 h-4 mr-2" /> Settings
-                        </DropdownMenuItem>
+
                         <DropdownMenuSeparator className="my-1" />
                         <DropdownMenuItem onClick={onLogout} className="text-rose-600 focus:text-rose-600 rounded-lg text-xs">
                           <LogOut className="w-4 h-4 mr-2" /> Sign out
@@ -754,19 +802,21 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border p-2">
-                        <DropdownMenuItem className="rounded-lg text-xs">
-                          <Moon className="w-4 h-4 mr-2" /> Dark mode
+                        <DropdownMenuItem onClick={toggleTheme} className="rounded-lg text-xs">
+                          {theme === 'light' ? (
+                            <>
+                              <Moon className="w-4 h-4 mr-2" /> Dark mode
+                            </>
+                          ) : (
+                            <>
+                              <Sun className="w-4 h-4 mr-2" /> Light mode
+                            </>
+                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="rounded-lg text-xs">
                           <Zap className="w-4 h-4 mr-2" /> What's new
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="my-1" />
-                        <DropdownMenuItem onClick={onNavigateToSecurity} className="rounded-lg text-xs">
-                          <Shield className="w-4 h-4 mr-2" /> Security Dashboard
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleTabChange('settings')} className="rounded-lg text-xs">
-                          <Settings className="w-4 h-4 mr-2" /> Settings
-                        </DropdownMenuItem>
+
                         <DropdownMenuSeparator className="my-1" />
                         <DropdownMenuItem onClick={onLogout} className="text-rose-600 focus:text-rose-600 rounded-lg text-xs">
                           <LogOut className="w-4 h-4 mr-2" /> Sign out
@@ -786,7 +836,14 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
               {/* Left Side: Page Title */}
               <div className="flex items-center">
                 <h1 className="text-3xl font-bold text-foreground tracking-tight">
-                  {activeTab === 'dashboard' ? '' : activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  {activeTab === 'dashboard' ? '' :
+                    activeTab === 'settings' ? (
+                      activeSettingsTab === 'credentials' ? 'Professional Credentials & Specializations' :
+                        activeSettingsTab === 'availability' ? 'Availability & Session' :
+                          activeSettingsTab === 'insurance' ? 'Payment & Compliance' :
+                            activeSettingsTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+                    ) :
+                      activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                 </h1>
               </div>
 
@@ -815,59 +872,71 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
             </header>
 
             {/* Content Render Area */}
-            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background relative">
-              {/* Verification Banner for Therapists */}
-              <VerificationBanner 
-                accountStatus={accountStatus || 'active'} 
-                userRole={userRole} 
-              />
-              
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="h-full"
-              >
-                {/* Dashboard / Home */}
-                {activeTab === 'dashboard' && (
-                  <>
-                    {userRole === 'therapist' ? (
-                      <TherapistHomeView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
-                    ) : (userRole === 'superadmin' || userRole === 'super_admin') ? (
-                      <SuperAdminDashboardView userId={currentUserId} userEmail={userEmail} userName={userName} onNavigate={setActiveTab} />
-                    ) : (userRole === 'admin' || userRole === 'org_admin') ? (
-                      <AdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
-                    ) : userRole === 'client' ? (
-                      <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab) => setActiveTab(tab as TabType)} />
-                    ) : (
-                      <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} visibleWidgets={widgets} />
-                    )}
-                  </>
-                )}
-                {/* Core Apps */}
-                {activeTab === 'calendar' && <CalendarContainer userRole={userRole} currentUserId={currentUserId} searchQuery={searchQuery} triggerNewAppointment={triggerNewAppointment} />}
-                {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} />}
-                {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} />}
-                {activeTab === 'therapist-verification' && <TherapistVerificationView />}
-                {activeTab === 'organizations' && <OrganizationManagementView userId={currentUserId} userEmail={userEmail} onNavigate={() => setActiveTab('dashboard')} />}
+            <main className="flex-1 overflow-auto bg-white p-6 relative z-0">
+              <div className="max-w-[1600px] mx-auto space-y-6">
 
-                {/* Tools */}
-                {activeTab === 'messages' && <MessagesView currentUserId={currentUserId} currentUserName={userName || getUserName(userEmail)} currentUserEmail={userEmail} />}
-                {activeTab === 'tasks' && <TasksView userRole={userRole} />}
-                {activeTab === 'notes' && <QuickNotesView />}
-                {activeTab === 'analytics' && <ReportsView userRole={userRole} currentUserId={currentUserId} userEmail={userEmail} />}
-                {activeTab === 'settings' && (
-                  <SettingsView
-                    userEmail={userEmail}
+                {/* Verification/Status Banner (Unified) - Hide for therapists as they have stepper */}
+                {userRole !== 'therapist' && (
+                  <VerificationBanner
+                    accountStatus={accountStatus || 'registered'}
                     userRole={userRole}
-                    activeSettingsTab={activeSettingsTab}
-                    setActiveSettingsTab={setActiveSettingsTab}
-                    showSettingsNav={showSettingsNav}
-                    handleBackFromSettings={handleBackFromSettings}
+                    className="mb-6 shadow-sm bg-white"
+                    profileCompletion={10} // Default 10% for newly registered
+                    onCompleteProfile={() => handleTabChange('settings')}
                   />
                 )}
-              </motion.div>
+
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="h-full"
+                >
+                  {/* Dashboard / Home */}
+                  {activeTab === 'dashboard' && (
+                    <>
+                      {userRole === 'therapist' ? (
+                        <TherapistHomeView userId={currentUserId} userEmail={userEmail} onNavigate={handleTabChange} accountStatus={accountStatus} />
+                      ) : (userRole === 'superadmin' || userRole === 'super_admin') ? (
+                        <SuperAdminDashboardView userId={currentUserId} userEmail={userEmail} userName={userName} onNavigate={setActiveTab} />
+                      ) : (userRole === 'admin' || userRole === 'org_admin') ? (
+                        <AdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
+                      ) : userRole === 'client' ? (
+                        <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab) => setActiveTab(tab as TabType)} />
+                      ) : (
+                        <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} visibleWidgets={widgets} />
+                      )}
+                    </>
+                  )}
+                  {/* Core Apps */}
+                  {activeTab === 'calendar' && <CalendarContainer userRole={userRole} currentUserId={currentUserId} searchQuery={searchQuery} triggerNewAppointment={triggerNewAppointment} />}
+                  {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} />}
+                  {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} />}
+                  {activeTab === 'therapist-verification' && <TherapistVerificationView />}
+                  {activeTab === 'organizations' && <OrganizationManagementView userId={currentUserId} userEmail={userEmail} onNavigate={() => setActiveTab('dashboard')} />}
+
+                  {/* Tools */}
+                  {activeTab === 'messages' && <MessagesView currentUserId={currentUserId} currentUserName={userName || getUserName(userEmail)} currentUserEmail={userEmail} />}
+                  {activeTab === 'tasks' && <TasksView userRole={userRole} />}
+                  {activeTab === 'notes' && <QuickNotesView />}
+
+                  {/* Onboarding Flow */}
+
+                  {activeTab === 'analytics' && <ReportsView userRole={userRole} currentUserId={currentUserId} userEmail={userEmail} />}
+                  {activeTab === 'settings' && (
+                    <SettingsView
+                      userId={currentUserId}
+                      userEmail={userEmail}
+                      userRole={userRole}
+                      activeSettingsTab={activeSettingsTab}
+                      setActiveSettingsTab={setActiveSettingsTab}
+                      showSettingsNav={showSettingsNav}
+                      handleBackFromSettings={handleBackFromSettings}
+                    />
+                  )}
+                </motion.div>
+              </div>
             </main>
           </div>
           <Toaster position="bottom-right" theme="system" className="font-sans" />
@@ -893,5 +962,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         </DialogContent>
       </Dialog>
     </DndProvider>
+
   );
 }

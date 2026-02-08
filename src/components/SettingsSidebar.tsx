@@ -13,7 +13,11 @@ import {
   Settings,
   UserCog,
   Mail,
-  Shield
+  Shield,
+  FileText,
+  Calendar,
+  Award,
+  ScrollText
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { UserRole } from '../types/appointment';
@@ -45,8 +49,7 @@ const settingsSections: SettingsSection[] = [
     items: [
       { id: 'apps', label: 'Apps', icon: Wrench },
       { id: 'account', label: 'Account', icon: UserCircle },
-      { id: 'notifications', label: 'Notification', icon: Bell },
-      { id: 'language', label: 'Language & Region', icon: Globe }
+      { id: 'notifications', label: 'Notification', icon: Bell }
     ]
   },
   {
@@ -83,21 +86,73 @@ export function SettingsSidebar({
 
   // Generate settings sections based on user role
   const getSettingsSections = (): SettingsSection[] => {
+    // Start with a shallow copy of the high-level sections array
     let sections = [...settingsSections];
 
+    const isSuperAdmin = userRole === 'superadmin' || userRole === 'super_admin';
+    const isTherapist = userRole === 'therapist';
+
     // Filter Platform Control section - only show for superadmin
-    if (userRole !== 'superadmin') {
-      sections = sections.filter(s => s.id !== 'platform');
+    if (!isSuperAdmin) {
+      sections = sections.filter((s) => s.id !== 'platform');
+    }
+
+    // Filter Workspace Settings - only show for superadmin
+    if (!isSuperAdmin) {
+      sections = sections.filter((s) => s.id !== 'workspace');
+    }
+
+    // CUSTOM THERAPIST SETTINGS
+    if (isTherapist) {
+      const generalIndex = sections.findIndex(s => s.id === 'general');
+      if (generalIndex !== -1) {
+        // Clone the section object to avoid mutating the original static data
+        const generalSection = { ...sections[generalIndex] };
+
+        // Define the therapist-specific items
+        const therapistItems = [
+          { id: 'account', label: 'Account', icon: UserCircle },
+          { id: 'credentials', label: 'Credentials', icon: Award },
+          { id: 'license', label: 'License', icon: ScrollText },
+          { id: 'availability', label: 'Availability', icon: Calendar },
+          { id: 'insurance', label: 'Payment & Compliance', icon: Shield },
+          { id: 'documents', label: 'Document & Consents', icon: FileText },
+          { id: 'notifications', label: 'Notification', icon: Bell }
+        ];
+
+        // Replace items specifically for therapists
+        generalSection.items = therapistItems;
+
+        // Update the array
+        sections[generalIndex] = generalSection;
+      }
+    } else if (!isSuperAdmin) {
+      // Filter "Apps" from General Settings if not superadmin (and not therapist, already handled)
+      const generalIndex = sections.findIndex(s => s.id === 'general');
+      if (generalIndex !== -1) {
+        // Clone the section object to avoid mutating the original static data
+        const generalSection = { ...sections[generalIndex] };
+        // Filter items
+        generalSection.items = generalSection.items.filter(item => item.id !== 'apps');
+        // Update the array
+        sections[generalIndex] = generalSection;
+      }
     }
 
     // Add API Debug to workspace settings only for superadmin
-    if (userRole === 'superadmin') {
-      const workspaceSection = sections.find(s => s.id === 'workspace');
-      if (workspaceSection) {
-        workspaceSection.items = [
-          ...workspaceSection.items,
-          { id: 'api-debug', label: 'API Debug', icon: Bug }
-        ];
+    if (isSuperAdmin) {
+      const workspaceIndex = sections.findIndex(s => s.id === 'workspace');
+      if (workspaceIndex !== -1) {
+        // Clone the section
+        const workspaceSection = { ...sections[workspaceIndex] };
+        // Add item if not already present
+        if (!workspaceSection.items.find(i => i.id === 'api-debug')) {
+          workspaceSection.items = [
+            ...workspaceSection.items,
+            { id: 'api-debug', label: 'API Debug', icon: Bug }
+          ];
+        }
+        sections[workspaceIndex] = workspaceSection;
       }
     }
 

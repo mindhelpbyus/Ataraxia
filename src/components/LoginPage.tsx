@@ -17,6 +17,7 @@ import {
 import { Alert, AlertDescription } from "./ui/alert";
 import illustrationImage from 'figma:asset/25680757734faa188ce1cb1feebb30b3ebb124bb.png';
 import { RealAuthService as authService } from '../api/services/auth';
+import { localAuthService } from '../services/localAuthService';
 import { PhoneInput, validatePhoneNumber as validatePhone } from './PhoneInput';
 import { Spotlight } from './ui/spotlight';
 import { firebasePhoneAuth, firebaseGoogleAuth } from '../services/firebase';
@@ -138,7 +139,11 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
         throw new Error('Please enter both email and password');
       }
 
-      const response = await authService.login(email, password);
+      // Use local auth service for development
+      const isLocal = localAuthService.isLocalMode();
+      const response = isLocal 
+        ? await localAuthService.login(email, password)
+        : await authService.login(email, password);
 
       // Defensive check for response structure
       if (!response || !response.user) {

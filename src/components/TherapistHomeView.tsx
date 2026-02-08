@@ -19,17 +19,21 @@ import {
   Coffee,
   Sun,
   Moon,
-  CloudSun
+  CloudSun,
+  Award
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getTherapistAppointments } from '../api/appointmentsBackend';
 import { dataService } from '../api';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isFuture, parseISO, getHours } from 'date-fns';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
 interface TherapistHomeViewProps {
   userId: string;
   userEmail: string;
-  onNavigate: (tab: 'dashboard' | 'calendar' | 'clients' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings') => void;
+  onNavigate: (tab: 'dashboard' | 'calendar' | 'clients' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings', subTab?: string) => void;
+  accountStatus?: string;
 }
 
 // Get user name from email
@@ -41,7 +45,7 @@ const getUserName = (email: string) => {
 // --- Soulful Components ---
 
 // 1. Empathetic Header with Time Awareness
-const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, count: number, onNavigate: any }) => {
+const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, count: number, onNavigate: (tab: string, subTab?: string) => void }) => {
   const hour = getHours(new Date());
 
   let greeting = "Good morning";
@@ -133,8 +137,151 @@ const BreathingStatCard = ({ icon: Icon, label, value, trend, index, delay }: an
   </motion.div>
 );
 
+// 3. Onboarding Checklist
+// 3. Profile Completion Progress
+const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, subTab?: string) => void, userId: string }) => {
+  const [sections, setSections] = useState([
+    { id: 'account', label: 'Account', status: 'pending', icon: Users, mandatory: true },
+    { id: 'credentials', label: 'Credentials', status: 'pending', icon: FileText, mandatory: true },
+    { id: 'license', label: 'License', status: 'pending', icon: Award, mandatory: true },
+    { id: 'availability', label: 'Availability', status: 'pending', icon: CalendarDays, mandatory: true },
+    // Optional/Secondary sections
+    { id: 'insurance', label: 'Payment', status: 'pending', icon: DollarSign, mandatory: false },
+    { id: 'documents', label: 'Documents', status: 'pending', icon: FileText, mandatory: false },
+  ]);
 
-export function TherapistHomeView({ userId, userEmail, onNavigate }: TherapistHomeViewProps) {
+  useEffect(() => {
+    const checkStatus = () => {
+      const status = JSON.parse(localStorage.getItem(`profileCompletionStatus_${userId}`) || '{}');
+      setSections(prev => prev.map(s => ({
+        ...s,
+        status: status[s.id] === 'completed' ? 'completed' : 'pending'
+      })));
+    };
+
+    checkStatus();
+    window.addEventListener('profile-updated', checkStatus);
+    return () => window.removeEventListener('profile-updated', checkStatus);
+  }, [userId]);
+
+  const mandatorySections = sections.filter(s => s.mandatory);
+  const completedMandatoryCount = mandatorySections.filter(s => s.status === 'completed').length;
+  const progress = Math.round((completedMandatoryCount / mandatorySections.length) * 100);
+
+  // If 100% complete, hide the widget
+  if (progress === 100) return null;
+
+  return (
+    <div className="col-span-12 mb-12 animate-in slide-in-from-bottom-4 duration-700 fade-in">
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
+        {/* Subtle Background Decor */}
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-50/50 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-50/50 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none" />
+
+        <div className="relative z-10 p-8 lg:p-10">
+          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+
+            {/* Left: Progress Hero */}
+            <div className="flex flex-col items-center text-center lg:items-start lg:text-left gap-6 min-w-[280px]">
+              <div className="relative w-32 h-32">
+                {/* Glow behind progress */}
+                <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-90" />
+                <CircularProgressbar
+                  value={progress}
+                  text={`${progress}%`}
+                  styles={buildStyles({
+                    textSize: '20px',
+                    pathColor: '#f97316', // Orange-500
+                    textColor: '#0f172a', // Slate-900 (High contrast)
+                    trailColor: '#f1f5f9', // Slate-100
+                    backgroundColor: '#ffffff',
+                    pathTransitionDuration: 1.5,
+                  })}
+                  strokeWidth={8}
+                />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold tracking-tight text-slate-900">
+                  Complete Profile
+                </h3>
+                <p className="text-slate-500 leading-relaxed max-w-xs mx-auto lg:mx-0">
+                  Finish these mandatory steps to activate your account and start receiving clients.
+                </p>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="hidden lg:block w-px h-48 bg-gradient-to-b from-transparent via-slate-200 to-transparent" />
+
+            {/* Right: Action Grid */}
+            <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+              {mandatorySections.map((section, idx) => {
+                const isCompleted = section.status === 'completed';
+                return (
+                  <motion.button
+                    key={section.id}
+                    whileHover={!isCompleted ? { y: -4, boxShadow: "0 10px 30px -10px rgba(249, 115, 22, 0.15)" } : {}}
+                    whileTap={!isCompleted ? { scale: 0.98 } : {}}
+                    onClick={() => {
+                      const targetTab = section.id === 'payment' ? 'insurance' : section.id;
+                      onNavigate('settings', targetTab);
+                    }}
+                    disabled={isCompleted}
+                    className={`
+                      relative flex items-center gap-5 p-5 rounded-2xl border transition-all duration-300 w-full text-left group
+                      ${isCompleted
+                        ? 'bg-slate-50/50 border-slate-100 opacity-60 cursor-default'
+                        : 'bg-white border-slate-100 shadow-sm hover:border-orange-200'
+                      }
+                    `}
+                  >
+                    {/* Icon Container */}
+                    <div className={`
+                      flex items-center justify-center w-12 h-12 rounded-xl text-lg shadow-sm transition-all duration-300 shrink-0
+                      ${isCompleted
+                        ? 'bg-green-100 text-green-600 ring-1 ring-green-100' // Completed State
+                        : 'bg-gradient-to-br from-orange-50 to-orange-100/50 text-orange-600 ring-1 ring-orange-100 group-hover:from-orange-500 group-hover:to-amber-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/20' // Active State
+                      }
+                    `}>
+                      {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <section.icon className="w-5 h-5" />}
+                    </div>
+
+                    {/* Text Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className={`font-bold text-base tracking-tight ${isCompleted ? 'text-slate-500' : 'text-slate-900 group-hover:text-orange-950 transition-colors'}`}>
+                          {section.label}
+                        </span>
+                        {!isCompleted && (
+                          <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
+                        )}
+                      </div>
+                      <span className={`text-sm font-medium ${isCompleted ? 'text-slate-400' : 'text-slate-500 group-hover:text-slate-600'}`}>
+                        {isCompleted ? 'Completed' : 'Action Required'}
+                      </span>
+                    </div>
+
+                    {/* Arrow Indicator (Only for active items) */}
+                    {!isCompleted && (
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 -ml-2 translate-x-0 group-hover:translate-x-1">
+                        <div className="p-1.5 rounded-full bg-orange-50 text-orange-600">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                        </div>
+                      </div>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus }: TherapistHomeViewProps & { accountStatus?: string }) {
   const userName = getUserName(userEmail);
   const [loading, setLoading] = useState(true);
 
@@ -148,9 +295,40 @@ export function TherapistHomeView({ userId, userEmail, onNavigate }: TherapistHo
   const [revenueThisMonth, setRevenueThisMonth] = useState(0);
   const [activeClients, setActiveClients] = useState(0);
 
+  // Profile Completion State
+  const [profileCompletion, setProfileCompletion] = useState(10); // Default 10% after registration
+  const [showCompletionBanner, setShowCompletionBanner] = useState(true);
+
   useEffect(() => {
     loadDashboardData();
+    loadProfileCompletion();
   }, [userId]);
+
+  const loadProfileCompletion = async () => {
+    try {
+      // TODO: Fetch from backend API
+      // const response = await fetch(`/api/users/${userId}/profile-completion`);
+      // const data = await response.json();
+      // setProfileCompletion(data.percentage);
+
+      // For now, check localStorage for completion status
+      const savedCompletion = localStorage.getItem(`profileCompletion_${userId}`);
+      if (savedCompletion) {
+        setProfileCompletion(parseInt(savedCompletion));
+      }
+    } catch (error) {
+      console.error('Failed to load profile completion:', error);
+    }
+  };
+
+  const handleCompleteProfile = () => {
+    onNavigate('settings');
+  };
+
+  const handleDismissBanner = () => {
+    setShowCompletionBanner(false);
+    localStorage.setItem(`dismissedBanner_${userId}`, 'true');
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -228,6 +406,11 @@ export function TherapistHomeView({ userId, userEmail, onNavigate }: TherapistHo
 
         {/* Bento Grid Layout - Soulful Edition */}
         <div className="grid grid-cols-12 gap-8">
+
+          {/* Onboarding Checklist - Only show if registered (incomplete) */}
+          {(accountStatus === 'registered' || profileCompletion < 100) && (
+            <ProfileCompletion onNavigate={onNavigate} userId={userId} />
+          )}
 
           {/* Row 1: The Essential "Pulse" of the practice */}
           <div className="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { AvailabilityModal } from './AvailabilityModal';
+// import { AvailabilityModal } from './AvailabilityModal';
 // REMOVED: TherapistVerificationDetailModal - verification is handled in separate screen
 import { dataService } from '../api';
 import { UserRole } from '../types/appointment';
@@ -62,7 +62,7 @@ interface EnhancedTherapistsTableProps {
 }
 
 export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTherapistsTableProps) {
-  const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
+  // const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
   // REMOVED: verificationModalOpen - verification handled in separate screen
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -130,7 +130,8 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
 
   const handleViewSchedule = (id: string) => {
     setSelectedTherapistId(id);
-    setAvailabilityModalOpen(true);
+    // setAvailabilityModalOpen(true);
+    toast.info("Schedule view coming soon");
   };
 
 
@@ -532,11 +533,11 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
           </div>
         </CardContent>
       </Card>
-      <AvailabilityModal
+      {/* <AvailabilityModal
         therapistId={selectedTherapistId}
         isOpen={availabilityModalOpen}
         onClose={() => setAvailabilityModalOpen(false)}
-      />
+      /> */}
       {/* REMOVED: TherapistVerificationDetailModal - verification handled in separate screen */}
     </div>
   );

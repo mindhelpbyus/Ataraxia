@@ -9,8 +9,8 @@
 
 import { logger, AuditEventType } from './secureLogger';
 
-const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
-const WARNING_TIME = 2 * 60 * 1000; // 2 minutes before timeout
+const INACTIVITY_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
+const WARNING_TIME = 5 * 60 * 1000; // 5 minutes before timeout
 const CHECK_INTERVAL = 30 * 1000; // Check every 30 seconds
 
 export class SessionTimeoutService {
@@ -165,8 +165,10 @@ export class SessionTimeoutService {
             this.onWarning();
         }
 
-        // Set timeout for actual logout
-        this.warningId = setTimeout(() => {
+        // Create a new timeout for the actual logout, derived from remaining time
+        if (this.timeoutId) clearTimeout(this.timeoutId);
+
+        this.timeoutId = setTimeout(() => {
             this.handleTimeout();
         }, WARNING_TIME);
     }

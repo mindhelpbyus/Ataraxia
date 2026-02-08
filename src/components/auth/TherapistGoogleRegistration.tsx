@@ -37,7 +37,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
 
     try {
       const result = await firebaseGoogleAuth.signInWithPopup();
-      
+
       if (result.user && result.idToken) {
         // Store Google user data
         setGoogleUser(result.user);
@@ -53,7 +53,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
         // Check if user already exists
         try {
           const userCheck = await authService.checkEmailPhoneExists(result.user.email);
-          
+
           if (userCheck.emailExists) {
             // User already exists - show error
             setError('An account already exists with this email. Please try signing in instead.');
@@ -63,7 +63,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
           // User doesn't exist - proceed to Step 1 form
           setCurrentStep('details');
           toast.success('Google authentication successful! Please complete your profile.');
-          
+
         } catch (checkError: any) {
           console.error('User existence check error:', checkError);
           // If check fails, proceed to form anyway
@@ -73,7 +73,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
       }
     } catch (err: any) {
       console.error('Google sign-in error:', err);
-      
+
       // Handle specific Google OAuth errors
       if (err.code === 'auth/popup-closed-by-user') {
         setError('Sign-in was cancelled');
@@ -84,7 +84,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
       } else {
         setError(err.message || 'Google sign-in failed');
       }
-      
+
       toast.error(err.message || 'Google sign-in failed');
     } finally {
       setIsLoading(false);
@@ -123,7 +123,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
 
       if (response.user) {
         toast.success('Registration successful! Welcome to Ataraxia.');
-        
+
         // Route to onboarding (Step 1 completed, continue with Steps 2-10)
         onRegistrationComplete(
           response.user.email,
@@ -134,10 +134,10 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
           response.token
         );
       }
-      
+
     } catch (err: any) {
       console.error('Registration error:', err);
-      
+
       if (err.message.includes('already exists')) {
         setError('An account with this email already exists. Please try signing in instead.');
       } else if (err.message.includes('constraint')) {
@@ -145,7 +145,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
       } else {
         setError(err.message || 'Registration failed');
       }
-      
+
       toast.error(err.message || 'Registration failed');
     } finally {
       setIsLoading(false);
@@ -163,7 +163,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
           </h2>
           <p className="text-sm text-muted-foreground">
             {currentStep === 'google' && 'Sign in with your Google account to get started'}
-            {currentStep === 'details' && 'Step 1 of 10 - Basic Information'}
+            {currentStep === 'details' && 'Basic Information'}
           </p>
         </div>
 
@@ -328,12 +328,12 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
                 style={{ backgroundColor: '#ea580c', color: '#ffffff' }}
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating Account...' : 'Complete Step 1 & Continue'}
+                {isLoading ? 'Creating Account...' : 'Complete Registration'}
               </Button>
             </motion.div>
 
             <p className="text-xs text-center text-muted-foreground">
-              After completing Step 1, you'll continue with professional information (Steps 2-10)
+              Complete your registration to access the dashboard.
             </p>
           </form>
         )}

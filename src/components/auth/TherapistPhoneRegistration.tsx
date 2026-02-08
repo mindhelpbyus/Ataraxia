@@ -45,17 +45,17 @@ export function TherapistPhoneRegistration({ onRegistrationComplete, onBackToLog
       }
 
       const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
-      
+
       // Use Firebase Phone Auth
       const confirmation = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber);
       setConfirmationResult(confirmation);
       setCurrentStep('otp');
-      
+
       toast.success('Verification code sent to your phone');
-      
+
     } catch (err: any) {
       console.error('Phone verification error:', err);
-      
+
       if (err.code === 'auth/invalid-phone-number') {
         setError('Invalid phone number format');
       } else if (err.code === 'auth/too-many-requests') {
@@ -63,7 +63,7 @@ export function TherapistPhoneRegistration({ onRegistrationComplete, onBackToLog
       } else {
         setError(err.message || 'Failed to send verification code');
       }
-      
+
       toast.error(err.message || 'Failed to send verification code');
     } finally {
       setIsLoading(false);
@@ -85,22 +85,22 @@ export function TherapistPhoneRegistration({ onRegistrationComplete, onBackToLog
       }
 
       const result = await firebasePhoneAuth.verifyPhoneCode(confirmationResult, otp);
-      
+
       if (result.user) {
         // Phone verified successfully - move to Step 1 details
         setCurrentStep('details');
         toast.success('Phone verified successfully! Please complete your profile.');
       }
-      
+
     } catch (err: any) {
       console.error('OTP verification error:', err);
-      
+
       if (err.code === 'auth/invalid-verification-code') {
         setError('Invalid verification code');
       } else {
         setError(err.message || 'Verification failed');
       }
-      
+
       toast.error(err.message || 'Verification failed');
     } finally {
       setIsLoading(false);
@@ -142,7 +142,7 @@ export function TherapistPhoneRegistration({ onRegistrationComplete, onBackToLog
 
       if (response.user) {
         toast.success('Registration successful! Welcome to Ataraxia.');
-        
+
         // Route to onboarding (Step 1 completed, continue with Steps 2-10)
         onRegistrationComplete(
           response.user.email,
@@ -153,7 +153,7 @@ export function TherapistPhoneRegistration({ onRegistrationComplete, onBackToLog
           response.token
         );
       }
-      
+
     } catch (err: any) {
       console.error('Registration error:', err);
       setError(err.message || 'Registration failed');
@@ -197,7 +197,7 @@ export function TherapistPhoneRegistration({ onRegistrationComplete, onBackToLog
           <p className="text-sm text-muted-foreground">
             {currentStep === 'phone' && 'Enter your phone number to get started'}
             {currentStep === 'otp' && `Enter the code sent to ${phoneNumber}`}
-            {currentStep === 'details' && 'Step 1 of 10 - Basic Information'}
+            {currentStep === 'details' && 'Basic Information'}
           </p>
         </div>
 
@@ -408,7 +408,7 @@ export function TherapistPhoneRegistration({ onRegistrationComplete, onBackToLog
             </motion.div>
 
             <p className="text-xs text-center text-muted-foreground">
-              After completing Step 1, you'll continue with professional information (Steps 2-10)
+              Complete your registration to access the dashboard.
             </p>
           </form>
         )}

@@ -44,6 +44,7 @@ interface AvatarGalleryDialogProps {
   onOpenChange: (open: boolean) => void;
   onSelectAvatar: (avatarUrl: string) => void;
   selectedAvatar?: string | null;
+  gender?: string | null;
 }
 
 // Avatar options (Female and Male)
@@ -211,6 +212,7 @@ export function AvatarGalleryDialog({
   onOpenChange,
   onSelectAvatar,
   selectedAvatar,
+  gender,
 }: AvatarGalleryDialogProps) {
   // Use ID for selection to avoid multiple selections with same URL
   const [tempSelectedId, setTempSelectedId] = useState<string | null>(() => {
@@ -218,6 +220,17 @@ export function AvatarGalleryDialog({
     const currentAvatar = AVATAR_OPTIONS.find(av => av.url === selectedAvatar);
     return currentAvatar?.id || null;
   });
+
+  const [filter, setFilter] = useState<string>('all');
+
+  // Update filter when dialog opens or gender changes
+  React.useEffect(() => {
+    if (open) {
+      if (gender === 'female') setFilter('female');
+      else if (gender === 'male') setFilter('male');
+      else setFilter('all');
+    }
+  }, [open, gender]);
 
   const handleSelect = (avatarId: string) => {
     setTempSelectedId(avatarId);
@@ -233,24 +246,56 @@ export function AvatarGalleryDialog({
     }
   };
 
+  const filteredAvatars = AVATAR_OPTIONS.filter(avatar => {
+    if (filter === 'all') return true;
+    return avatar.gender === filter;
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Choose a Profile Avatar</DialogTitle>
           <DialogDescription>
-            Select an illustrated avatar for your profile (more avatars coming soon)
+            Select an illustrated avatar for your profile
           </DialogDescription>
         </DialogHeader>
 
+        <div className="flex gap-2 my-2">
+          <Button
+            variant={filter === 'all' ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter('all')}
+            className="rounded-full"
+          >
+            All
+          </Button>
+          <Button
+            variant={filter === 'female' ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter('female')}
+            className="rounded-full"
+          >
+            Female
+          </Button>
+          <Button
+            variant={filter === 'male' ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter('male')}
+            className="rounded-full"
+          >
+            Male
+          </Button>
+        </div>
+
         <div className="grid grid-cols-3 md:grid-cols-4 gap-4 py-4">
-          {AVATAR_OPTIONS.map((avatar) => (
+          {filteredAvatars.map((avatar) => (
             <button
               key={avatar.id}
               onClick={() => handleSelect(avatar.id)}
               className={`relative aspect-square rounded-full overflow-hidden border-4 transition-all hover:scale-105 ${tempSelectedId === avatar.id
-                  ? 'border-blue-600 ring-2 ring-blue-600 ring-offset-2'
-                  : 'border-gray-300 hover:border-gray-400'
+                ? 'border-blue-600 ring-2 ring-blue-600 ring-offset-2'
+                : 'border-gray-300 hover:border-gray-400'
                 }`}
             >
               {/* Avatar image */}

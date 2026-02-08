@@ -116,10 +116,9 @@ function SelectContent({
           // Border
           "outline outline-1 outline-offset-[-1px] outline-gray-100",
 
-          // Overflow
+          // Max height
           "max-h-[var(--radix-select-content-available-height)]",
           "max-h-96", // Fallback max height
-          "overflow-hidden",
 
           "origin-[var(--radix-select-content-transform-origin)]",
 
@@ -143,7 +142,7 @@ function SelectContent({
         <SelectPrimitive.Viewport
           className={cn(
             "p-1",
-            "h-full", // Ensure Viewport has h-full
+            "overflow-y-auto", // Enable scrolling on viewport
             position === "popper" &&
             "w-full min-w-[var(--radix-select-trigger-width)]",
           )}

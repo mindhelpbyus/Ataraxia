@@ -1,16 +1,22 @@
+export type UserRole = 'super_admin' | 'org_admin' | 'org_receptionist' | 'therapist' | 'client';
+
 export interface User {
     id: string;
     email: string;
     name: string;
     first_name?: string;
     last_name?: string;
-    role: 'admin' | 'therapist' | 'superadmin' | 'super_admin' | 'client';
+    role: UserRole; // Primary role for default dashboard view
+    additional_roles?: UserRole[]; // Supporting multiple personas (e.g. Org Admin who sees patients)
+    permissions?: string[]; // Granular capabilities (e.g. 'view_clinical_notes', 'manage_billing')
+
     avatar?: string;
     onboardingStatus?: string; // e.g. 'active', 'pending', 'draft'
     onboardingStep?: number;
-    account_status?: string; // Option A: 'pending_verification', 'documents_review', 'background_check', 'active', 'suspended', 'rejected'
-    verification_stage?: string; // Option A: workflow stage
+    account_status?: string;
+    verification_stage?: string;
     is_active?: boolean;
+    organizationId?: string; // Links staff to their Organization
 }
 
 export interface AuthResponse {
@@ -38,7 +44,7 @@ export interface RegisterRequest {
     password?: string;
     firstName: string;
     lastName: string;
-    role: 'therapist' | 'client';
+    role: UserRole;
     phoneNumber?: string;
     countryCode?: string;
 }

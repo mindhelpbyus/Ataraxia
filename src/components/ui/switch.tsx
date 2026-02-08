@@ -1,65 +1,70 @@
 "use client";
 
 import * as React from "react";
-import * as SwitchPrimitive from "@radix-ui/react-switch";
-
 import { cn } from "./utils";
 
-function Switch({
-  className,
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
-  return (
-    <SwitchPrimitive.Root
-      data-slot="switch"
-      className={cn(
-        // Base styles matching design system
-        "peer inline-flex h-6 w-12 shrink-0 items-center gap-2",
-        "rounded-full p-1",
-        "transition-all outline-none",
-        
-        // Checked state (ON) - Orange background
-        "data-[state=checked]:bg-[var(--interaction-primary-base,#F97316)]",
-        
-        // Unchecked state (OFF) - White background
-        "data-[state=unchecked]:bg-[var(--interaction-secondary-base,#FFFFFF)]",
-        
-        // Outline
-        "outline outline-1 outline-offset-[-1px]",
-        "outline-[var(--interaction-outline-base,#D9DFEB)]",
-        
-        // Focus state
-        "focus-visible:outline-[var(--interaction-outline-active,#6D7076)]",
-        
-        // Disabled state
-        "disabled:bg-[var(--interaction-secondary-disabled,#F7F9FB)]",
-        "disabled:outline-[var(--interaction-outline-disabled,#E8ECF3)]",
-        "disabled:cursor-not-allowed",
-        
-        className,
-      )}
-      {...props}
-    >
-      <SwitchPrimitive.Thumb
-        data-slot="switch-thumb"
-        className={cn(
-          "pointer-events-none block size-4 rounded-full",
-          "transition-transform",
-          
-          // Checked state - White thumb, moved to right
-          "data-[state=checked]:bg-[var(--interaction-secondary-base,#FFFFFF)]",
-          "data-[state=checked]:translate-x-6",
-          
-          // Unchecked state - Orange thumb, at left
-          "data-[state=unchecked]:bg-[var(--interaction-primary-base,#F97316)]",
-          "data-[state=unchecked]:translate-x-0",
-          
-          // Disabled state
-          "disabled:bg-[var(--action-outline-hover,#A3A7B0)]",
-        )}
-      />
-    </SwitchPrimitive.Root>
-  );
-}
+const Switch = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement> & { onCheckedChange?: (checked: boolean) => void }>(
+  ({ className, checked, onCheckedChange, onChange, disabled, ...props }, ref) => {
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      // Call standard onChange if provided
+      if (onChange) {
+        onChange(e);
+      }
+      // Call adapter for Radix-style onCheckedChange
+      if (onCheckedChange) {
+        onCheckedChange(e.target.checked);
+      }
+    };
+
+    return (
+      <label className={cn(
+        "relative inline-flex items-center cursor-pointer no-tap-highlight",
+        disabled && "opacity-50 cursor-not-allowed",
+        className
+      )}>
+        <input
+          type="checkbox"
+          className="peer sr-only"
+          ref={ref}
+          checked={checked}
+          onChange={handleChange}
+          disabled={disabled}
+          {...props}
+        />
+        <div className={cn(
+          // Base Track
+          "w-11 h-6 rounded-full peer transition-colors duration-200 ease-in-out border-2 box-border",
+
+          // Unchecked State (Default)
+          "bg-white border-orange-200",
+
+          // Checked State
+          "peer-checked:bg-orange-500 peer-checked:border-orange-500",
+
+          // Focus Ring
+          "peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 peer-focus:ring-offset-2",
+
+          // Thumb (Using :after pseudo-element)
+          "after:content-[''] after:absolute after:top-[2px] after:left-[2px]",
+          "after:rounded-full after:h-4 after:w-4 after:transition-all after:shadow-sm",
+
+          // Thumb Colors
+          "after:bg-orange-400", // Unchecked
+          "peer-checked:after:bg-white", // Checked
+
+          // Checked Thumb Position
+          // 44px (width) - 4px (border) = 40px internal. 
+          // Thumb is 16px. 
+          // Left is 2px. Total used left space = 2px + 16px = 18px.
+          // Remaining space = 40px - 16px = 24px.
+          // Translate X should be 20px (Translate 5 rem? No, Tailwind 5 is 1.25rem = 20px).
+          "peer-checked:after:translate-x-5"
+        )}></div>
+      </label>
+    );
+  }
+);
+Switch.displayName = "Switch";
 
 export { Switch };

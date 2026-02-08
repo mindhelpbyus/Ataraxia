@@ -13,15 +13,16 @@ import SecurityDashboard from './components/SecurityDashboard';
 import MFASetup from './components/MFASetup';
 import SessionManager from './components/SessionManager';
 
-import { TherapistOnboarding } from './components/onboarding/TherapistOnboarding';
-import { TherapistWelcomeDashboard } from './components/TherapistWelcomeDashboard';
+
+
 import { ComprehensiveClientRegistrationForm } from './components/ComprehensiveClientRegistrationForm';
 import { logger } from './services/secureLogger';
 
 import { VerificationPendingPage } from './components/VerificationPendingPage';
-import { TherapistRegistrationPage } from './components/TherapistRegistrationPage';
+import { TherapistRegistrationForm } from './components/TherapistRegistrationForm';
 
-type AppView = 'login' | 'roleSelection' | 'dashboard' | 'orgManagement' | 'register' | 'client-registration' | 'verification-pending' | 'security' | 'mfa-setup' | 'sessions' | 'welcome-dashboard';
+
+type AppView = 'login' | 'roleSelection' | 'dashboard' | 'orgManagement' | 'register' | 'client-registration' | 'verification-pending' | 'security' | 'mfa-setup' | 'sessions';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('login');
@@ -51,18 +52,9 @@ export default function App() {
 
       // SECURITY FIX: Don't automatically set dashboard view for therapists
       if (storedRole === 'therapist') {
-        // Check if they are mid-onboarding
-        const onboardingStep = localStorage.getItem('therapistOnboardingStep');
-        // If status is 'registered' (Step 1 done) or 'onboarding_pending', go to Welcome Dashboard
-        if (storedAccountStatus === 'registered' || storedAccountStatus === 'onboarding_pending') {
-          setCurrentView('welcome-dashboard');
-        } else if (onboardingStep && parseInt(onboardingStep) < 10 && storedAccountStatus !== 'verified') {
-          setCurrentView('welcome-dashboard');
-        } else if (storedAccountStatus === 'active' || storedAccountStatus === 'verified' || storedAccountStatus === 'onboarding_completed') {
-          setCurrentView('dashboard');
-        } else {
-          setCurrentView('login'); // Force re-auth if status unclear
-        }
+        // Direct to Dashboard regardless of onboarding status
+        // The Dashboard internal logic will handle restricted views
+        setCurrentView('dashboard');
       } else {
         setCurrentView('dashboard');
       }
@@ -85,8 +77,6 @@ export default function App() {
       setCurrentView('verification-pending');
     } else if (path === '/register-therapist' || path === '/register') {
       setCurrentView('register');
-    } else if (path === '/welcome-dashboard') {
-      setCurrentView('welcome-dashboard');
     } else if (currentView === 'login' && (path === '/' || path === '')) {
       setCurrentView('login');
     }
@@ -130,19 +120,7 @@ export default function App() {
     if (role === 'therapist') {
       setUserRole('therapist');
       localStorage.setItem('userRole', 'therapist');
-
-      // DASHBOARD-FIRST LOGIC
-      if (onboardingStatus === 'registered' || onboardingStatus === 'onboarding_pending') {
-        setCurrentView('welcome-dashboard');
-        window.history.pushState({}, '', '/welcome-dashboard');
-      } else if (onboardingStatus === 'verified' || onboardingStatus === 'active') {
-        setCurrentView('dashboard');
-      } else if (onboardingStatus === 'draft' || onboardingStatus === 'incomplete') {
-        setCurrentView('welcome-dashboard');
-        window.history.pushState({}, '', '/welcome-dashboard');
-      } else {
-        setCurrentView('welcome-dashboard');
-      }
+      setCurrentView('dashboard');
     } else {
       // Admin roles
       setUserRole(role as UserRole);
@@ -182,13 +160,42 @@ export default function App() {
 
   const handleRegisterTherapist = () => {
     setCurrentView('register');
-    window.history.pushState({}, '', '/register-therapist');
+    window.history.pushState({}, '', '/register');
+  };
+
+  const handleTherapistRegistration = async (authResponse: any) => {
+    // Auth response comes from localAuthService.register()
+    const { user, token } = authResponse;
+
+    console.log('Registration success:', user);
+
+    // Set App State
+    setUserEmail(user.email);
+    setUserName(user.name);
+    setUserRole('therapist'); // Explicitly set role
+    setCurrentUserId(user.id);
+    setAccountStatus('registered'); // Initial status
+
+    // Persist session
+    localStorage.setItem('userEmail', user.email);
+    localStorage.setItem('userName', user.name);
+    localStorage.setItem('userRole', 'therapist');
+    localStorage.setItem('userId', user.id);
+    localStorage.setItem('accountStatus', 'registered');
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+
+    // CRITICAL CHANGE: Redirect to Dashboard, NOT Welcome Dashboard
+    // We want them to feel "in" the app immediately.
+    setCurrentView('dashboard');
+    window.history.pushState({}, '', '/dashboard');
   };
 
   const handleRegistrationComplete = () => {
     // When wizard completes (Step 10), go to dashboard
-    setCurrentView('welcome-dashboard');
-    window.history.pushState({}, '', '/welcome-dashboard');
+    setCurrentView('dashboard');
+    window.history.pushState({}, '', '/dashboard');
     localStorage.setItem('accountStatus', 'onboarding_completed');
   };
 
@@ -228,23 +235,13 @@ export default function App() {
     );
   }
 
-  // New Welcome Dashboard View
-  if (currentView === 'welcome-dashboard') {
-    return (
-      <>
-        <TherapistWelcomeDashboard
-          onNavigate={handleNavigateFromDashboard}
-          onLogout={handleLogout}
-        />
-        <Toaster />
-      </>
-    );
-  }
-
   if (currentView === 'register') {
     return (
       <>
-        <TherapistRegistrationPage />
+        <TherapistRegistrationForm
+          onRegisterComplete={handleTherapistRegistration}
+          onBackToLogin={() => setCurrentView('login')}
+        />
         <Toaster />
       </>
     );
@@ -389,6 +386,9 @@ export default function App() {
       </>
     );
   }
+
+
+
 
   // Fallback
   return null;

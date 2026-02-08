@@ -74,7 +74,7 @@ export function SimpleRegistrationForm() {
       if (result.success) {
         // Store auth token
         localStorage.setItem('authToken', result.token);
-        
+
         // Store user info
         localStorage.setItem('user', JSON.stringify(result.user));
 
@@ -87,9 +87,9 @@ export function SimpleRegistrationForm() {
         // Route based on role and onboarding status
         if (result.needsOnboarding) {
           if (result.user.role === 'therapist') {
-            navigate('/onboarding/therapist');
+            navigate('/dashboard');
           } else {
-            navigate('/onboarding/client');
+            navigate('/dashboard');
           }
         } else {
           navigate('/dashboard');
@@ -181,8 +181,8 @@ export function SimpleRegistrationForm() {
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-2">
                 <Label htmlFor="countryCode">Code</Label>
-                <Select 
-                  value={formData.countryCode} 
+                <Select
+                  value={formData.countryCode}
                   onValueChange={(value) => handleInputChange('countryCode', value)}
                 >
                   <SelectTrigger>
@@ -211,8 +211,8 @@ export function SimpleRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="role">I am a *</Label>
-              <Select 
-                value={formData.role} 
+              <Select
+                value={formData.role}
                 onValueChange={(value: 'therapist' | 'client') => handleInputChange('role', value)}
               >
                 <SelectTrigger>
@@ -225,9 +225,9 @@ export function SimpleRegistrationForm() {
               </Select>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700" 
+            <Button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700"
               disabled={isLoading}
             >
               {isLoading ? (
