@@ -393,11 +393,8 @@ Therapists must provide services without discrimination based on:
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="min-h-screen bg-background py-8 px-4">
             <div className="max-w-6xl mx-auto">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-semibold mb-2">Documents</h1>
-                </div>
 
                 <div className="space-y-4">
                     {documents.map((doc) => (
@@ -458,8 +455,8 @@ Therapists must provide services without discrimination based on:
                                             onClick={() => handleDownloadDocument(doc.id, doc.title)}
                                             disabled={!signedDocuments.has(doc.id)}
                                             className={`text-sm transition-colors flex items-center gap-2 ${signedDocuments.has(doc.id)
-                                                    ? 'text-gray-600 hover:text-gray-900 cursor-pointer'
-                                                    : 'text-gray-300 cursor-not-allowed'
+                                                ? 'text-gray-600 hover:text-gray-900 cursor-pointer'
+                                                : 'text-gray-300 cursor-not-allowed'
                                                 }`}
                                             title={!signedDocuments.has(doc.id) ? 'Sign document to enable download' : 'Download signed document'}
                                         >
