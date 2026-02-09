@@ -121,12 +121,12 @@ export interface ClientDetailData {
     };
     assessments: {
         latest: {
-            PHQ9: {
+            PHQ9?: {
                 score: number;
                 lastUpdated: string;
                 trend: string;
             };
-            GAD7: {
+            GAD7?: {
                 score: number;
                 lastUpdated: string;
                 trend: string;
@@ -211,7 +211,8 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
         );
     };
 
-    const getTrendIcon = (trend: string) => {
+    const getTrendIcon = (trend?: string) => {
+        if (!trend) return <Activity className="h-4 w-4 text-gray-400" />;
         if (trend === 'increasing') return <TrendingUp className="h-4 w-4 text-red-500" />;
         if (trend === 'decreasing') return <TrendingDown className="h-4 w-4 text-green-500" />;
         return <Activity className="h-4 w-4 text-blue-500" />;
@@ -730,15 +731,15 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center justify-between">
                                         <span>PHQ-9 (Depression)</span>
-                                        {getTrendIcon(clientData.assessments.latest.PHQ9.trend)}
+                                        {getTrendIcon(clientData.assessments.latest.PHQ9?.trend)}
                                     </CardTitle>
-                                    <CardDescription>Last updated: {clientData.assessments.latest.PHQ9.lastUpdated}</CardDescription>
+                                    <CardDescription>Last updated: {clientData.assessments.latest.PHQ9?.lastUpdated || 'N/A'}</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-center">
-                                        <p className="text-5xl font-bold text-[#F97316]">{clientData.assessments.latest.PHQ9.score}</p>
+                                        <p className="text-5xl font-bold text-[#F97316]">{clientData.assessments.latest.PHQ9?.score ?? '-'}</p>
                                         <p className="text-sm text-muted-foreground mt-2">
-                                            Trend: <span className="font-semibold capitalize">{clientData.assessments.latest.PHQ9.trend}</span>
+                                            Trend: <span className="font-semibold capitalize">{clientData.assessments.latest.PHQ9?.trend || 'N/A'}</span>
                                         </p>
                                     </div>
                                 </CardContent>
@@ -749,15 +750,15 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center justify-between">
                                         <span>GAD-7 (Anxiety)</span>
-                                        {getTrendIcon(clientData.assessments.latest.GAD7.trend)}
+                                        {getTrendIcon(clientData.assessments.latest.GAD7?.trend)}
                                     </CardTitle>
-                                    <CardDescription>Last updated: {clientData.assessments.latest.GAD7.lastUpdated}</CardDescription>
+                                    <CardDescription>Last updated: {clientData.assessments.latest.GAD7?.lastUpdated || 'N/A'}</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-center">
-                                        <p className="text-5xl font-bold text-[#F59E0B]">{clientData.assessments.latest.GAD7.score}</p>
+                                        <p className="text-5xl font-bold text-[#F59E0B]">{clientData.assessments.latest.GAD7?.score ?? '-'}</p>
                                         <p className="text-sm text-muted-foreground mt-2">
-                                            Trend: <span className="font-semibold capitalize">{clientData.assessments.latest.GAD7.trend}</span>
+                                            Trend: <span className="font-semibold capitalize">{clientData.assessments.latest.GAD7?.trend || 'N/A'}</span>
                                         </p>
                                     </div>
                                 </CardContent>

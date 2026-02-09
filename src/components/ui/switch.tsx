@@ -1,70 +1,38 @@
 "use client";
 
 import * as React from "react";
+import * as SwitchPrimitive from "@radix-ui/react-switch";
+
 import { cn } from "./utils";
 
-const Switch = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement> & { onCheckedChange?: (checked: boolean) => void }>(
-  ({ className, checked, onCheckedChange, onChange, disabled, ...props }, ref) => {
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      // Call standard onChange if provided
-      if (onChange) {
-        onChange(e);
-      }
-      // Call adapter for Radix-style onCheckedChange
-      if (onCheckedChange) {
-        onCheckedChange(e.target.checked);
-      }
-    };
-
-    return (
-      <label className={cn(
-        "relative inline-flex items-center cursor-pointer no-tap-highlight",
-        disabled && "opacity-50 cursor-not-allowed",
-        className
-      )}>
-        <input
-          type="checkbox"
-          className="peer sr-only"
-          ref={ref}
-          checked={checked}
-          onChange={handleChange}
-          disabled={disabled}
-          {...props}
-        />
-        <div className={cn(
-          // Base Track
-          "w-11 h-6 rounded-full peer transition-colors duration-200 ease-in-out border-2 box-border",
-
-          // Unchecked State (Default)
-          "bg-white border-orange-200",
-
-          // Checked State
-          "peer-checked:bg-orange-500 peer-checked:border-orange-500",
-
-          // Focus Ring
-          "peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 peer-focus:ring-offset-2",
-
-          // Thumb (Using :after pseudo-element)
-          "after:content-[''] after:absolute after:top-[2px] after:left-[2px]",
-          "after:rounded-full after:h-4 after:w-4 after:transition-all after:shadow-sm",
-
-          // Thumb Colors
-          "after:bg-orange-400", // Unchecked
-          "peer-checked:after:bg-white", // Checked
-
-          // Checked Thumb Position
-          // 44px (width) - 4px (border) = 40px internal. 
-          // Thumb is 16px. 
-          // Left is 2px. Total used left space = 2px + 16px = 18px.
-          // Remaining space = 40px - 16px = 24px.
-          // Translate X should be 20px (Translate 5 rem? No, Tailwind 5 is 1.25rem = 20px).
-          "peer-checked:after:translate-x-5"
-        )}></div>
-      </label>
-    );
-  }
-);
-Switch.displayName = "Switch";
+function Switch({
+  className,
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
+  return (
+    <SwitchPrimitive.Root
+      data-slot="switch"
+      className={cn(
+        "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-orange-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700",
+        className,
+      )}
+      style={{
+        backgroundColor: props.checked ? '#f97316' : '#e5e7eb',
+        ...props.style
+      }}
+      {...props}
+    >
+      <SwitchPrimitive.Thumb
+        data-slot="switch-thumb"
+        className={cn(
+          "pointer-events-none block size-4 rounded-full bg-white shadow-sm ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0",
+        )}
+        style={{
+          transform: props.checked ? 'translateX(18px)' : 'translateX(0)'
+        }}
+      />
+    </SwitchPrimitive.Root>
+  );
+}
 
 export { Switch };

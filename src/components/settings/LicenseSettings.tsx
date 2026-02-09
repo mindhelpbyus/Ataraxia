@@ -77,22 +77,9 @@ export const LicenseSettings: React.FC<LicenseSettingsProps> = ({ userId }) => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto pb-20 pt-0">
+        <div className="max-w-5xl pl-6 pb-20 pt-0">
             <SettingsSection>
                 <div className="space-y-8">
-                    {/* Header Area */}
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-3 bg-orange-100 rounded-full">
-                            <Shield className="w-6 h-6 text-orange-600" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-semibold">Professional License & Credentials</h2>
-                            <p className="text-muted-foreground text-sm">
-                                Manage your licensing information and legal credentials
-                            </p>
-                        </div>
-                    </div>
-
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-900 flex gap-3">
                         <div className="shrink-0 mt-0.5">🤖</div>
                         <div>
@@ -203,7 +190,7 @@ export const LicenseSettings: React.FC<LicenseSettingsProps> = ({ userId }) => {
                     </div>
                 </div>
 
-                <div className="pt-8 mt-8 border-t flex justify-end">
+                <div className="pt-6 flex justify-end">
                     <Button onClick={handleSave} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-10 shadow-sm transition-all rounded-full">
                         {isLoading ? 'Saving...' : 'Save Changes'}
                     </Button>

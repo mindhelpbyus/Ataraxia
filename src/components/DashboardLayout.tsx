@@ -9,7 +9,7 @@ import { AdminDashboardView } from './AdminDashboardView';
 import { SuperAdminDashboardView } from './SuperAdminDashboardView';
 import { OrganizationManagementView } from './OrganizationManagementView';
 import { ProfessionalClientsView } from './ProfessionalClientsView';
-import { EnhancedClientsTable } from './EnhancedClientsTable';
+
 import { EnhancedTherapistsTable } from './EnhancedTherapistsTable';
 import { QuickNotesView } from './QuickNotesView';
 import { TasksView } from './TasksView';

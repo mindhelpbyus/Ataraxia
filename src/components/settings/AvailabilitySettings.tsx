@@ -126,7 +126,7 @@ export const AvailabilitySettings: React.FC<AvailabilitySettingsProps> = ({ user
     };
 
     return (
-        <div className="max-w-4xl mx-auto pb-20">
+        <div className="max-w-5xl pl-6 pb-20 pt-0">
             <SettingsSection>
                 <div className="space-y-8">
 
@@ -327,7 +327,7 @@ export const AvailabilitySettings: React.FC<AvailabilitySettingsProps> = ({ user
                     </div>
                 </div>
 
-                <div className="pt-8 mt-8 border-t flex justify-end">
+                <div className="pt-6 flex justify-end">
                     <Button onClick={handleSave} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-10 shadow-sm transition-all rounded-full">
                         {isLoading ? 'Saving...' : 'Save Changes'}
                     </Button>

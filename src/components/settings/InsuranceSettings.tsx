@@ -3,7 +3,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Checkbox } from '../ui/checkbox';
+import { Switch } from '../ui/switch';
 import { toast } from 'sonner';
 import { SettingsSection } from './SettingsSection';
 import { CreditCard, Plus, Trash2 } from "lucide-react";
@@ -55,14 +55,10 @@ export const InsuranceSettings: React.FC<InsuranceSettingsProps> = ({ userId }) 
     };
 
     return (
-        <div className="max-w-4xl mx-auto pb-20 pt-0">
+        <div className="max-w-5xl pl-6 pb-20 pt-0">
             <SettingsSection>
                 <div className="space-y-8">
                     <div className="space-y-6">
-                        <div className="flex items-center gap-2">
-                            <CreditCard className="w-5 h-5 text-orange-600" />
-                            <h3 className="text-lg font-medium">Payment & Insurance</h3>
-                        </div>
 
                         <div className="space-y-3">
                             <Label>Insurance Panels Accepted</Label>
@@ -113,34 +109,38 @@ export const InsuranceSettings: React.FC<InsuranceSettingsProps> = ({ userId }) 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
                                 <span className="font-medium">Accept Medicaid</span>
-                                <Checkbox
+                                <Switch
+                                    key={`medicaid-${insuranceData.medicaidAcceptance}`}
                                     id="medicaid"
                                     checked={insuranceData.medicaidAcceptance}
-                                    onCheckedChange={(checked) => setInsuranceData(prev => ({ ...prev, medicaidAcceptance: checked as boolean }))}
+                                    onCheckedChange={(checked) => setInsuranceData(prev => ({ ...prev, medicaidAcceptance: checked }))}
                                 />
                             </div>
                             <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
                                 <span className="font-medium">Accept Medicare</span>
-                                <Checkbox
+                                <Switch
+                                    key={`medicare-${insuranceData.medicareAcceptance}`}
                                     id="medicare"
                                     checked={insuranceData.medicareAcceptance}
-                                    onCheckedChange={(checked) => setInsuranceData(prev => ({ ...prev, medicareAcceptance: checked as boolean }))}
+                                    onCheckedChange={(checked) => setInsuranceData(prev => ({ ...prev, medicareAcceptance: checked }))}
                                 />
                             </div>
                             <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
                                 <span className="font-medium">Accept Self-Pay</span>
-                                <Checkbox
+                                <Switch
+                                    key={`selfpay-${insuranceData.selfPayAccepted}`}
                                     id="selfpay"
                                     checked={insuranceData.selfPayAccepted}
-                                    onCheckedChange={(checked) => setInsuranceData(prev => ({ ...prev, selfPayAccepted: checked as boolean }))}
+                                    onCheckedChange={(checked) => setInsuranceData(prev => ({ ...prev, selfPayAccepted: checked }))}
                                 />
                             </div>
                             <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
                                 <span className="font-medium">Offer Sliding Scale</span>
-                                <Checkbox
+                                <Switch
+                                    key={`sliding-${insuranceData.slidingScale}`}
                                     id="sliding"
                                     checked={insuranceData.slidingScale}
-                                    onCheckedChange={(checked) => setInsuranceData(prev => ({ ...prev, slidingScale: checked as boolean }))}
+                                    onCheckedChange={(checked) => setInsuranceData(prev => ({ ...prev, slidingScale: checked }))}
                                 />
                             </div>
                         </div>
@@ -189,7 +189,7 @@ export const InsuranceSettings: React.FC<InsuranceSettingsProps> = ({ userId }) 
                     </div>
                 </div>
 
-                <div className="pt-8 mt-8 border-t flex justify-end">
+                <div className="pt-6 flex justify-end">
                     <Button onClick={handleSave} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-10 shadow-sm transition-all rounded-full">
                         {isLoading ? 'Saving...' : 'Save Changes'}
                     </Button>

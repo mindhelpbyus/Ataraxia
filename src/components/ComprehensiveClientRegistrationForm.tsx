@@ -242,7 +242,7 @@ export function ComprehensiveClientRegistrationForm({
     signature: null
   });
 
-  const totalSteps = organizationMode ? 13 : 12;
+  const totalSteps = 8;
   const progressPercent = ((currentStep - 1) / totalSteps) * 100;
 
   // Step configuration
@@ -251,15 +251,11 @@ export function ComprehensiveClientRegistrationForm({
     'Basic Information',
     'What Brings You Here', // NEW: Presenting Concerns
     'Safety & Wellness', // NEW: Safety Screening
-    'Insurance & Benefits',
     'Consent Forms',
     'Clinical History',
-    'Therapist Preferences',
     'Payment Setup',
-    'Document Upload',
     'Appointment Setup',
-    'Sign & Submit', // NEW: Signature
-    ...(organizationMode ? ['Organization Info'] : [])
+    'Sign & Submit' // NEW: Signature
   ];
 
   // Mock OTP send
@@ -353,10 +349,7 @@ export function ComprehensiveClientRegistrationForm({
           formData.safetyScreeningData.substanceUseControl &&
           formData.safetyScreeningData.hasSocialSupport
         );
-      case 5: // Insurance
-        if (!formData.hasInsurance) return true;
-        return !!(formData.insuranceProvider && formData.memberID);
-      case 6: // Consent Forms
+      case 5: // Consent Forms
         return !!(
           formData.consentToTreat &&
           formData.hipaaConsent &&
@@ -364,21 +357,14 @@ export function ComprehensiveClientRegistrationForm({
           formData.telehealthConsent &&
           formData.dataUsageConsent
         );
-      case 7: // Clinical History
+      case 6: // Clinical History
         return !!(formData.presentingConcerns); // Legacy field, optional
-      case 8: // Matching Preferences
-        return formData.preferredSpecialty.length > 0;
-      case 9: // Payment
+      case 7: // Payment
         return !!(formData.paymentMethod);
-      case 10: // Documents
-        return true; // Documents are optional
-      case 11: // Appointment Setup
+      case 8: // Appointment Setup
         return !!(formData.username && formData.password);
-      case 12: // Signature - REQUIRED
+      case 9: // Signature - REQUIRED
         return !!(formData.signature);
-      case 13: // Organization Info
-        if (!organizationMode) return true;
-        return !!(formData.employeeID);
       default:
         return true;
     }
@@ -424,24 +410,15 @@ export function ComprehensiveClientRegistrationForm({
       case 4:
         return renderSafetyScreening(); // NEW
       case 5:
-        return renderInsuranceBenefits();
-      case 6:
         return renderConsentForms();
-      case 7:
+      case 6:
         return renderClinicalIntake();
-      case 8:
-        return renderMatchingPreferences();
-      case 9:
+      case 7:
         return renderPaymentSetup();
-      case 10:
-        return renderDocumentUpload();
-      case 11:
+      case 8:
         return renderAppointmentSetup();
-      case 12:
+      case 9:
         return renderSignature(); // NEW
-      case 13:
-        if (organizationMode) return renderOrganizationInfo();
-        return null;
       default:
         return null;
     }
@@ -848,171 +825,6 @@ export function ComprehensiveClientRegistrationForm({
     </div>
   );
 
-  // Step 5: Insurance & Benefits
-  const renderInsuranceBenefits = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold mb-2">Insurance & Benefits</h2>
-        <p className="text-muted-foreground">Help us verify your coverage</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Insurance Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Do you have insurance?</Label>
-              <p className="text-sm text-muted-foreground">We accept most major insurance providers</p>
-            </div>
-            <Switch
-              checked={formData.hasInsurance}
-              onCheckedChange={(checked) => updateFormData('hasInsurance', checked)}
-            />
-          </div>
-
-          {formData.hasInsurance && (
-            <>
-              <Separator />
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Insurance Provider *</Label>
-                    <Select value={formData.insuranceProvider} onValueChange={(v) => updateFormData('insuranceProvider', v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select provider" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="aetna">Aetna</SelectItem>
-                        <SelectItem value="anthem">Anthem Blue Cross</SelectItem>
-                        <SelectItem value="bcbs">Blue Cross Blue Shield</SelectItem>
-                        <SelectItem value="cigna">Cigna</SelectItem>
-                        <SelectItem value="humana">Humana</SelectItem>
-                        <SelectItem value="kaiser">Kaiser Permanente</SelectItem>
-                        <SelectItem value="united">UnitedHealthcare</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Insurance Plan</Label>
-                    <Input
-                      value={formData.insurancePlan || ''}
-                      onChange={(e) => updateFormData('insurancePlan', e.target.value)}
-                      placeholder="e.g., PPO, HMO"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Member ID *</Label>
-                    <Input
-                      value={formData.memberID || ''}
-                      onChange={(e) => updateFormData('memberID', e.target.value)}
-                      placeholder="As shown on insurance card"
-                    />
-                  </div>
-                  <div>
-                    <Label>Group Number</Label>
-                    <Input
-                      value={formData.groupNumber || ''}
-                      onChange={(e) => updateFormData('groupNumber', e.target.value)}
-                      placeholder="Optional"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Copay Amount</Label>
-                    <Input
-                      type="number"
-                      value={formData.copayAmount || ''}
-                      onChange={(e) => updateFormData('copayAmount', e.target.value)}
-                      placeholder="$0"
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2 pt-6">
-                    <Checkbox
-                      id="deductible"
-                      checked={formData.deductibleMet}
-                      onCheckedChange={(checked) => updateFormData('deductibleMet', checked)}
-                    />
-                    <Label htmlFor="deductible">Deductible already met this year</Label>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Upload Insurance Card</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-accent cursor-pointer">
-                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm font-medium">Front of Card</p>
-                      <p className="text-xs text-muted-foreground">Click to upload</p>
-                    </div>
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-accent cursor-pointer">
-                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm font-medium">Back of Card</p>
-                      <p className="text-xs text-muted-foreground">Click to upload</p>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={handleCheckInsurance}
-                  variant="outline"
-                  className="w-full"
-                  disabled={!formData.insuranceProvider || !formData.memberID}
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  {insuranceEligibilityChecked ? 'Re-check' : 'Verify'} Insurance Eligibility
-                </Button>
-
-                {insuranceEligibilityChecked && insuranceEligible !== null && (
-                  <div className={`flex items-center gap-2 p-4 rounded-lg ${insuranceEligible ? 'bg-green-50 text-green-900' : 'bg-yellow-50 text-yellow-900'
-                    }`}>
-                    {insuranceEligible ? (
-                      <>
-                        <CheckCircle2 className="h-5 w-5" />
-                        <div>
-                          <p className="font-medium">Insurance Verified</p>
-                          <p className="text-sm">Your insurance is active and covers mental health services</p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="h-5 w-5" />
-                        <div>
-                          <p className="font-medium">Unable to Verify</p>
-                          <p className="text-sm">Please contact your insurance or choose self-pay option</p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {!formData.hasInsurance && (
-            <div className="flex items-center gap-2 p-4 rounded-lg bg-blue-50 text-blue-900">
-              <DollarSign className="h-5 w-5" />
-              <div>
-                <p className="font-medium">Self-Pay Option</p>
-                <p className="text-sm">We offer competitive rates and sliding scale fees based on income</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-
   // Step 4: Consent Forms
   const renderConsentForms = () => (
     <div className="space-y-6">
@@ -1139,6 +951,14 @@ export function ComprehensiveClientRegistrationForm({
               <p className="text-sm text-muted-foreground mt-1">
                 Authorize sharing of information with other healthcare providers if needed
               </p>
+
+              {formData.releaseOfInformation && (
+                <div className="mt-4 border-2 border-dashed rounded-lg p-6 text-center hover:bg-accent cursor-pointer transition-all">
+                  <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm font-medium">Upload Signed Authorization Form</p>
+                  <p className="text-xs text-muted-foreground">Click to upload ROI forms, court documents, etc.</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1155,6 +975,17 @@ export function ComprehensiveClientRegistrationForm({
               <p className="text-sm text-muted-foreground mt-1">
                 I understand the crisis resources and safety planning procedures
               </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <Label>Authorization Forms (Optional)</Label>
+            <div className="border-2 border-dashed rounded-lg p-8 text-center hover:bg-accent cursor-pointer mt-2">
+              <Upload className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+              <p className="font-medium mb-1">Click to upload authorization forms</p>
+              <p className="text-sm text-muted-foreground">ROI forms, court documents, etc.</p>
             </div>
           </div>
         </CardContent>
@@ -1333,125 +1164,6 @@ export function ComprehensiveClientRegistrationForm({
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // Step 6: Matching Preferences
-  const renderMatchingPreferences = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold mb-2">Therapist Preferences</h2>
-        <p className="text-muted-foreground">Help us match you with the right therapist</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Therapist Matching
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Preferred Therapist Gender</Label>
-            <Select value={formData.preferredTherapistGender} onValueChange={(v) => updateFormData('preferredTherapistGender', v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="No preference" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="no-preference">No preference</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="non-binary">Non-binary</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Specialty Areas * (Select at least one)</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-              {['Anxiety & Depression', 'Trauma & PTSD', 'Relationship Issues', 'Family Therapy', 'Grief & Loss', 'Addiction', 'LGBTQ+ Issues', 'Career Counseling', 'Eating Disorders', 'Child Therapy'].map(specialty => (
-                <div key={specialty} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={specialty}
-                    checked={formData.preferredSpecialty.includes(specialty)}
-                    onCheckedChange={() => toggleArrayValue('preferredSpecialty', specialty)}
-                  />
-                  <Label htmlFor={specialty} className="cursor-pointer">{specialty}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label>Preferred Language for Therapy</Label>
-            <Select value={formData.preferredLanguageTherapy} onValueChange={(v) => updateFormData('preferredLanguageTherapy', v)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="English">English</SelectItem>
-                <SelectItem value="Spanish">Spanish</SelectItem>
-                <SelectItem value="French">French</SelectItem>
-                <SelectItem value="Mandarin">Mandarin</SelectItem>
-                <SelectItem value="Arabic">Arabic</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Video className="h-5 w-5" />
-            Therapy Modality Preferences
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Preferred Therapy Approaches (Select all that interest you)</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-              {['CBT (Cognitive Behavioral)', 'DBT (Dialectical Behavioral)', 'Psychodynamic', 'Mindfulness-Based', 'Solution-Focused', 'Trauma-Focused', 'Family Systems', 'Couples Therapy'].map(modality => (
-                <div key={modality} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={modality}
-                    checked={formData.preferredModality.includes(modality)}
-                    onCheckedChange={() => toggleArrayValue('preferredModality', modality)}
-                  />
-                  <Label htmlFor={modality} className="cursor-pointer">{modality}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Availability Preferences
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Preferred Times (Select all that work for you)</Label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
-              {['Weekday Mornings', 'Weekday Afternoons', 'Weekday Evenings', 'Weekend Mornings', 'Weekend Afternoons', 'Weekend Evenings'].map(time => (
-                <div key={time} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={time}
-                    checked={formData.preferredAvailability.includes(time)}
-                    onCheckedChange={() => toggleArrayValue('preferredAvailability', time)}
-                  />
-                  <Label htmlFor={time} className="cursor-pointer text-sm">{time}</Label>
-                </div>
-              ))}
             </div>
           </div>
         </CardContent>
@@ -1656,68 +1368,6 @@ export function ComprehensiveClientRegistrationForm({
     </div>
   );
 
-  // Step 8: Document Upload
-  const renderDocumentUpload = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold mb-2">Document Upload</h2>
-        <p className="text-muted-foreground">Upload any supporting documents (optional)</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Supporting Documents
-          </CardTitle>
-          <CardDescription>All uploads are optional but may help with your care</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>ID Proof (Optional)</Label>
-            <div className="border-2 border-dashed rounded-lg p-8 text-center hover:bg-accent cursor-pointer mt-2">
-              <Upload className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="font-medium mb-1">Click to upload ID</p>
-              <p className="text-sm text-muted-foreground">Driver's license, passport, or state ID</p>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <Label>Past Medical Records (Optional)</Label>
-            <div className="border-2 border-dashed rounded-lg p-8 text-center hover:bg-accent cursor-pointer mt-2">
-              <Upload className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="font-medium mb-1">Click to upload medical records</p>
-              <p className="text-sm text-muted-foreground">Previous therapy records, psychiatric evaluations, etc.</p>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <Label>Authorization Forms (Optional)</Label>
-            <div className="border-2 border-dashed rounded-lg p-8 text-center hover:bg-accent cursor-pointer mt-2">
-              <Upload className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="font-medium mb-1">Click to upload authorization forms</p>
-              <p className="text-sm text-muted-foreground">ROI forms, court documents, etc.</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex gap-2">
-          <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-900">
-            <p className="font-medium mb-1">Your privacy is protected</p>
-            <p>All uploaded documents are encrypted and HIPAA-compliant. Only authorized healthcare providers will have access to your information.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   // Step 9: Appointment Setup
   const renderAppointmentSetup = () => (
     <div className="space-y-6">
@@ -1912,63 +1562,6 @@ export function ComprehensiveClientRegistrationForm({
               day: 'numeric'
             })}
           </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // Step 13: Organization Info (Enterprise only)
-  const renderOrganizationInfo = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold mb-2">Organization Information</h2>
-        <p className="text-muted-foreground">Employer-sponsored wellness program details</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Employer Program
-          </CardTitle>
-          <CardDescription>Your benefits are sponsored by your employer</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Employer Program ID</Label>
-            <Input
-              value={formData.employerProgramID || ''}
-              onChange={(e) => updateFormData('employerProgramID', e.target.value)}
-              placeholder="Provided by your HR department"
-            />
-          </div>
-          <div>
-            <Label>Employee ID *</Label>
-            <Input
-              value={formData.employeeID || ''}
-              onChange={(e) => updateFormData('employeeID', e.target.value)}
-              placeholder="Your employee identification number"
-            />
-          </div>
-          <div>
-            <Label>Pre-Approved Sessions</Label>
-            <Input
-              type="number"
-              value={formData.preApprovedSessions || ''}
-              onChange={(e) => updateFormData('preApprovedSessions', parseInt(e.target.value))}
-              placeholder="Number of sessions covered"
-            />
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-green-900">
-                <p className="font-medium mb-1">Employer-Sponsored Benefits</p>
-                <p>Your therapy sessions are covered by your employer's wellness program at no cost to you.</p>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

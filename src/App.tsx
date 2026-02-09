@@ -24,6 +24,9 @@ import { TherapistRegistrationForm } from './components/TherapistRegistrationFor
 
 type AppView = 'login' | 'roleSelection' | 'dashboard' | 'orgManagement' | 'register' | 'client-registration' | 'verification-pending' | 'security' | 'mfa-setup' | 'sessions';
 
+import { Routes, Route, useLocation } from 'react-router-dom';
+import DocumentViewer from './components/DocumentViewer';
+
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('login');
   const [userRole, setUserRole] = useState<UserRole>('admin');
@@ -32,6 +35,10 @@ export default function App() {
   const [userName, setUserName] = useState('');
   const [accountStatus, setAccountStatus] = useState('active');
   const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // Route handling for Document Viewer
+  const location = useLocation();
+
 
   // Check for existing authentication on mount
   useEffect(() => {
@@ -222,6 +229,17 @@ export default function App() {
   };
 
   // Render current view
+  if (location.pathname.startsWith('/documents/')) {
+    return (
+      <>
+        <Routes>
+          <Route path="/documents/:documentId" element={<DocumentViewer />} />
+        </Routes>
+        <Toaster />
+      </>
+    );
+  }
+
   if (currentView === 'login') {
     return (
       <>

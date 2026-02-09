@@ -57,212 +57,13 @@ interface ProfessionalClientsViewProps {
 }
 
 // Helper to map simple Client data to detailed view data
+// Helper to map simple Client data to detailed view data
 const mapClientToDetailData = (client: Client): ClientDetailData => {
   const [firstName, lastName] = client.name.split(' ');
 
-  // Mock rich data for Sarah Lopez (or any client for demo purposes)
-  // In a real app, this would come from a detailed API call
-  const isSarah = client.name.includes('Sarah') || client.id === 'cl_982374';
-
-  if (isSarah) {
-    return {
-      clientId: "cl_982374",
-      profile: {
-        identity: {
-          firstName: "Sarah",
-          lastName: "Lopez",
-          preferredName: "Sarah",
-          avatarUrl: "https://cdn.app.com/clients/cl_982374/avatar.jpg",
-          dob: "1992-09-14",
-          age: 32,
-          pronouns: "she/her",
-          gender: "female"
-        },
-        status: {
-          accountStatus: "active",
-          riskLevel: "medium",
-          riskColor: "orange",
-          riskBanner: "Recent suicidal ideation reported on 2025-01-21. Review safety plan.",
-          therapyStatus: "in_treatment"
-        },
-        contact: {
-          email: "sarah@example.com",
-          phone: "+1-213-555-0943",
-          emergencyContact: {
-            name: "Maria Lopez",
-            relationship: "Mother",
-            phone: "+1-213-555-0202"
-          },
-          location: {
-            country: "USA",
-            addressLine1: "1350 Sunset Blvd",
-            addressLine2: null,
-            city: "Los Angeles",
-            state: "CA",
-            postalCode: "90026",
-            timezone: "America/Los_Angeles"
-          }
-        }
-      },
-      sessions: {
-        nextSession: {
-          sessionId: "sess_100293",
-          date: "2025-02-05",
-          startTime: "15:30",
-          mode: "video",
-          joinUrl: "https://session.app.com/join/sess_100293",
-          status: "scheduled"
-        },
-        lastSession: {
-          sessionId: "sess_98234",
-          date: "2025-01-29",
-          startTime: "15:30",
-          summary: "Processed anxiety triggers related to work. Introduced grounding techniques.",
-          goalsDiscussed: [
-            "Reduce work-related anxiety",
-            "Improve coping strategies"
-          ],
-          actionItems: [
-            "Practice grounding 3x daily",
-            "Track anxiety episodes"
-          ],
-          fullNoteUrl: "https://api.app.com/v1/notes/sess_98234"
-        },
-        stats: {
-          totalSessions: 14,
-          cancelled: 1,
-          noShows: 0,
-          frequency: "weekly"
-        }
-      },
-      clinical: {
-        diagnoses: {
-          primary: {
-            code: "F41.1",
-            description: "Generalized Anxiety Disorder"
-          },
-          secondary: [
-            {
-              code: "F32.0",
-              description: "Mild Depressive Episode"
-            }
-          ],
-          provisional: []
-        },
-        medications: [
-          {
-            name: "Sertraline",
-            dosage: "50mg daily",
-            prescribedBy: "Dr. John Kim",
-            lastUpdated: "2025-01-10"
-          }
-        ],
-        treatmentPlan: {
-          mainGoal: "Reduce anxiety symptoms & improve daily functioning",
-          subGoals: [
-            "Increase coping skills",
-            "Improve emotional regulation",
-            "Reduce physical anxiety symptoms"
-          ],
-          modality: "CBT",
-          progress: "on_track",
-          progressPercent: 45
-        },
-        safety: {
-          riskLevel: "medium",
-          lastSafetyAssessment: {
-            type: "PHQ-9",
-            date: "2025-01-21",
-            score: 14,
-            suicidalIdeation: "yes"
-          },
-          safetyPlanUrl: "https://api.app.com/v1/clients/cl_982374/safety-plan"
-        }
-      },
-      assessments: {
-        latest: {
-          PHQ9: {
-            score: 14,
-            lastUpdated: "2025-01-21",
-            trend: "increasing"
-          },
-          GAD7: {
-            score: 11,
-            lastUpdated: "2025-01-21",
-            trend: "stable"
-          }
-        },
-        history: {
-          PHQ9: [12, 11, 9, 14],
-          GAD7: [10, 11, 11, 11],
-          dates: [
-            "2024-12-01",
-            "2024-12-15",
-            "2025-01-07",
-            "2025-01-21"
-          ]
-        }
-      },
-      background: {
-        presentingProblem: "Experiencing increased anxiety and difficulty concentrating at work.",
-        clientHistory: {
-          previousTherapy: "2 years ago for stress management",
-          traumaHistory: "None reported",
-          medicalConditions: ["Asthma"],
-          substanceUse: "None"
-        },
-        personalContext: {
-          relationshipStatus: "Single",
-          household: "Lives alone",
-          employment: {
-            status: "Employed",
-            occupation: "Product Designer"
-          }
-        }
-      },
-      documents: {
-        notesCount: 14,
-        documentsCount: 3,
-        assessmentsCount: 12,
-        links: {
-          notes: "https://api.app.com/v1/clients/cl_982374/notes",
-          documents: "https://api.app.com/v1/clients/cl_982374/documents",
-          assessments: "https://api.app.com/v1/clients/cl_982374/assessments"
-        }
-      },
-      billing: {
-        insuranceProvider: "Aetna",
-        copay: 20,
-        claims: [
-          {
-            claimId: "clm_3201",
-            status: "submitted",
-            date: "2025-01-29",
-            amount: 140
-          }
-        ],
-        outstandingBalance: 0
-      },
-      communication: {
-        unreadMessages: 2,
-        threadsUrl: "https://api.app.com/v1/messages/cl_982374"
-      },
-      aiInsights: {
-        progressSummary: "Client showing increased anxiety over the last 2 weeks. Recommended to reinforce grounding techniques.",
-        documentationAlerts: [
-          "Missing progress note for session on 2025-01-15"
-        ],
-        trendAlerts: [
-          {
-            type: "PHQ9",
-            message: "Score increased from 9 to 14. Review safety assessment."
-          }
-        ]
-      }
-    };
-  }
-
-  // Fallback for other clients (using existing mock logic but matching new structure)
+  // Return a structured object with default values.
+  // In a real application, you would likely fetch this detailed data from an API
+  // based on the client.id, or the initial client object would already contain more details.
   return {
     clientId: client.id,
     profile: {
@@ -270,10 +71,10 @@ const mapClientToDetailData = (client: Client): ClientDetailData => {
         firstName: firstName || '',
         lastName: lastName || '',
         preferredName: firstName || '',
-        dob: '1990-01-01', // Mock
-        age: 34, // Mock
-        pronouns: 'they/them', // Mock
-        gender: 'Non-binary', // Mock
+        dob: '', // Placeholder
+        age: 0, // Placeholder
+        pronouns: '', // Placeholder
+        gender: '', // Placeholder
         avatarUrl: undefined
       },
       status: {
@@ -284,67 +85,67 @@ const mapClientToDetailData = (client: Client): ClientDetailData => {
         therapyStatus: 'Active Treatment'
       },
       contact: {
-        email: 'client@example.com',
-        phone: '(555) 123-4567',
+        email: client.email,
+        phone: client.phone,
         emergencyContact: {
-          name: 'Emergency Contact',
-          relationship: 'Partner',
-          phone: '(555) 987-6543'
+          name: '',
+          relationship: '',
+          phone: ''
         },
         location: {
-          country: 'USA',
-          addressLine1: '123 Main St',
-          city: 'New York',
-          state: 'NY',
-          postalCode: '10001',
-          timezone: 'America/New_York'
+          country: '',
+          addressLine1: '',
+          city: '',
+          state: '',
+          postalCode: '',
+          timezone: ''
         }
       }
     },
     sessions: {
       stats: {
-        totalSessions: 12,
-        cancelled: 1,
+        totalSessions: client.totalSessions || 0,
+        cancelled: 0,
         noShows: 0,
         frequency: 'Weekly'
       },
-      nextSession: {
-        sessionId: '1',
-        date: 'Oct 24, 2025',
-        startTime: '2:00 PM',
+      nextSession: client.nextAppointment ? {
+        sessionId: 'future-1',
+        date: client.nextAppointment,
+        startTime: '',
         mode: 'Video',
         joinUrl: '#',
         status: 'Scheduled'
-      },
-      lastSession: {
-        sessionId: '0',
-        date: 'Oct 17, 2025',
-        startTime: '2:00 PM',
-        summary: 'Client reported feeling better about work stress.',
-        goalsDiscussed: ['Work boundaries', 'Sleep hygiene'],
-        actionItems: ['Practice breathing exercises'],
+      } : undefined,
+      lastSession: client.lastVisit !== 'N/A' ? {
+        sessionId: 'past-1',
+        date: client.lastVisit,
+        startTime: '',
+        summary: 'Session summary not available.',
+        goalsDiscussed: [],
+        actionItems: [],
         fullNoteUrl: '#'
-      }
+      } : undefined
     },
     clinical: {
       diagnoses: {
-        primary: { code: 'F41.1', description: 'Generalized Anxiety Disorder' },
+        primary: { code: '', description: client.condition },
         secondary: [],
         provisional: []
       },
       medications: [],
       treatmentPlan: {
-        mainGoal: 'Reduce anxiety symptoms',
-        subGoals: ['Improve sleep', 'Reduce panic attacks'],
-        modality: 'CBT',
+        mainGoal: '',
+        subGoals: [],
+        modality: '',
         progress: 'on_track',
-        progressPercent: 65
+        progressPercent: 0
       },
       safety: {
         riskLevel: client.safetyRisk || 'low',
         lastSafetyAssessment: {
-          type: 'C-SSRS',
-          date: 'Oct 1, 2025',
+          type: '',
+          date: '',
           score: 0,
           suicidalIdeation: 'no'
         },
@@ -352,39 +153,36 @@ const mapClientToDetailData = (client: Client): ClientDetailData => {
       }
     },
     assessments: {
-      latest: {
-        PHQ9: { score: 8, lastUpdated: 'Oct 15, 2025', trend: 'stable' },
-        GAD7: { score: 6, lastUpdated: 'Oct 15, 2025', trend: 'decreasing' }
-      },
+      latest: {},
       history: {
-        PHQ9: [12, 10, 8, 8],
-        GAD7: [14, 12, 8, 6],
-        dates: ['2025-09-01', '2025-09-15', '2025-10-01', '2025-10-15']
+        PHQ9: [],
+        GAD7: [],
+        dates: []
       }
     },
     background: {
-      presentingProblem: 'Anxiety related to work stress',
+      presentingProblem: '',
       clientHistory: {
-        previousTherapy: 'None',
-        traumaHistory: 'None',
+        previousTherapy: '',
+        traumaHistory: '',
         medicalConditions: [],
-        substanceUse: 'None'
+        substanceUse: ''
       },
       personalContext: {
-        relationshipStatus: 'Single',
-        household: 'Alone',
-        employment: { status: 'Employed', occupation: 'Unknown' }
+        relationshipStatus: '',
+        household: '',
+        employment: { status: '', occupation: '' }
       }
     },
     documents: {
-      notesCount: 12,
-      documentsCount: 2,
-      assessmentsCount: 4,
+      notesCount: 0,
+      documentsCount: 0,
+      assessmentsCount: 0,
       links: { notes: '#', documents: '#', assessments: '#' }
     },
     billing: {
-      insuranceProvider: 'Blue Cross',
-      copay: 25,
+      insuranceProvider: '',
+      copay: 0,
       claims: [],
       outstandingBalance: 0
     },
@@ -393,12 +191,14 @@ const mapClientToDetailData = (client: Client): ClientDetailData => {
       threadsUrl: '#'
     },
     aiInsights: {
-      progressSummary: 'Client is making steady progress.',
+      progressSummary: 'No insights available yet.',
       documentationAlerts: [],
       trendAlerts: []
     }
   };
 };
+
+
 
 export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -423,7 +223,8 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
   const loadClients = async () => {
     try {
       // Call the real client service backend
-      const response = await fetch('http://localhost:3003/api/clients', {
+      const baseUrl = import.meta.env.VITE_CLIENT_SERVICE_URL || 'http://localhost:3003/api';
+      const response = await fetch(`${baseUrl}/clients`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -1524,218 +1325,13 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
       </Dialog>
 
       {/* Safety Plan Dialog */}
-      <Dialog open={isSafetyPlanOpen} onOpenChange={setIsSafetyPlanOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 overflow-hidden gap-0 border-0 shadow-2xl z-[100]">
-          <div className="bg-red-50 p-6 border-b border-red-100 flex-shrink-0 relative">
-            <DialogHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 uppercase tracking-widest text-[10px]">
-                  Legal Record
-                </Badge>
-                <Badge variant="outline" className="bg-white text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
-                  Established: Jan 21, 2025
-                </Badge>
-              </div>
-              <DialogTitle className="text-2xl font-semibold flex items-center gap-2 text-red-900">
-                <ShieldAlert className="h-6 w-6 text-red-600" />
-                Active Safety Plan
-              </DialogTitle>
-              <DialogDescription className="text-red-800">
-                Current active safety protocol. Digitally signed and locked.
-              </DialogDescription>
-            </DialogHeader>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 rounded-full"
-              onClick={() => setIsSafetyPlanOpen(false)}
-            >
-              <XCircle className="h-5 w-5" />
-            </Button>
-          </div>
-
-          <div className="p-6 flex-1 overflow-y-auto space-y-8 bg-zinc-50/50">
-
-            {/* 1. Risk Overview */}
-            <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-zinc-500" />
-                  1. Risk Overview
-                </h3>
-                <Badge variant="secondary" className="text-[10px]">Clinician Verified</Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100">
-                  <span className="text-xs text-zinc-500 uppercase font-semibold">Current Risk Status</span>
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                      Medium Risk
-                    </span>
-                  </div>
-                </div>
-                <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100">
-                  <span className="text-xs text-zinc-500 uppercase font-semibold">Clinical Basis</span>
-                  <div className="mt-1 text-sm font-medium text-zinc-900">PHQ-9 Score: 14 • Clinical Interview</div>
-                </div>
-              </div>
-            </section>
-
-            {/* 2. Warning Signs */}
-            <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-zinc-500" />
-                  2. Warning Signs
-                </h3>
-                <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
-              </div>
-              <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
-                <li>Increased isolation and withdrawal from social activities</li>
-                <li>Changes in sleep patterns (insomnia)</li>
-                <li>Expressing feelings of hopelessness</li>
-              </ul>
-            </section>
-
-            {/* 3. Internal Coping Strategies */}
-            <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-zinc-500" />
-                  3. Internal Coping Strategies
-                </h3>
-                <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
-              </div>
-              <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
-                <li>Deep breathing exercises (4-7-8 technique)</li>
-                <li>Listening to calming music playlist</li>
-                <li>Journaling thoughts and feelings</li>
-              </ul>
-            </section>
-
-            {/* 4. Social Distractions */}
-            <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                  <User className="h-4 w-4 text-zinc-500" />
-                  4. Social Distractions
-                </h3>
-                <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
-              </div>
-              <div className="text-sm text-zinc-700 space-y-2">
-                <p><span className="font-semibold text-zinc-900">People:</span> Call sister (Maria), Visit local coffee shop</p>
-                <p><span className="font-semibold text-zinc-900">Places:</span> Public library, Community park</p>
-              </div>
-            </section>
-
-            {/* 5. Contacts in Crisis */}
-            <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-zinc-500" />
-                  5. Contacts in Crisis
-                </h3>
-                <Badge variant="secondary" className="text-[10px]">Verified</Badge>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center bg-zinc-50 p-3 rounded-lg border border-zinc-100">
-                  <div>
-                    <p className="text-sm font-semibold text-zinc-900">Maria Lopez (Sister)</p>
-                    <p className="text-xs text-zinc-500">Emergency Contact</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {showEmergencyContact ? (
-                      <span className="text-sm font-mono text-zinc-900 bg-white px-2 py-1 rounded border border-zinc-200">+1-213-555-0202</span>
-                    ) : (
-                      <span className="text-sm text-zinc-400 italic">Hidden for privacy</span>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => setShowEmergencyContact(!showEmergencyContact)}
-                    >
-                      {showEmergencyContact ? 'Hide' : 'Show'}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 6. Professional Support */}
-            <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                  <Stethoscope className="h-4 w-4 text-zinc-500" />
-                  6. Professional Support
-                </h3>
-                <Badge variant="secondary" className="text-[10px]">Verified</Badge>
-              </div>
-              <div className="text-sm text-zinc-700 space-y-1">
-                <p className="font-semibold text-zinc-900">Dr. Sarah Chen (Therapist)</p>
-                <p>Ataraxia Clinic - (555) 123-4567</p>
-                <div className="mt-3 pt-3 border-t border-zinc-100">
-                  <p className="font-semibold text-zinc-900">National Suicide Prevention Lifeline</p>
-                  <p className="text-lg font-mono text-zinc-900">988</p>
-                </div>
-              </div>
-            </section>
-
-            {/* 7. Safe Environment Steps */}
-            <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-zinc-500" />
-                  7. Safe Environment Steps
-                </h3>
-                <Badge variant="secondary" className="text-[10px]">Agreed</Badge>
-              </div>
-              <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
-                <li>Remove access to sharp objects in the bedroom</li>
-                <li>Give medication to sister for dispensing</li>
-              </ul>
-            </section>
-
-            {/* 8. Signatures & Validation */}
-            <section className="bg-zinc-100 rounded-xl border border-zinc-200 p-6">
-              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider mb-6">
-                8. Validation & Signatures
-              </h3>
-
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Client Signature</p>
-                  <div className="font-handwriting text-2xl text-zinc-800 mb-1">Sarah Lopez</div>
-                  <div className="text-xs text-zinc-500">Digitally signed on Jan 21, 2025 at 14:30 PST</div>
-                  <div className="text-[10px] text-zinc-400 font-mono mt-1">IP: 192.168.1.1 • ID: sig_982374</div>
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Clinician Signature</p>
-                  <div className="font-handwriting text-2xl text-zinc-800 mb-1">Dr. Sarah Chen</div>
-                  <div className="text-xs text-zinc-500">Digitally signed on Jan 21, 2025 at 14:35 PST</div>
-                  <div className="text-[10px] text-zinc-400 font-mono mt-1">License: PSY-29384 • ID: sig_admin_22</div>
-                </div>
-              </div>
-            </section>
-
-          </div>
-          <div className="p-6 bg-white border-t border-zinc-200 flex justify-between items-center flex-shrink-0">
-            <div className="text-xs text-zinc-500">
-              Document ID: SP-2025-001 • Version 1.0 (Final)
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Download PDF
-              </Button>
-              <Button variant="outline" className="gap-2">
-                <Files className="h-4 w-4" />
-                Archive
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {selectedClient && (
+        <SafetyPlanDialog
+          open={isSafetyPlanOpen}
+          onOpenChange={setIsSafetyPlanOpen}
+          clientData={mapClientToDetailData(selectedClient)}
+        />
+      )}
 
       {/* Treatment Plan Dialog */}
       {selectedClient && (
@@ -1799,7 +1395,7 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
                 Active Plan
               </Badge>
               <Badge variant="outline" className="bg-white text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
-                Review: Feb 28, 2025
+                Review: {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}
               </Badge>
             </div>
             <DialogTitle className="text-2xl font-semibold flex items-center gap-2 text-emerald-900">
@@ -1899,6 +1495,226 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
             <Plus className="h-4 w-4" />
             Update Goals
           </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, onOpenChange: (open: boolean) => void, clientData: ClientDetailData }) {
+  const [showEmergencyContact, setShowEmergencyContact] = useState(false);
+
+  if (!clientData) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 overflow-hidden gap-0 border-0 shadow-2xl z-[100]">
+        <div className="bg-red-50 p-6 border-b border-red-100 flex-shrink-0 relative">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 uppercase tracking-widest text-[10px]">
+                Legal Record
+              </Badge>
+              <Badge variant="outline" className="bg-white text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
+                Established: {new Date().toLocaleDateString()}
+              </Badge>
+            </div>
+            <DialogTitle className="text-2xl font-semibold flex items-center gap-2 text-red-900">
+              <ShieldAlert className="h-6 w-6 text-red-600" />
+              Active Safety Plan
+            </DialogTitle>
+            <DialogDescription className="text-red-800">
+              Current active safety protocol. Digitally signed and locked.
+            </DialogDescription>
+          </DialogHeader>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 rounded-full"
+            onClick={() => onOpenChange(false)}
+          >
+            <XCircle className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="p-6 flex-1 overflow-y-auto space-y-8 bg-zinc-50/50">
+
+          {/* 1. Risk Overview */}
+          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <Activity className="h-4 w-4 text-zinc-500" />
+                1. Risk Overview
+              </h3>
+              <Badge variant="secondary" className="text-[10px]">Clinician Verified</Badge>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100">
+                <span className="text-xs text-zinc-500 uppercase font-semibold">Current Risk Status</span>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clientData.profile.status.riskLevel === 'high' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}`}>
+                    {clientData.profile.status.riskLevel.toUpperCase()} Risk
+                  </span>
+                </div>
+              </div>
+              <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100">
+                <span className="text-xs text-zinc-500 uppercase font-semibold">Clinical Basis</span>
+                <div className="mt-1 text-sm font-medium text-zinc-900">Clinical Interview & Assessment</div>
+              </div>
+            </div>
+          </section>
+
+          {/* 2. Warning Signs */}
+          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-zinc-500" />
+                2. Warning Signs
+              </h3>
+              <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
+            </div>
+            <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
+              <li>Increased isolation and withdrawal from social activities</li>
+              <li>Changes in sleep patterns</li>
+              <li>Expressing feelings of hopelessness</li>
+            </ul>
+          </section>
+
+          {/* 3. Internal Coping Strategies */}
+          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <Brain className="h-4 w-4 text-zinc-500" />
+                3. Internal Coping Strategies
+              </h3>
+              <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
+            </div>
+            <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
+              <li>Deep breathing exercises</li>
+              <li>Listening to calming music</li>
+              <li>Journaling thoughts and feelings</li>
+            </ul>
+          </section>
+
+          {/* 4. Social Distractions */}
+          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <User className="h-4 w-4 text-zinc-500" />
+                4. Social Distractions
+              </h3>
+              <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
+            </div>
+            <div className="text-sm text-zinc-700 space-y-2">
+              <p><span className="font-semibold text-zinc-900">People:</span> Family and Friends</p>
+              <p><span className="font-semibold text-zinc-900">Places:</span> Public places, Parks</p>
+            </div>
+          </section>
+
+          {/* 5. Contacts in Crisis */}
+          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <Phone className="h-4 w-4 text-zinc-500" />
+                5. Contacts in Crisis
+              </h3>
+              <Badge variant="secondary" className="text-[10px]">Verified</Badge>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center bg-zinc-50 p-3 rounded-lg border border-zinc-100">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-900">{clientData.profile.contact.emergencyContact.name || 'Emergency Contact'}</p>
+                  <p className="text-xs text-zinc-500">Emergency Contact</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {showEmergencyContact ? (
+                    <span className="text-sm font-mono text-zinc-900 bg-white px-2 py-1 rounded border border-zinc-200">{clientData.profile.contact.emergencyContact.phone || 'N/A'}</span>
+                  ) : (
+                    <span className="text-sm text-zinc-400 italic">Hidden for privacy</span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setShowEmergencyContact(!showEmergencyContact)}
+                  >
+                    {showEmergencyContact ? 'Hide' : 'Show'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 6. Professional Support */}
+          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <Stethoscope className="h-4 w-4 text-zinc-500" />
+                6. Professional Support
+              </h3>
+              <Badge variant="secondary" className="text-[10px]">Verified</Badge>
+            </div>
+            <div className="text-sm text-zinc-700 space-y-1">
+              <p className="font-semibold text-zinc-900">Assigned Therapist</p>
+              <div className="mt-3 pt-3 border-t border-zinc-100">
+                <p className="font-semibold text-zinc-900">National Suicide Prevention Lifeline</p>
+                <p className="text-lg font-mono text-zinc-900">988</p>
+              </div>
+            </div>
+          </section>
+
+          {/* 7. Safe Environment Steps */}
+          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <Shield className="h-4 w-4 text-zinc-500" />
+                7. Safe Environment Steps
+              </h3>
+              <Badge variant="secondary" className="text-[10px]">Agreed</Badge>
+            </div>
+            <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
+              <li>Remove access to lethal means</li>
+              <li>Ensure environment is safe and supportive</li>
+            </ul>
+          </section>
+
+          {/* 8. Signatures & Validation */}
+          <section className="bg-zinc-100 rounded-xl border border-zinc-200 p-6">
+            <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider mb-6">
+              8. Validation & Signatures
+            </h3>
+
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Client Signature</p>
+                <div className="font-handwriting text-2xl text-zinc-800 mb-1">{clientData.profile.identity.firstName} {clientData.profile.identity.lastName}</div>
+                <div className="text-xs text-zinc-500">Digitally signed on {new Date().toLocaleDateString()}</div>
+                <div className="text-[10px] text-zinc-400 font-mono mt-1">IP: Verified • ID: sig_{clientData.clientId.substring(0, 8)}</div>
+              </div>
+              <div>
+                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Clinician Signature</p>
+                <div className="font-handwriting text-2xl text-zinc-800 mb-1">Clinician Signature</div>
+                <div className="text-xs text-zinc-500">Digitally signed on {new Date().toLocaleDateString()}</div>
+                <div className="text-[10px] text-zinc-400 font-mono mt-1">License: Verified • ID: sig_admin</div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+        <div className="p-6 bg-white border-t border-zinc-200 flex justify-between items-center flex-shrink-0">
+          <div className="text-xs text-zinc-500">
+            Document ID: SP-{new Date().getFullYear()}-{clientData.clientId.substring(0, 4)} • Version 1.0
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Download PDF
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Files className="h-4 w-4" />
+              Archive
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
