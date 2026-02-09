@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
+import { UserRole } from '../../types/appointment';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -16,9 +17,10 @@ import zipcodes from 'zipcodes';
 interface AccountSettingsProps {
     userId: string;
     userEmail: string;
+    userRole?: UserRole;
 }
 
-export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEmail }) => {
+export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEmail, userRole = 'client' }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [firstName, setFirstName] = useState(userEmail.split('@')[0].split('.')[0] || 'User');
@@ -709,26 +711,28 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                         </div>
                     </div>
 
-                    {/* Emergency Contact Card */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
-                        <div className="mb-6">
-                            <h2 className="text-base font-semibold flex items-center gap-2">
-                                <AlertTriangle className="h-5 w-5 text-orange-500" />
-                                Emergency Contact <span className="text-red-500">*</span>
-                            </h2>
-                        </div>
+                    {/* Emergency Contact Card - Only for Clients */}
+                    {userRole === 'client' && (
+                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                            <div className="mb-6">
+                                <h2 className="text-base font-semibold flex items-center gap-2">
+                                    <AlertTriangle className="h-5 w-5 text-orange-500" />
+                                    Emergency Contact <span className="text-red-500">*</span>
+                                </h2>
+                            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">Contact Name <span className="text-red-500">*</span></Label>
-                                <Input placeholder="Full name" className="h-10" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">Relationship <span className="text-red-500">*</span></Label>
-                                <Input placeholder="e.g., Spouse, Parent, Friend" className="h-10" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Contact Name <span className="text-red-500">*</span></Label>
+                                    <Input placeholder="Full name" className="h-10" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Relationship <span className="text-red-500">*</span></Label>
+                                    <Input placeholder="e.g., Spouse, Parent, Friend" className="h-10" />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Save Button */}
                     <div className="flex justify-end pt-4">

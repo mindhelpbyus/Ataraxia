@@ -20,11 +20,11 @@ interface SettingsViewProps {
   handleBackFromSettings: () => void;
 }
 
-export function SettingsView({ userId, userEmail, activeSettingsTab }: SettingsViewProps) {
+export function SettingsView({ userId, userEmail, userRole, activeSettingsTab }: SettingsViewProps) {
 
   const renderContent = () => {
     switch (activeSettingsTab) {
-      case 'account': return <AccountSettings userId={userId} userEmail={userEmail} />;
+      case 'account': return <AccountSettings userId={userId} userEmail={userEmail} userRole={userRole} />;
       case 'credentials': return <CredentialsSettings userId={userId} />;
       case 'availability': return <AvailabilitySettings userId={userId} />;
       case 'license': return <LicenseSettings userId={userId} />;
