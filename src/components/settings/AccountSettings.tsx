@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
 import { SettingsSection } from './SettingsSection';
-import { MapPin, Upload } from 'lucide-react';
+import { MapPin, Upload, AlertTriangle } from 'lucide-react';
 import { Country, State, City } from 'country-state-city';
 import Select from 'react-select';
 import langs from 'langs';
@@ -426,34 +426,47 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
     };
 
     return (
-        <div className="max-w-5xl pl-6 pb-20 pt-0">
-            <SettingsSection>
-                <div className="space-y-8">
-                    {/* Header Area */}
-                    <div>
-                        <h1 className="text-lg font-semibold">Personal Information</h1>
-                    </div>
+        <div className="min-h-screen bg-background py-8 px-4">
+            <div className="max-w-6xl mx-auto">
+                <div className="space-y-4">
+                    {/* Profile Photo Card */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <div className="mb-4">
+                            <h2 className="text-base font-semibold flex items-center gap-2">
+                                <Upload className="h-5 w-5 text-orange-500" />
+                                Profile Photo
+                            </h2>
+                            <p className="text-sm text-muted-foreground mt-1">Upload a headshot, take a photo, or choose an avatar</p>
+                        </div>
 
-                    {/* Profile Picture */}
-                    <div className="space-y-4">
                         <div className="flex items-center gap-6">
-                            <div className="relative group shrink-0">
-                                <Avatar className="w-24 h-24 border-2 border-border shadow-sm">
-                                    <AvatarImage src={profileImage || ''} />
-                                    <AvatarFallback className="text-2xl bg-orange-100 text-orange-600 font-semibold">
-                                        {firstName[0]?.toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </div>
-                            <div className="space-y-3">
-                                <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="h-9 font-medium">
-                                    <Upload className="w-4 h-4 mr-2" /> Upload Photo
-                                </Button>
-                                <p className="text-xs text-muted-foreground">Max size: 5MB. JPG, PNG.</p>
+                            <Avatar className="w-24 h-24 border-2 border-border shadow-sm">
+                                <AvatarImage src={profileImage || ''} />
+                                <AvatarFallback className="text-2xl bg-orange-100 text-orange-600 font-semibold">
+                                    {firstName[0]?.toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-2">
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="default"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="h-9 bg-orange-500 hover:bg-orange-600 text-white"
+                                    >
+                                        <Upload className="w-4 h-4 mr-2" /> Upload Photo
+                                    </Button>
+                                    <Button variant="outline" className="h-9">
+                                        <Upload className="w-4 h-4 mr-2" /> Take Photo
+                                    </Button>
+                                    <Button variant="outline" className="h-9">
+                                        <Upload className="w-4 h-4 mr-2" /> Choose Avatar
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">JPG, PNG or GIF (max. 5MB)</p>
                                 <input
                                     ref={fileInputRef}
                                     type="file"
-                                    accept="image/jpeg,image/png"
+                                    accept="image/jpeg,image/png,image/gif"
                                     onChange={handleFileSelect}
                                     className="hidden"
                                 />
@@ -461,163 +474,200 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                         </div>
                     </div>
 
-                    {/* Personal Info Fields */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">First Name <span className="text-red-500">*</span></Label>
-                            <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-10" />
+                    {/* Personal Details Card */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <div className="mb-6">
+                            <h2 className="text-base font-semibold flex items-center gap-2">
+                                <MapPin className="h-5 w-5 text-orange-500" />
+                                Personal Details
+                            </h2>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Last Name <span className="text-red-500">*</span></Label>
-                            <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-10" />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Gender <span className="text-red-500">*</span></Label>
-                            {/* Using native select with shadcn styling match to avoid react-select overhead for simple enum */}
-                            <div className="relative">
-                                <select
-                                    value={gender}
-                                    onChange={(e) => setGender(e.target.value)}
-                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                                >
-                                    <option value="">Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                    <option value="prefer-not-to-say">Prefer not to say</option>
-                                </select>
+                        <div className="space-y-6">
+                            {/* Name Fields */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">First Name <span className="text-red-500">*</span></Label>
+                                    <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" className="h-10" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Middle Name</Label>
+                                    <Input placeholder="" className="h-10" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Last Name <span className="text-red-500">*</span></Label>
+                                    <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" className="h-10" />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Date of Birth <span className="text-red-500">*</span></Label>
-                            <Input
-                                type="date"
-                                value={dateOfBirth}
-                                onChange={(e) => setDateOfBirth(e.target.value)}
-                                className="h-10"
-                            />
+                            {/* Gender and DOB */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Gender <span className="text-red-500">*</span></Label>
+                                    <select
+                                        value={gender}
+                                        onChange={(e) => setGender(e.target.value)}
+                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                                    >
+                                        <option value="">Select gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                        <option value="prefer-not-to-say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Date of Birth <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        type="date"
+                                        value={dateOfBirth}
+                                        onChange={(e) => setDateOfBirth(e.target.value)}
+                                        placeholder="mm/dd/yyyy"
+                                        className="h-10"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Phone and Email */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Phone <span className="text-red-500">*</span></Label>
+                                    <div className="flex gap-2">
+                                        <select className="flex h-10 w-24 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                            <option value="+1">+1</option>
+                                            <option value="+91">+91</option>
+                                            <option value="+44">+44</option>
+                                        </select>
+                                        <Input placeholder="+1 (555) 123-4567" className="h-10 flex-1" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Email <span className="text-red-500">*</span></Label>
+                                    <Input type="email" value={userEmail} disabled placeholder="client@example.com" className="h-10" />
+                                </div>
+                            </div>
+
+                            {/* Preferred Language */}
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">Preferred Language <span className="text-red-500">*</span></Label>
+                                <Select
+                                    value={selectedLanguages}
+                                    onChange={setSelectedLanguages}
+                                    options={languages}
+                                    placeholder="Select languages..."
+                                    styles={customSelectStyles}
+                                    isMulti
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Address Section */}
-                    <div className="space-y-4">
-                        <Label className="flex items-center gap-2"><MapPin className="w-4 h-4 text-muted-foreground" /> Address <span className="text-red-500">*</span></Label>
-
-                        <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground">Street Address Line 1 *</Label>
-                            <Input
-                                value={addressLine1}
-                                onChange={(e) => setAddressLine1(e.target.value)}
-                                placeholder="123 Main Street, Building Name"
-                                className="h-10"
-                            />
+                    {/* Address Card */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <div className="mb-6">
+                            <h2 className="text-base font-semibold flex items-center gap-2">
+                                <MapPin className="h-5 w-5 text-orange-500" />
+                                Address <span className="text-red-500">*</span>
+                            </h2>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground">Street Address Line 2 (Optional)</Label>
-                            <Input
-                                value={addressLine2}
-                                onChange={(e) => setAddressLine2(e.target.value)}
-                                placeholder="Apartment, Suite, Floor, Locality (e.g., T. Nagar, Adyar)"
-                                className="h-10"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                            {/* Street Address */}
                             <div className="space-y-2">
-                                <Label className="text-sm font-medium">Country</Label>
-                                <Select
-                                    value={selectedCountry}
-                                    onChange={handleCountryChange}
-                                    options={countries}
-                                    placeholder="Select Country"
-                                    styles={customSelectStyles}
-                                    isClearable
+                                <Label className="text-sm font-medium">Street Address Line 1 <span className="text-red-500">*</span></Label>
+                                <Input
+                                    value={addressLine1}
+                                    onChange={(e) => setAddressLine1(e.target.value)}
+                                    placeholder="123 Main Street, Building Name"
+                                    className="h-10"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    {selectedCountry?.value === 'US' ? 'State' :
-                                        selectedCountry?.value === 'GB' ? 'County' :
-                                            selectedCountry?.value === 'IN' ? 'State' :
-                                                'State / Province / Region'}
-                                </Label>
-                                <Select
-                                    value={selectedState}
-                                    onChange={(val) => {
-                                        setSelectedState(val);
-                                        setSelectedDistrict(null);
-                                        setSelectedCity(null);
-                                        setSelectedPostalCode(null);
-                                    }}
-                                    options={states}
-                                    placeholder={`Select ${selectedCountry?.value === 'GB' ? 'County' : 'State'}`}
-                                    styles={customSelectStyles}
-                                    isClearable
-                                    isDisabled={!selectedCountry}
+                                <Label className="text-sm font-medium">Street Address Line 2 (Optional)</Label>
+                                <Input
+                                    value={addressLine2}
+                                    onChange={(e) => setAddressLine2(e.target.value)}
+                                    placeholder="Apartment, Suite, Floor, Locality (e.g., T. Nagar, Adyer)"
+                                    className="h-10"
                                 />
                             </div>
 
+                            {/* Country and State */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Country</Label>
+                                    <Select
+                                        value={selectedCountry}
+                                        onChange={handleCountryChange}
+                                        options={countries}
+                                        placeholder="United States"
+                                        styles={customSelectStyles}
+                                        isClearable
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">State</Label>
+                                    <Select
+                                        value={selectedState}
+                                        onChange={(val) => {
+                                            setSelectedState(val);
+                                            setSelectedDistrict(null);
+                                            setSelectedCity(null);
+                                            setSelectedPostalCode(null);
+                                        }}
+                                        options={states}
+                                        placeholder="Select State"
+                                        styles={customSelectStyles}
+                                        isClearable
+                                        isDisabled={!selectedCountry}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* District and City */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">District</Label>
+                                    <Select
+                                        value={selectedDistrict}
+                                        onChange={(val) => {
+                                            setSelectedDistrict(val);
+                                            setSelectedCity(null);
+                                            setSelectedPostalCode(null);
+                                        }}
+                                        options={districts}
+                                        placeholder="Select District"
+                                        styles={customSelectStyles}
+                                        isClearable
+                                        isDisabled={!selectedState}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">City</Label>
+                                    <Select
+                                        value={selectedCity}
+                                        onChange={(val) => {
+                                            setSelectedCity(val);
+                                            setSelectedPostalCode(null);
+                                        }}
+                                        options={cities}
+                                        placeholder="Select City"
+                                        styles={customSelectStyles}
+                                        isClearable
+                                        isDisabled={!selectedState}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* ZIP Code */}
                             <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    {selectedCountry?.value === 'IN' ? 'District / Locality' :
-                                        selectedCountry?.value === 'GB' ? 'District / Borough' :
-                                            'District / County'}
-                                </Label>
-                                <Select
-                                    value={selectedDistrict}
-                                    onChange={(val) => {
-                                        setSelectedDistrict(val);
-                                        setSelectedCity(null);
-                                        setSelectedPostalCode(null);
-                                    }}
-                                    options={districts}
-                                    placeholder="Select District"
-                                    styles={customSelectStyles}
-                                    isClearable
-                                    isDisabled={!selectedState}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    {selectedCountry?.value === 'GB' ? 'City / Town' : 'City'}
-                                </Label>
-                                <Select
-                                    value={selectedCity}
-                                    onChange={(val) => {
-                                        setSelectedCity(val);
-                                        setSelectedPostalCode(null);
-                                    }}
-                                    options={cities}
-                                    placeholder="Select City"
-                                    styles={customSelectStyles}
-                                    isClearable
-                                    isDisabled={!selectedState}
-                                />
-                            </div>
-
-                            <div className="space-y-2 md:col-span-2">
-                                <Label className="text-sm font-medium">
-                                    {selectedCountry?.value === 'US' ? 'ZIP Code' :
-                                        selectedCountry?.value === 'IN' ? 'PIN Code' :
-                                            selectedCountry?.value === 'GB' ? 'Postcode' :
-                                                'Zip / Postal Code'}
-                                </Label>
+                                <Label className="text-sm font-medium">ZIP Code</Label>
                                 <Select
                                     value={selectedPostalCode}
                                     onChange={handlePostalCodeChange}
                                     options={postalCodeOptions.length > 0 ? postalCodeOptions : postalCodes}
-                                    placeholder={
-                                        selectedCountry?.value === 'US' ? 'Search ZIP Code...' :
-                                            selectedCountry?.value === 'IN' ? 'Search PIN Code...' :
-                                                selectedCountry?.value === 'GB' ? 'Search Postcode...' :
-                                                    'Search Postal Code...'
-                                    }
+                                    placeholder="Search Postal Code..."
                                     styles={customSelectStyles}
                                     isClearable
                                     isDisabled={!selectedCountry}
@@ -629,99 +679,69 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                                     onInputChange={handlePostalCodeInputChange}
                                     isLoading={isLoadingPostalCodes}
                                 />
-                                {postalCodes.length > 0 && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        {postalCodes.length} postal code{postalCodes.length !== 1 ? 's' : ''} available. Type to search.
-                                    </p>
-                                )}
+                            </div>
+
+                            {/* Timezone and Languages */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Timezone</Label>
+                                    <Select
+                                        value={selectedTimezone}
+                                        onChange={setSelectedTimezone}
+                                        options={timezones}
+                                        placeholder="Select timezone"
+                                        styles={customSelectStyles}
+                                        isClearable
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Languages Spoken</Label>
+                                    <Select
+                                        value={selectedLanguages}
+                                        onChange={setSelectedLanguages}
+                                        options={languages}
+                                        placeholder="Select languages..."
+                                        styles={customSelectStyles}
+                                        isMulti
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Timezone & Languages */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Timezone</Label>
-                            <Select
-                                value={selectedTimezone}
-                                onChange={setSelectedTimezone}
-                                options={timezones}
-                                placeholder="Select timezone"
-                                styles={customSelectStyles}
-                                isClearable
-                            />
+                    {/* Emergency Contact Card */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <div className="mb-6">
+                            <h2 className="text-base font-semibold flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5 text-orange-500" />
+                                Emergency Contact <span className="text-red-500">*</span>
+                            </h2>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Languages Spoken</Label>
-                            <Select
-                                value={selectedLanguages}
-                                onChange={setSelectedLanguages}
-                                options={languages}
-                                placeholder="Select languages..."
-                                styles={customSelectStyles}
-                                isMulti
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">Contact Name <span className="text-red-500">*</span></Label>
+                                <Input placeholder="Full name" className="h-10" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">Relationship <span className="text-red-500">*</span></Label>
+                                <Input placeholder="e.g., Spouse, Parent, Friend" className="h-10" />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Bio Section */}
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Short Bio <span className="text-red-500">*</span></Label>
-                            <Textarea
-                                value={shortBio}
-                                onChange={(e) => {
-                                    if (e.target.value.length <= 150) {
-                                        setShortBio(e.target.value);
-                                    }
-                                }}
-                                placeholder="A brief introduction (150 chars max)"
-                                maxLength={150}
-                                className="h-[120px] resize-none"
-                            />
-                            <div className="flex justify-end text-xs text-muted-foreground">
-                                <span className={shortBio.length > 150 ? "text-red-500 font-medium" : ""}>{shortBio.length}/150 characters</span>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Extended Bio <span className="text-red-500">*</span></Label>
-                            <Textarea
-                                value={extendedBio}
-                                onChange={(e) => {
-                                    if (e.target.value.length <= 700) {
-                                        setExtendedBio(e.target.value);
-                                    }
-                                }}
-                                placeholder="Detailed professional biography..."
-                                maxLength={700}
-                                className="h-[120px] resize-none"
-                            />
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>Tell your story and help clients get to know you</span>
-                                <span className={extendedBio.length > 700 ? "text-red-500 font-medium" : ""}>{extendedBio.length}/700 characters</span>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">What Clients Can Expect From Me <span className="text-muted-foreground font-normal ml-1">(Optional)</span></Label>
-                            <Textarea
-                                value={clientExpectations}
-                                onChange={(e) => setClientExpectations(e.target.value)}
-                                placeholder="Describe your therapeutic style, what a typical session looks like, and what clients can expect when working with you..."
-                                className="min-h-[120px] resize-y"
-                            />
-                        </div>
+                    {/* Save Button */}
+                    <div className="flex justify-end pt-4">
+                        <Button
+                            onClick={handleSave}
+                            disabled={isLoading}
+                            className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-8 h-10 shadow-sm transition-all rounded-md"
+                        >
+                            {isLoading ? 'Saving...' : 'Save Changes'}
+                        </Button>
                     </div>
                 </div>
-
-                <div className="pt-6 flex justify-end">
-                    <Button onClick={handleSave} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-10 shadow-sm transition-all rounded-full">
-                        {isLoading ? 'Saving...' : 'Save Changes'}
-                    </Button>
-                </div>
-            </SettingsSection>
+            </div>
         </div>
     );
 };
