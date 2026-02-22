@@ -11,6 +11,7 @@ import { OrganizationManagementView } from './OrganizationManagementView';
 import { ProfessionalClientsView } from './ProfessionalClientsView';
 
 import { EnhancedTherapistsTable } from './EnhancedTherapistsTable';
+import { VideoRoomsView } from './VideoRoomsView';
 import { QuickNotesView } from './QuickNotesView';
 import { TasksView } from './TasksView';
 import { MessagesView } from './MessagesView';
@@ -66,7 +67,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Input } from './ui/input';
 import { SearchBar } from './ui/search-bar';
 import { GlobalSearchBar } from './GlobalSearchBar';
-import { CustomizeDashboard, DashboardWidgets } from './CustomizeDashboard';
+
 import { Dialog, DialogContent } from './ui/dialog';
 import { Separator } from './ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
@@ -87,7 +88,7 @@ interface DashboardLayoutProps {
   onNavigateToSessions?: () => void;
 }
 
-type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'therapist-verification' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance' | 'logs' | 'data-explorer' | 'api-monitoring';
+type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'therapist-verification' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance';
 
 export function DashboardLayout({ userRole, currentUserId, userEmail, userName, accountStatus, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead, onNavigateToSecurity, onNavigateToMFA, onNavigateToSessions }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -96,15 +97,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
-  const [widgets, setWidgets] = useState<DashboardWidgets>({
-    stats: true,
-    agenda: true,
-    categories: true,
-    completionRate: true,
-    people: true,
-    companies: true
-  });
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [triggerNewAppointment, setTriggerNewAppointment] = useState(0); // Counter to trigger appointment form
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -336,9 +329,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
       section: 'Data & Intelligence',
       items: [
         { id: 'analytics' as TabType, label: 'Analytics & Metrics', icon: BarChart3 },
-        { id: 'logs' as TabType, label: 'Logs & Audit Trails', icon: FileText },
-        { id: 'data-explorer' as TabType, label: 'Data Explorer', icon: Search },
-        { id: 'api-monitoring' as TabType, label: 'API Usage & Monitoring', icon: BarChart3 },
       ]
     },
   ];
@@ -832,44 +822,25 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
             {/* Top Header */}
-            <header className="h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6 sticky top-0 z-10 transition-all duration-300">
-              {/* Left Side: Page Title */}
-              <div className="flex items-center">
-                <h1 className="text-3xl font-bold text-foreground tracking-tight">
-                  {activeTab === 'dashboard' ? '' :
-                    activeTab === 'settings' ? (
-                      activeSettingsTab === 'credentials' ? 'Professional Credentials & Specializations' :
-                        activeSettingsTab === 'availability' ? 'Availability & Session' :
-                          activeSettingsTab === 'insurance' ? 'Payment & Compliance' :
-                            activeSettingsTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-                    ) :
-                      activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                </h1>
-              </div>
+            {activeTab !== 'messages' && (
+              <header className="h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6 sticky top-0 z-10 transition-all duration-300">
+                {/* Left Side: Page Title */}
+                <div className="flex items-center">
+                  <h1 className="text-3xl font-bold text-foreground tracking-tight">
+                    {activeTab === 'dashboard' ? '' :
+                      activeTab === 'settings' ? (
+                        activeSettingsTab === 'credentials' ? 'Professional Credentials & Specializations' :
+                          activeSettingsTab === 'availability' ? 'Availability & Session' :
+                            activeSettingsTab === 'insurance' ? 'Payment & Compliance' :
+                              activeSettingsTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+                      ) :
+                        activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  </h1>
+                </div>
 
-              {/* Right Side: Customize Button */}
-              <div className="flex items-center gap-2">
 
-                {activeTab === 'dashboard' && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-lg hover:bg-muted text-foreground border-border ml-2"
-                        onClick={() => setIsCustomizeOpen(true)}
-                      >
-                        <Palette className="h-4 w-4 mr-2" />
-                        Customize
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Customize Dashboard</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </div>
-            </header>
+              </header>
+            )}
 
             {/* Content Render Area */}
             <main className="flex-1 overflow-auto bg-white p-6 relative z-0">
@@ -905,7 +876,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                       ) : userRole === 'client' ? (
                         <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab) => setActiveTab(tab as TabType)} />
                       ) : (
-                        <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} visibleWidgets={widgets} />
+                        <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} />
                       )}
                     </>
                   )}
@@ -914,10 +885,11 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} />}
                   {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} />}
                   {activeTab === 'therapist-verification' && <TherapistVerificationView />}
+                  {activeTab === 'video-rooms' && <VideoRoomsView />}
                   {activeTab === 'organizations' && <OrganizationManagementView userId={currentUserId} userEmail={userEmail} onNavigate={() => setActiveTab('dashboard')} />}
 
                   {/* Tools */}
-                  {activeTab === 'messages' && <MessagesView currentUserId={currentUserId} currentUserName={userName || getUserName(userEmail)} currentUserEmail={userEmail} />}
+                  {activeTab === 'messages' && <MessagesView currentUserId={currentUserId} currentUserName={userName || getUserName(userEmail)} currentUserEmail={userEmail} userRole={userRole} />}
                   {activeTab === 'tasks' && <TasksView userRole={userRole} />}
                   {activeTab === 'notes' && <QuickNotesView />}
 
@@ -942,12 +914,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
           <Toaster position="bottom-right" theme="system" className="font-sans" />
         </div>
       </TooltipProvider>
-      <CustomizeDashboard
-        open={isCustomizeOpen}
-        onOpenChange={setIsCustomizeOpen}
-        widgets={widgets}
-        onToggle={(key) => setWidgets(prev => ({ ...prev, [key]: !prev[key] }))}
-      />
+
       <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
         <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-2xl sm:max-w-3xl">
           <GlobalSearchBar

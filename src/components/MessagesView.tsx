@@ -1,271 +1,187 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  MessageSquare, 
-  Send, 
-  Paperclip, 
-  Video, 
-  Phone, 
-  Search,
-  Smile,
-  X,
-  Download,
-  Image as ImageIcon,
-  File as FileIcon,
-  Check,
-  CheckCheck
-} from 'lucide-react';
-import { Input } from './ui/input';
+import React, { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
-import { ScrollArea } from './ui/scroll-area';
+import { Input } from './ui/input';
 import { Badge } from './ui/badge';
+import { Textarea } from './ui/textarea';
 import { Avatar, AvatarFallback } from './ui/avatar';
-import { Separator } from './ui/separator';
-import { VideoCallRoom } from './VideoCallRoom';
 import {
-  ChatMessage,
-  ChatRoom,
-  getOrCreateChatRoom,
-  sendMessage,
-  sendFileMessage,
-  subscribeToMessages,
-  subscribeToChatRooms,
-  markMessagesAsRead,
-  updateTypingStatus,
-  subscribeToTyping,
-  addReaction,
-  removeReaction,
-  getUnreadCount
-} from '../services/chatService';
-import {
-  createCallInvitation,
-  subscribeToCallInvitations,
-  updateCallInvitationStatus,
-  CallInvitation
-} from '../services/callService';
-import { generateDirectChatRoom } from '../services/jitsiService';
+  MessageSquare,
+  Send,
+  Search,
+  Paperclip,
+  MoreVertical,
+  Phone,
+  Video,
+  AlertCircle,
+  Clock,
+  CheckCheck,
+  Star,
+  UserCircle2,
+  Stethoscope,
+  Briefcase,
+  ShieldCheck
+} from 'lucide-react';
+import { messagingService } from '../services/messagingService';
+import type { Conversation, Message, UserRole } from '../utils/mockMessagingData';
 
 interface MessagesViewProps {
   currentUserId: string;
   currentUserName: string;
   currentUserEmail: string;
+  userRole?: string;
 }
 
-interface Contact {
-  id: string;
-  name: string;
-  email: string;
-  lastMessage?: string;
-  lastMessageTime?: Date;
-  unreadCount: number;
-  online?: boolean;
-}
+export function MessagesView({ currentUserId, currentUserName, currentUserEmail, userRole = 'therapist' }: MessagesViewProps) {
+  const CURRENT_USER = {
+    id: currentUserId,
+    name: currentUserName,
+    role: userRole as UserRole
+  };
 
-// TODO: Replace with actual user list from backend service
-const INITIAL_CONTACTS: Contact[] = [];
-
-export function MessagesView({ currentUserId, currentUserName, currentUserEmail }: MessagesViewProps) {
-  const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [messageText, setMessageText] = useState('');
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [currentChatRoomId, setCurrentChatRoomId] = useState<string | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [showVideoCall, setShowVideoCall] = useState(false);
-  const [videoCallRoom, setVideoCallRoom] = useState<string | null>(null);
-  const [callInvitations, setCallInvitations] = useState<CallInvitation[]>([]);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  
+  const [filterRole, setFilterRole] = useState<'all' | UserRole>('all');
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Subscribe to chat rooms
+  // Initialize messaging service and load data
   useEffect(() => {
-    const unsubscribe = subscribeToChatRooms(currentUserId, (rooms) => {
-      setChatRooms(rooms);
-      
-      // Update contacts with room data
-      setContacts(prev => prev.map(contact => {
-        const room = rooms.find(r => 
-          r.user1Id === contact.id || r.user2Id === contact.id
-        );
-        if (room) {
-          return {
-            ...contact,
-            lastMessage: room.lastMessage,
-            lastMessageTime: room.lastMessageTime,
-            unreadCount: room.unreadCount || 0
-          };
+    const initializeMessaging = async () => {
+      setIsLoading(true);
+      try {
+        await messagingService.initialize(currentUserId, currentUserName, userRole as UserRole);
+        const loadedConversations = await messagingService.getConversations();
+        setConversations(loadedConversations);
+
+        if (loadedConversations.length > 0) {
+          setSelectedConversation(loadedConversations[0]);
         }
-        return contact;
-      }));
-    });
+      } catch (error) {
+        console.error('Failed to initialize messaging:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => unsubscribe();
-  }, [currentUserId]);
-
-  // Subscribe to call invitations
-  useEffect(() => {
-    const unsubscribe = subscribeToCallInvitations(currentUserId, (invitations) => {
-      setCallInvitations(invitations);
-    });
-
-    return () => unsubscribe();
-  }, [currentUserId]);
-
-  // Subscribe to messages when chat room changes
-  useEffect(() => {
-    if (!currentChatRoomId) return;
-
-    const unsubscribe = subscribeToMessages(currentChatRoomId, (msgs) => {
-      setMessages(msgs);
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      
-      // Mark messages as read
-      markMessagesAsRead(currentChatRoomId, currentUserId);
-    });
-
-    return () => unsubscribe();
-  }, [currentChatRoomId, currentUserId]);
-
-  // Subscribe to typing indicators
-  useEffect(() => {
-    if (!currentChatRoomId) return;
-
-    const unsubscribe = subscribeToTyping(currentChatRoomId, currentUserId, (typing) => {
-      setTypingUsers(typing.map(t => t.userName));
-    });
-
-    return () => unsubscribe();
-  }, [currentChatRoomId, currentUserId]);
+    initializeMessaging();
+  }, [currentUserId, currentUserName, userRole]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSelectContact = async (contact: Contact) => {
-    setSelectedContact(contact);
-    
-    // Get or create chat room
-    const roomId = await getOrCreateChatRoom(
-      currentUserId,
-      currentUserName,
-      currentUserEmail,
-      contact.id,
-      contact.name,
-      contact.email
-    );
-    
-    setCurrentChatRoomId(roomId);
-  };
+  // Load messages when conversation changes
+  useEffect(() => {
+    const loadConversationMessages = async () => {
+      if (selectedConversation) {
+        try {
+          const loadedMessages = await messagingService.getMessages(selectedConversation.id);
+          setMessages(loadedMessages);
+
+          await messagingService.markAsRead(selectedConversation.id);
+          const updatedConversations = await messagingService.getConversations();
+          setConversations(updatedConversations);
+        } catch (error) {
+          console.error('Failed to load messages:', error);
+        }
+      }
+    };
+
+    loadConversationMessages();
+  }, [selectedConversation]);
 
   const handleSendMessage = async () => {
-    if (!messageText.trim() || !currentChatRoomId || !selectedContact) return;
+    if (!newMessage.trim() || !selectedConversation) return;
+
+    const message: Message = {
+      id: `msg-${Date.now()}`,
+      conversationId: selectedConversation.id,
+      senderId: CURRENT_USER.id,
+      senderName: CURRENT_USER.name,
+      senderRole: CURRENT_USER.role,
+      content: newMessage,
+      timestamp: new Date(),
+      read: false
+    };
 
     try {
-      await sendMessage(
-        currentChatRoomId,
-        currentUserId,
-        currentUserName,
-        currentUserEmail,
-        selectedContact.id,
-        selectedContact.name,
-        messageText.trim()
-      );
-      
-      setMessageText('');
-      setIsTyping(false);
-      updateTypingStatus(currentChatRoomId, currentUserId, currentUserName, false);
+      await messagingService.sendMessage(message);
+      setMessages(prev => [...prev, message]);
+      setNewMessage('');
+
+      const updatedConversations = await messagingService.getConversations();
+      setConversations(updatedConversations);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Failed to send message:', error);
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !currentChatRoomId || !selectedContact) return;
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
+  const toggleStar = async (conversationId: string) => {
     try {
-      await sendFileMessage(
-        currentChatRoomId,
-        currentUserId,
-        currentUserName,
-        currentUserEmail,
-        selectedContact.id,
-        selectedContact.name,
-        file
-      );
+      await messagingService.toggleStar(conversationId);
+      const updatedConversations = await messagingService.getConversations();
+      setConversations(updatedConversations);
+
+      if (selectedConversation?.id === conversationId) {
+        const updated = updatedConversations.find(c => c.id === conversationId);
+        if (updated) setSelectedConversation(updated);
+      }
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('Failed to toggle star:', error);
     }
   };
 
-  const handleTyping = (text: string) => {
-    setMessageText(text);
-    
-    if (!currentChatRoomId) return;
-
-    if (text.length > 0 && !isTyping) {
-      setIsTyping(true);
-      updateTypingStatus(currentChatRoomId, currentUserId, currentUserName, true);
+  const getRoleIcon = (role: UserRole) => {
+    switch (role) {
+      case 'therapist':
+        return <Stethoscope className="w-3 h-3" />;
+      case 'receptionist':
+        return <Briefcase className="w-3 h-3" />;
+      case 'client':
+        return <UserCircle2 className="w-3 h-3" />;
+      case 'admin':
+      case 'super_admin':
+        return <ShieldCheck className="w-3 h-3" />;
     }
+  };
 
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
+  const getRoleBadgeColor = (role: UserRole) => {
+    switch (role) {
+      case 'therapist':
+        return 'bg-blue-100 text-blue-700';
+      case 'receptionist':
+        return 'bg-purple-100 text-purple-700';
+      case 'client':
+        return 'bg-green-100 text-green-700';
+      case 'admin':
+        return 'bg-amber-100 text-amber-700';
+      case 'super_admin':
+        return 'bg-red-100 text-red-700';
     }
-
-    // Set new timeout to stop typing indicator
-    typingTimeoutRef.current = setTimeout(() => {
-      setIsTyping(false);
-      updateTypingStatus(currentChatRoomId, currentUserId, currentUserName, false);
-    }, 1000);
   };
 
-  const handleStartCall = async (callType: 'video' | 'audio') => {
-    if (!selectedContact) return;
-
-    const roomName = generateDirectChatRoom(currentUserId, selectedContact.id);
-    
-    // Create call invitation
-    await createCallInvitation(
-      callType,
-      roomName,
-      currentUserId,
-      currentUserName,
-      selectedContact.id,
-      selectedContact.name
-    );
-
-    // Start call
-    setVideoCallRoom(roomName);
-    setShowVideoCall(true);
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
-  const handleAcceptCall = async (invitation: CallInvitation) => {
-    await updateCallInvitationStatus(invitation.id, 'accepted');
-    setVideoCallRoom(invitation.roomName);
-    setShowVideoCall(true);
-  };
-
-  const handleRejectCall = async (invitation: CallInvitation) => {
-    await updateCallInvitationStatus(invitation.id, 'rejected');
-  };
-
-  const filteredContacts = contacts.filter(contact =>
-    contact.id !== currentUserId && (
-      contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.email.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
-
-  const formatTime = (date?: Date) => {
-    if (!date) return '';
-    
+  const formatTimestamp = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
@@ -279,314 +195,304 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail 
     return date.toLocaleDateString();
   };
 
-  const emojis = ['😊', '👍', '❤️', '😂', '🎉', '🔥', '👏', '✨'];
+  const filteredConversations = conversations
+    .filter(conv => {
+      if (searchQuery) {
+        return conv.participants.some(p =>
+          p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        ) || conv.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      return true;
+    })
+    .filter(conv => {
+      if (filterRole === 'all') return true;
+      if (filterRole === 'therapist') {
+        // 'therapist' filter acts as 'Staff' filter
+        return conv.participants.some(p =>
+          (p.role === 'therapist' || p.role === 'receptionist' || p.role === 'admin' || p.role === 'super_admin') &&
+          p.id !== CURRENT_USER.id
+        );
+      }
+      return conv.participants.some(p => p.role === filterRole && p.id !== CURRENT_USER.id);
+    })
+    .sort((a, b) => {
+      if (a.isStarred && !b.isStarred) return -1;
+      if (!a.isStarred && b.isStarred) return 1;
+      return b.lastMessage.timestamp.getTime() - a.lastMessage.timestamp.getTime();
+    });
+
+  const otherParticipant = selectedConversation?.participants.find(p => p.id !== CURRENT_USER.id);
 
   return (
-    <div className="flex h-full bg-white rounded-lg shadow-sm overflow-hidden">
-      {/* Call Invitations */}
-      {callInvitations.map(invitation => (
-        <div key={invitation.id} className="fixed top-4 right-4 bg-white rounded-lg shadow-xl p-4 z-50 border-2 border-blue-500 animate-pulse">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-              {invitation.callType === 'video' ? (
-                <Video className="w-6 h-6 text-blue-600" />
-              ) : (
-                <Phone className="w-6 h-6 text-blue-600" />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="font-medium">{invitation.initiatorName}</p>
-              <p className="text-sm text-gray-500">
-                Incoming {invitation.callType} call...
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleRejectCall(invitation)}
-              >
-                Decline
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => handleAcceptCall(invitation)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Accept
-              </Button>
-            </div>
-          </div>
-        </div>
-      ))}
-
-      {/* Video Call Modal */}
-      {showVideoCall && videoCallRoom && selectedContact && (
-        <VideoCallRoom
-          roomName={videoCallRoom}
-          userName={currentUserName}
-          userEmail={currentUserEmail}
-          userId={currentUserId}
-          participantIds={[selectedContact.id]}
-          participantNames={{ [selectedContact.id]: selectedContact.name }}
-          onClose={() => {
-            setShowVideoCall(false);
-            setVideoCallRoom(null);
-          }}
-        />
-      )}
-
-      {/* Contacts Sidebar */}
-      <div className="w-80 border-r border-gray-200 flex flex-col">
-        {/* Search */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Search contacts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {/* Contacts List */}
-        <ScrollArea className="flex-1">
-          <div className="p-2">
-            {filteredContacts.map(contact => (
-              <button
-                key={contact.id}
-                onClick={() => handleSelectContact(contact)}
-                className={`w-full p-3 rounded-lg hover:bg-gray-50 transition-colors text-left ${
-                  selectedContact?.id === contact.id ? 'bg-blue-50' : ''
-                }`}
-              >
-                <div className="flex items-center gap-3">
+    <div className="h-full bg-white p-6">
+      <div className="max-w-full mx-auto">
+        <div className="grid grid-cols-12 gap-6" style={{ height: '800px' }}>
+          {/* Conversations List */}
+          <div className="col-span-4" style={{ height: '800px' }}>
+            <Card className="h-full flex flex-col overflow-hidden">
+              <CardHeader className="border-b flex-shrink-0 px-4 py-3 flex flex-col justify-center" style={{ height: '110px' }}>
+                <div className="space-y-2.5 w-full">
+                  {/* Search */}
                   <div className="relative">
-                    <Avatar>
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
-                        {contact.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    {contact.online && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
-                    )}
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search conversations..."
+                      className="pl-9"
+                    />
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium truncate">{contact.name}</p>
-                      {contact.lastMessageTime && (
-                        <span className="text-xs text-gray-500">
-                          {formatTime(contact.lastMessageTime)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500 truncate">
-                      {contact.lastMessage || contact.email}
-                    </p>
+
+                  {/* Filter */}
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={filterRole === 'all' ? 'default' : 'outline'}
+                      onClick={() => setFilterRole('all')}
+                      className={filterRole === 'all' ? 'bg-[#F97316] hover:bg-[#ea6b0f]' : ''}
+                    >
+                      All
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterRole === 'client' ? 'default' : 'outline'}
+                      onClick={() => setFilterRole('client')}
+                      className={filterRole === 'client' ? 'bg-[#F97316] hover:bg-[#ea6b0f]' : ''}
+                    >
+                      <UserCircle2 className="w-3 h-3 mr-1" />
+                      Clients
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterRole === 'therapist' ? 'default' : 'outline'}
+                      onClick={() => setFilterRole('therapist')}
+                      className={filterRole === 'therapist' ? 'bg-[#F97316] hover:bg-[#ea6b0f]' : ''}
+                    >
+                      <Stethoscope className="w-3 h-3 mr-1" />
+                      Staff
+                    </Button>
                   </div>
-                  
-                  {contact.unreadCount > 0 && (
-                    <Badge variant="blue" size="sm">{contact.unreadCount}</Badge>
-                  )}
                 </div>
-              </button>
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
+              </CardHeader>
 
-      {/* Chat Area */}
-      {selectedContact ? (
-        <div className="flex-1 flex flex-col">
-          {/* Chat Header */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white">
-            <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarFallback className="bg-blue-100 text-blue-600">
-                  {selectedContact.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="font-medium">{selectedContact.name}</h3>
-                <p className="text-sm text-gray-500">
-                  {selectedContact.online ? 'Online' : 'Offline'}
-                </p>
-              </div>
-            </div>
+              <CardContent className="flex-1 overflow-y-auto p-0 min-h-0">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
+                    Loading...
+                  </div>
+                ) : filteredConversations.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500 p-6">
+                    <MessageSquare className="w-12 h-12 mb-2 text-gray-300" />
+                    <p className="text-sm">No conversations found</p>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {filteredConversations.map((conv) => {
+                      const participant = conv.participants.find(p => p.id !== CURRENT_USER.id);
+                      if (!participant) return null;
 
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleStartCall('audio')}
-              >
-                <Phone className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleStartCall('video')}
-              >
-                <Video className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.map((msg, index) => {
-                const isOwn = msg.senderId === currentUserId;
-                const showDate = index === 0 || 
-                  new Date(messages[index - 1].timestamp).toDateString() !== new Date(msg.timestamp).toDateString();
-
-                return (
-                  <div key={msg.id}>
-                    {showDate && (
-                      <div className="flex justify-center my-4">
-                        <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                          {new Date(msg.timestamp).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-md ${isOwn ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+                      return (
                         <div
-                          className={`px-4 py-2 rounded-2xl ${
-                            isOwn
-                              ? 'bg-blue-600 text-white rounded-br-sm'
-                              : 'bg-gray-100 text-gray-900 rounded-bl-sm'
-                          }`}
+                          key={conv.id}
+                          onClick={() => setSelectedConversation(conv)}
+                          className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConversation?.id === conv.id ? 'bg-orange-50 border-l-4 border-[#F97316]' : ''
+                            }`}
                         >
-                          <p>{msg.message}</p>
+                          <div className="flex items-start gap-3">
+                            <Avatar className="flex-shrink-0">
+                              <AvatarFallback className={getRoleBadgeColor(participant.role)}>
+                                {getInitials(participant.name)}
+                              </AvatarFallback>
+                            </Avatar>
 
-                          {/* Reactions */}
-                          {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                            <div className="flex gap-1 mt-1">
-                              {Object.entries(msg.reactions).map(([emoji, users]) => (
-                                <button
-                                  key={emoji}
-                                  className="text-xs bg-white bg-opacity-20 px-2 py-0.5 rounded-full"
-                                  onClick={() => {
-                                    if (users.includes(currentUserId)) {
-                                      removeReaction(msg.id, currentUserId, emoji);
-                                    } else {
-                                      addReaction(msg.id, currentUserId, emoji);
-                                    }
-                                  }}
-                                >
-                                  {emoji} {users.length}
-                                </button>
-                              ))}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-sm text-gray-900 truncate">
+                                    {participant.name}
+                                  </span>
+                                  {conv.isStarred && (
+                                    <Star className="w-3 h-3 text-[#F97316] fill-[#F97316]" />
+                                  )}
+                                </div>
+                                <span className="text-xs text-gray-500 flex-shrink-0">
+                                  {formatTimestamp(conv.lastMessage.timestamp)}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="outline" className={`text-xs ${getRoleBadgeColor(participant.role)} border-0`}>
+                                  <span className="mr-1">{getRoleIcon(participant.role)}</span>
+                                  {participant.role}
+                                </Badge>
+
+                              </div>
+
+                              <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                                {conv.lastMessage.senderId === CURRENT_USER.id ? 'You: ' : ''}
+                                {conv.lastMessage.content}
+                              </p>
+
+                              {conv.unreadCount > 0 && (
+                                <Badge className="bg-[#F97316] text-white text-xs mt-1">
+                                  {conv.unreadCount} new
+                                </Badge>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
-
-                        <div className="flex items-center gap-2 px-2">
-                          <span className="text-xs text-gray-500">
-                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          {isOwn && (
-                            <span className="text-xs text-gray-500">
-                              {msg.isRead ? <CheckCheck className="w-3 h-3" /> : <Check className="w-3 h-3" />}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {typingUsers.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span>{typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...</span>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-
-          {/* Message Input */}
-          <div className="p-4 border-t border-gray-200 bg-white">
-            <div className="flex items-end gap-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Paperclip className="w-4 h-4" />
-              </Button>
-
-              <div className="flex-1">
-                <Input
-                  placeholder="Type a message..."
-                  value={messageText}
-                  onChange={(e) => handleTyping(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  className="resize-none"
-                />
-              </div>
-
-              <div className="relative">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                >
-                  <Smile className="w-4 h-4" />
-                </Button>
-
-                {showEmojiPicker && (
-                  <div className="absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-xl p-2 flex gap-1 border border-gray-200">
-                    {emojis.map(emoji => (
-                      <button
-                        key={emoji}
-                        onClick={() => {
-                          setMessageText(prev => prev + emoji);
-                          setShowEmojiPicker(false);
-                        }}
-                        className="text-xl hover:bg-gray-100 rounded p-1"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
-              </div>
+              </CardContent>
+            </Card>
+          </div>
 
-              <Button onClick={handleSendMessage} disabled={!messageText.trim()}>
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
+          {/* Message Thread */}
+          <div className="col-span-8" style={{ height: '800px' }}>
+            {selectedConversation && otherParticipant ? (
+              <Card className="h-full flex flex-col overflow-hidden">
+                {/* Thread Header */}
+                <CardHeader className="border-b flex-shrink-0 px-4 py-3 flex flex-col justify-center" style={{ height: '110px' }}>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback className={getRoleBadgeColor(otherParticipant.role)}>
+                          {getInitials(otherParticipant.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{otherParticipant.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={`text-xs ${getRoleBadgeColor(otherParticipant.role)} border-0`}>
+                            <span className="mr-1">{getRoleIcon(otherParticipant.role)}</span>
+                            {otherParticipant.role}
+                          </Badge>
+                          <span className="text-xs text-gray-500">Active now</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleStar(selectedConversation.id)}
+                      >
+                        <Star className={`w-4 h-4 ${selectedConversation.isStarred ? 'text-[#F97316] fill-[#F97316]' : 'text-gray-400'}`} />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Phone className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Video className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                {/* Messages - Scrollable Area */}
+                <CardContent className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
+                  {/* HIPAA Notice */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <div className="flex gap-2">
+                      <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-xs text-blue-900">
+                        <p className="font-medium">HIPAA-Compliant Messaging</p>
+                        <p className="mt-1">
+                          This is a secure, encrypted messaging system. Do not share sensitive health information via unsecured channels.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {messages.map((message) => {
+                    const isCurrentUser = message.senderId === CURRENT_USER.id;
+                    return (
+                      <div
+                        key={message.id}
+                        className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`max-w-[70%] ${isCurrentUser ? 'order-2' : 'order-1'}`}>
+                          {!isCurrentUser && (
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-medium text-gray-700">
+                                {message.senderName}
+                              </span>
+                              <Badge variant="outline" className={`text-xs ${getRoleBadgeColor(message.senderRole)} border-0`}>
+                                {message.senderRole}
+                              </Badge>
+                            </div>
+                          )}
+                          <div
+                            className={`rounded-lg px-4 py-2 ${isCurrentUser
+                              ? 'bg-[#F97316] text-white'
+                              : 'bg-gray-100 text-gray-900'
+                              }`}
+                          >
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {message.content}
+                            </p>
+                          </div>
+                          <div className={`flex items-center gap-1 mt-1 text-xs text-gray-500 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+                            <Clock className="w-3 h-3" />
+                            <span>{formatTimestamp(message.timestamp)}</span>
+                            {isCurrentUser && message.read && (
+                              <CheckCheck className="w-3 h-3 ml-1 text-blue-500" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </CardContent>
+
+                {/* Message Input - Fixed at Bottom */}
+                <div className="border-t p-4 flex-shrink-0">
+                  <div className="flex items-end gap-2">
+                    <Button variant="ghost" size="sm" className="flex-shrink-0">
+                      <Paperclip className="w-4 h-4" />
+                    </Button>
+                    <Textarea
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Type your message... (Shift+Enter for new line)"
+                      rows={1}
+                      className="resize-none min-h-[40px] max-h-[120px]"
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim()}
+                      className="bg-[#F97316] hover:bg-[#ea6b0f] flex-shrink-0"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Messages are encrypted and HIPAA-compliant. Press Enter to send, Shift+Enter for new line.
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <Card className="h-full flex flex-col overflow-hidden">
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                    <p className="text-lg font-medium">Select a conversation</p>
+                    <p className="text-sm mt-1">Choose a conversation from the list to start messaging</p>
+                  </div>
+                </div>
+              </Card>
+            )}
           </div>
         </div>
-      ) : (
-        <div className="flex-1 flex items-center justify-center text-gray-500">
-          <div className="text-center">
-            <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <p className="text-lg font-medium">Select a contact to start chatting</p>
-            <p className="text-sm">Choose from the list to begin a conversation</p>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
