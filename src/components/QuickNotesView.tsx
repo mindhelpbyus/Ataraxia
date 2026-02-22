@@ -1,476 +1,389 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useDrag } from 'react-dnd';
-import { Resizable } from 're-resizable';
-import { Plus, Trash, PushPin, Palette, X, FloppyDisk, XCircle } from '@phosphor-icons/react';
+import React, { useState, useEffect } from 'react';
+import { Rnd } from 'react-rnd';
 import { Button } from './ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Textarea } from './ui/textarea';
+import {
+  Plus,
+  Pin,
+  Trash2,
+  Palette,
+  HelpCircle
+} from 'lucide-react';
 
-interface StickyNote {
+// Types
+type NoteColor = 'yellow' | 'blue' | 'green' | 'pink' | 'purple' | 'orange';
+
+interface Note {
   id: string;
   content: string;
-  color: string;
+  color: NoteColor;
   isPinned: boolean;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  createdAt: string;
-  updatedAt: string;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  createdAt: Date;
 }
 
-const noteColors = [
-  { name: 'Yellow', bg: '#fef3c7', border: '#fde047', shadow: 'rgba(250, 204, 21, 0.3)' },
-  { name: 'Pink', bg: '#fce7f3', border: '#f9a8d4', shadow: 'rgba(244, 114, 182, 0.3)' },
-  { name: 'Blue', bg: '#dbeafe', border: '#93c5fd', shadow: 'rgba(96, 165, 250, 0.3)' },
-  { name: 'Green', bg: '#d1fae5', border: '#6ee7b7', shadow: 'rgba(52, 211, 153, 0.3)' },
-  { name: 'Purple', bg: '#e9d5ff', border: '#c084fc', shadow: 'rgba(168, 85, 247, 0.3)' },
-  { name: 'Orange', bg: '#fed7aa', border: '#fdba74', shadow: 'rgba(251, 146, 60, 0.3)' },
-  { name: 'Red', bg: '#fee2e2', border: '#fca5a5', shadow: 'rgba(248, 113, 113, 0.3)' },
-  { name: 'Teal', bg: '#ccfbf1', border: '#5eead4', shadow: 'rgba(45, 212, 191, 0.3)' },
-];
-
-const STORAGE_KEY = 'yodha_sticky_notes';
-
-// Load notes from localStorage
-const loadNotesFromStorage = (): StickyNote[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (error) {
-    console.error('Error loading notes from localStorage:', error);
-  }
-  
-  // Default notes if nothing in storage
-  return [
-    {
-      id: '1',
-      content: 'Remember to follow up with Sarah about anxiety management techniques',
-      color: 'Yellow',
-      isPinned: true,
-      x: 50,
-      y: 50,
-      width: 280,
-      height: 200,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-    {
-      id: '2',
-      content: 'Order new mindfulness workbooks for group therapy sessions',
-      color: 'Blue',
-      isPinned: false,
-      x: 380,
-      y: 50,
-      width: 280,
-      height: 180,
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-      updatedAt: new Date(Date.now() - 172800000).toISOString(),
-    },
-    {
-      id: '3',
-      content: 'Research new CBT techniques for treating social anxiety',
-      color: 'Green',
-      isPinned: true,
-      x: 710,
-      y: 50,
-      width: 280,
-      height: 200,
-      createdAt: new Date(Date.now() - 259200000).toISOString(),
-      updatedAt: new Date(Date.now() - 259200000).toISOString(),
-    },
-  ];
+// Color configurations matching the image
+const noteColors: { [key in NoteColor]: { bg: string; border: string; text: string } } = {
+  yellow: { bg: 'bg-yellow-100', border: 'border-l-yellow-400', text: 'text-gray-700' },
+  blue: { bg: 'bg-blue-100', border: 'border-l-blue-400', text: 'text-gray-700' },
+  green: { bg: 'bg-green-100', border: 'border-l-green-400', text: 'text-gray-700' },
+  pink: { bg: 'bg-pink-100', border: 'border-l-pink-400', text: 'text-gray-700' },
+  purple: { bg: 'bg-purple-100', border: 'border-l-purple-400', text: 'text-gray-700' },
+  orange: { bg: 'bg-orange-100', border: 'border-l-orange-400', text: 'text-gray-700' }
 };
 
-// Save notes to localStorage
-const saveNotesToStorage = (notes: StickyNote[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-  } catch (error) {
-    console.error('Error saving notes to localStorage:', error);
-  }
-};
-
-interface DraggableNoteProps {
-  note: StickyNote;
-  onUpdate: (id: string, updates: Partial<StickyNote>) => void;
-  onDelete: (id: string) => void;
-  onBringToFront: (id: string) => void;
-  zIndex: number;
-}
-
-function DraggableNote({ note, onUpdate, onDelete, onBringToFront, zIndex }: DraggableNoteProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(note.content);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const noteRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const [{ opacity }, drag] = useDrag({
-    type: 'sticky-note',
-    item: () => {
-      setIsDragging(true);
-      return { id: note.id, x: note.x, y: note.y };
-    },
-    end: (item, monitor) => {
-      setIsDragging(false);
-      const delta = monitor.getDifferenceFromInitialOffset();
-      if (delta) {
-        const newX = Math.max(0, note.x + delta.x);
-        const newY = Math.max(0, note.y + delta.y);
-        onUpdate(note.id, { x: newX, y: newY });
-      }
-    },
-    collect: (monitor) => ({
-      opacity: monitor.isDragging() ? 0.5 : 1,
-    }),
-  });
-
-  useEffect(() => {
-    if (isEditing && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
-    }
-  }, [isEditing]);
-
-  const handleDoubleClick = () => {
-    setIsEditing(true);
-    onBringToFront(note.id);
-  };
-
-  const handleSave = () => {
-    if (editContent.trim() !== note.content) {
-      onUpdate(note.id, { content: editContent.trim(), updatedAt: new Date().toISOString() });
-    }
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setEditContent(note.content);
-    setIsEditing(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      handleCancel();
-    }
-    // Optional: Allow Cmd/Ctrl+Enter as a shortcut for quick save
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      handleSave();
-    }
-  };
-
-  const handleColorChange = (colorName: string) => {
-    onUpdate(note.id, { color: colorName, updatedAt: new Date().toISOString() });
-  };
-
-  const colorConfig = noteColors.find(c => c.name === note.color) || noteColors[0];
-
-  const handleMouseDown = () => {
-    onBringToFront(note.id);
-  };
-
-  return (
-    <Resizable
-      size={{ width: note.width, height: note.height }}
-      onResizeStop={(e, direction, ref, d) => {
-        onUpdate(note.id, {
-          width: note.width + d.width,
-          height: note.height + d.height,
-        });
-      }}
-      minWidth={200}
-      minHeight={150}
-      maxWidth={600}
-      maxHeight={600}
-      style={{
-        position: 'absolute',
-        left: note.x,
-        top: note.y,
-        opacity,
-        zIndex: zIndex,
-      }}
-      onMouseDown={handleMouseDown}
-    >
-      <div
-        ref={(node) => {
-          drag(node);
-          if (noteRef.current !== node) {
-            noteRef.current = node;
-          }
-        }}
-        className="h-full w-full flex flex-col shadow-lg rounded-lg overflow-hidden group cursor-move"
-        style={{
-          backgroundColor: colorConfig.bg,
-          borderLeft: `4px solid ${colorConfig.border}`,
-          boxShadow: isDragging 
-            ? `0 20px 25px -5px ${colorConfig.shadow}, 0 10px 10px -5px ${colorConfig.shadow}`
-            : `0 4px 6px -1px ${colorConfig.shadow}, 0 2px 4px -1px ${colorConfig.shadow}`,
-        }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-black/10">
-          <div className="flex items-center gap-1.5">
-            {note.isPinned && !isEditing && (
-              <PushPin className="h-3.5 w-3.5 text-foreground/60" weight="fill" />
-            )}
-            {isEditing && (
-              <span className="text-xs text-foreground/60 font-medium">Editing</span>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="p-1.5 rounded hover:bg-red-500/20 transition-colors"
-                  title="Cancel (Esc)"
-                >
-                  <XCircle className="h-4 w-4 text-red-600" weight="bold" />
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="p-1.5 rounded bg-green-500/20 hover:bg-green-500/30 transition-colors"
-                  title="Save changes"
-                >
-                  <FloppyDisk className="h-4 w-4 text-green-700" weight="bold" />
-                </button>
-              </>
-            ) : (
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className="p-1 rounded hover:bg-black/10 transition-colors"
-                      title="Change color"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Palette className="h-3.5 w-3.5 text-foreground/80" weight="regular" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44">
-                    <div className="grid grid-cols-4 gap-1.5 p-2">
-                      {noteColors.map((color) => (
-                        <button
-                          key={color.name}
-                          onClick={() => handleColorChange(color.name)}
-                          className="w-8 h-8 rounded-md border-2 transition-all hover:scale-110"
-                          style={{
-                            backgroundColor: color.bg,
-                            borderColor: note.color === color.name ? '#000' : 'transparent',
-                          }}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <button
-                  onClick={() => onUpdate(note.id, { isPinned: !note.isPinned })}
-                  className={`p-1 rounded hover:bg-black/10 transition-colors ${
-                    note.isPinned ? 'bg-black/10' : ''
-                  }`}
-                  title={note.isPinned ? 'Unpin' : 'Pin'}
-                >
-                  <PushPin 
-                    className="h-3.5 w-3.5 text-foreground/80" 
-                    weight={note.isPinned ? "fill" : "regular"}
-                  />
-                </button>
-                <button
-                  onClick={() => onDelete(note.id)}
-                  className="p-1 rounded hover:bg-red-500/20 transition-colors"
-                  title="Delete"
-                >
-                  <Trash className="h-3.5 w-3.5 text-red-600" weight="regular" />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 p-3 overflow-hidden">
-          {isEditing ? (
-            <textarea
-              ref={textareaRef}
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="w-full h-full resize-none bg-transparent outline-none text-sm leading-relaxed text-foreground/90"
-              style={{ fontFamily: 'inherit' }}
-              placeholder="Type your note here..."
-            />
-          ) : (
-            <div
-              onDoubleClick={handleDoubleClick}
-              className="w-full h-full text-sm whitespace-pre-wrap break-words leading-relaxed text-foreground/90 cursor-text"
-            >
-              {note.content || 'Double-click to edit...'}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-3 py-1.5 text-xs text-foreground/50 border-t border-black/5">
-          {isEditing ? (
-            <span className="italic">Click the save icon to save changes</span>
-          ) : (
-            <span>Double-click to edit</span>
-          )}
-        </div>
-      </div>
-    </Resizable>
-  );
-}
+const STORAGE_KEY = 'medicalAppStickyNotes';
 
 export function QuickNotesView() {
-  const [notes, setNotes] = useState<StickyNote[]>([]);
-  const [noteOrder, setNoteOrder] = useState<string[]>([]);
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Load notes from localStorage on mount
+  // Load notes from localStorage
   useEffect(() => {
-    const loadedNotes = loadNotesFromStorage();
-    setNotes(loadedNotes);
-    setNoteOrder(loadedNotes.map(n => n.id));
+    const savedNotes = localStorage.getItem(STORAGE_KEY);
+    if (savedNotes) {
+      try {
+        const parsed = JSON.parse(savedNotes);
+        setNotes(parsed.map((note: any) => ({
+          ...note,
+          createdAt: new Date(note.createdAt)
+        })));
+      } catch (e) {
+        console.error("Failed to parse notes", e);
+      }
+    } else {
+      // Default Notes matching the design
+      setNotes([
+        {
+          id: 'note-1',
+          content: '',
+          color: 'yellow',
+          isPinned: false,
+          position: { x: 100, y: 100 },
+          size: { width: 280, height: 200 },
+          createdAt: new Date()
+        },
+        {
+          id: 'note-2',
+          content: '',
+          color: 'purple',
+          isPinned: false,
+          position: { x: 500, y: 100 },
+          size: { width: 280, height: 200 },
+          createdAt: new Date()
+        }
+      ]);
+    }
   }, []);
 
-  // Save notes to localStorage whenever they change
+  // Save notes to localStorage
   useEffect(() => {
     if (notes.length > 0) {
-      saveNotesToStorage(notes);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
     }
   }, [notes]);
 
   const handleCreateNote = () => {
-    // Get canvas dimensions
-    const canvas = canvasRef.current;
-    const canvasRect = canvas?.getBoundingClientRect();
-    
-    // Random position within visible area
-    const randomX = Math.random() * ((canvasRect?.width || 1000) - 300) + 20;
-    const randomY = Math.random() * 300 + 50;
-    
-    // Random color
-    const randomColor = noteColors[Math.floor(Math.random() * noteColors.length)].name;
-
-    const newNote: StickyNote = {
-      id: Date.now().toString(),
+    const newNote: Note = {
+      id: `note-${Date.now()}`,
       content: '',
-      color: randomColor,
+      color: 'yellow', // Default color, user can change it
       isPinned: false,
-      x: randomX,
-      y: randomY,
-      width: 280,
-      height: 200,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      position: {
+        x: 50 + (notes.length * 30) % 300,
+        y: 100 + (notes.length * 30) % 200
+      },
+      size: { width: 280, height: 200 },
+      createdAt: new Date()
     };
 
     setNotes([...notes, newNote]);
-    setNoteOrder([...noteOrder, newNote.id]);
-  };
-
-  const handleUpdateNote = (id: string, updates: Partial<StickyNote>) => {
-    setNotes(notes.map(note => 
-      note.id === id ? { ...note, ...updates } : note
-    ));
   };
 
   const handleDeleteNote = (id: string) => {
     setNotes(notes.filter(note => note.id !== id));
-    setNoteOrder(noteOrder.filter(nid => nid !== id));
+    if (editingNoteId === id) setEditingNoteId(null);
   };
 
-  const handleBringToFront = (id: string) => {
-    setNoteOrder([...noteOrder.filter(nid => nid !== id), id]);
+  const handleTogglePin = (id: string) => {
+    setNotes(notes.map(note =>
+      note.id === id ? { ...note, isPinned: !note.isPinned } : note
+    ));
+  };
+
+  const handleChangeColor = (id: string, color: NoteColor) => {
+    setNotes(notes.map(note =>
+      note.id === id ? { ...note, color } : note
+    ));
+    setShowColorPicker(null);
   };
 
   const handleClearAll = () => {
-    if (window.confirm('Are you sure you want to delete all notes? This action cannot be undone.')) {
-      setNotes([]);
-      setNoteOrder([]);
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    if (notes.length === 0) return;
+    setShowClearConfirm(true);
   };
 
+  const confirmClearAll = () => {
+    setNotes([]);
+    setEditingNoteId(null);
+    localStorage.removeItem(STORAGE_KEY);
+    setShowClearConfirm(false);
+  };
+
+  const handleDoubleClick = (id: string) => {
+    setEditingNoteId(id);
+  };
+
+  const handleContentChange = (id: string, content: string) => {
+    setNotes(notes.map(note =>
+      note.id === id ? { ...note, content } : note
+    ));
+  };
+
+  const handleUpdatePosition = (id: string, x: number, y: number) => {
+    setNotes(notes.map(note =>
+      note.id === id ? { ...note, position: { x, y } } : note
+    ));
+  };
+
+  const handleUpdateSize = (id: string, width: number, height: number) => {
+    setNotes(notes.map(note =>
+      note.id === id ? { ...note, size: { width, height } } : note
+    ));
+  };
+
+  const bringToFront = (id: string) => {
+    // Simple way to bring to front: remove and re-add to end of array
+    // But we need to maintain state.
+    // Alternatively, we can just sort by a zIndex property, but re-ordering array works for visual stacking in DOM.
+    const noteIndex = notes.findIndex(n => n.id === id);
+    if (noteIndex === -1 || noteIndex === notes.length - 1) return;
+
+    const note = notes[noteIndex];
+    const newNotes = [...notes];
+    newNotes.splice(noteIndex, 1);
+    newNotes.push(note);
+    setNotes(newNotes);
+  };
+
+
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Toolbar */}
-      <div className="bg-white border-b border-border px-6 py-3 flex items-center justify-between shadow-sm">
+    <div className="h-full flex flex-col bg-gray-50 overflow-hidden">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between z-10 sticky top-0 shadow-sm">
         <div>
-          <h2 className="mb-0.5">Sticky Notes Board</h2>
-          <p className="text-sm text-muted-foreground">
-            Drag to move, resize corners, double-click to edit
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900">Sticky Notes Board</h2>
+          <p className="text-sm text-gray-500 mt-1">Drag to move, resize corners, double-click to edit</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-muted-foreground mr-2">
-            {notes.length} {notes.length === 1 ? 'note' : 'notes'}
-          </div>
-          {notes.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearAll}
-              className="gap-2"
-            >
-              <Trash className="h-4 w-4" weight="bold" />
-              Clear All
-            </Button>
-          )}
-          <Button onClick={handleCreateNote} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" weight="bold" />
+
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-gray-500">{notes.length} notes</span>
+          <Button
+            variant="outline"
+            onClick={handleClearAll}
+            disabled={notes.length === 0}
+            className="text-gray-700 hover:bg-gray-50 border-gray-300"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Clear All
+          </Button>
+          <Button
+            onClick={handleCreateNote}
+            className="bg-[#F97316] hover:bg-[#ea6b0f] text-white shadow-sm"
+          >
+            <Plus className="w-4 h-4 mr-2" />
             New Note
           </Button>
         </div>
       </div>
 
-      {/* Canvas */}
-      <div 
-        ref={canvasRef}
-        className="flex-1 overflow-auto relative"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #e2e8f0 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
+      {/* Notes Board */}
+      <div
+        className="relative w-full bg-gray-50"
+        style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}
+        onClick={() => {
+          setEditingNoteId(null);
+          setShowColorPicker(null);
         }}
       >
-        {notes.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <div className="mb-4 text-6xl">📝</div>
-              <h3 className="mb-2">No sticky notes yet</h3>
-              <p className="text-sm mb-4 max-w-md">
-                Click "New Note" to create your first sticky note. You can drag to move, resize, and double-click to edit.
+        {notes.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-gray-300 pointer-events-none select-none">
+            <div className="bg-yellow-100 border-l-4 border-yellow-400 rounded-lg shadow-md p-8 w-80 mb-6 flex flex-col items-center">
+              <p className="text-gray-700 text-center font-medium">
+                Click "New Note" to create your first sticky note!
               </p>
-              <Button onClick={handleCreateNote} className="gap-2">
-                <Plus className="h-4 w-4" weight="bold" />
-                Create First Note
-              </Button>
             </div>
-          </div>
-        ) : (
-          <div className="relative min-h-full min-w-full p-4">
-            {noteOrder.map((noteId, index) => {
-              const note = notes.find(n => n.id === noteId);
-              if (!note) return null;
-              
-              return (
-                <DraggableNote
-                  key={note.id}
-                  note={note}
-                  onUpdate={handleUpdateNote}
-                  onDelete={handleDeleteNote}
-                  onBringToFront={handleBringToFront}
-                  zIndex={index + 1}
-                />
-              );
-            })}
+            <p className="text-gray-400 text-sm">
+              You can drag notes around and resize them
+            </p>
           </div>
         )}
+
+        {notes.map((note) => {
+          const colors = noteColors[note.color];
+          const isEditing = editingNoteId === note.id;
+
+          return (
+            <Rnd
+              key={note.id}
+              position={note.position}
+              size={note.size}
+              onDragStart={() => bringToFront(note.id)}
+              onDragStop={(e, d) => {
+                handleUpdatePosition(note.id, d.x, d.y);
+              }}
+              onResizeStart={() => bringToFront(note.id)}
+              onResizeStop={(e, direction, ref, delta, position) => {
+                handleUpdateSize(
+                  note.id,
+                  parseInt(ref.style.width),
+                  parseInt(ref.style.height)
+                );
+                handleUpdatePosition(note.id, position.x, position.y);
+              }}
+              minWidth={200}
+              minHeight={150}
+              bounds="parent"
+              enableResizing={!note.isPinned}
+              disableDragging={note.isPinned || isEditing}
+              className={`${note.isPinned ? 'cursor-default' : 'cursor-move'}`}
+              dragHandleClassName="note-drag-handle"
+            >
+              <div
+                className={`h-full w-full ${colors.bg} ${colors.border} border-l-[6px] rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col relative group overflow-hidden note-drag-handle`}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  handleDoubleClick(note.id);
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Top controls (Visible on Hover) - Clean looking */}
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20 no-drag">
+                  {/* Pin button */}
+                  <div
+                    onClick={(e) => { e.stopPropagation(); handleTogglePin(note.id); }}
+                    className={`p-1.5 rounded-full hover:bg-white/60 transition-colors cursor-pointer ${note.isPinned ? 'text-[#F97316] bg-white/50' : 'text-gray-500'
+                      }`}
+                    title={note.isPinned ? 'Unpin note' : 'Pin note'}
+                  >
+                    <Pin className={`w-4 h-4 ${note.isPinned ? 'fill-current' : ''}`} />
+                  </div>
+
+                  {/* Color picker button */}
+                  <div className="relative">
+                    <div
+                      onClick={(e) => { e.stopPropagation(); setShowColorPicker(showColorPicker === note.id ? null : note.id); }}
+                      className="p-1.5 rounded-full hover:bg-white/60 transition-colors cursor-pointer text-gray-500"
+                      title="Change color"
+                    >
+                      <Palette className="w-4 h-4" />
+                    </div>
+
+                    {/* Color picker dropdown */}
+                    {showColorPicker === note.id && (
+                      <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 p-2 flex flex-nowrap gap-1.5 z-30 min-w-max animate-in fade-in zoom-in-95 duration-200">
+                        {(Object.keys(noteColors) as NoteColor[]).map((color) => (
+                          <div
+                            key={color}
+                            onClick={(e) => { e.stopPropagation(); handleChangeColor(note.id, color); }}
+                            className={`w-6 h-6 rounded-md ${noteColors[color].bg} border ${note.color === color ? 'border-[#F97316] ring-1 ring-[#F97316]' : 'border-gray-300'
+                              } hover:scale-110 transition-transform cursor-pointer shadow-sm`}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Delete button */}
+                  <div
+                    onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
+                    className="p-1.5 rounded-full hover:bg-white/60 transition-colors cursor-pointer text-red-400 hover:text-red-600"
+                    title="Delete note"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </div>
+                </div>
+
+                {/* Note content */}
+                <div className="flex-1 p-6 overflow-hidden">
+                  {isEditing ? (
+                    <Textarea
+                      value={note.content}
+                      onChange={(e) => handleContentChange(note.id, e.target.value)}
+                      onBlur={() => setEditingNoteId(null)}
+                      placeholder="Type your note here..."
+                      className={`w-full h-full bg-transparent border-none focus:ring-0 resize-none p-0 text-base leading-relaxed ${colors.text} font-medium placeholder-gray-400/70`}
+                      style={{ boxShadow: 'none' }}
+                      autoFocus
+                    />
+                  ) : (
+                    <div className={`w-full h-full ${colors.text} text-base font-medium leading-relaxed whitespace-pre-wrap break-words overflow-y-auto`}>
+                      {note.content || (
+                        <div className="h-full flex items-center justify-center">
+                          <span className="text-gray-400/80 italic text-sm">Double-click to edit</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Rnd>
+          );
+        })}
       </div>
+
+      {/* Footer */}
+      <div className="bg-white border-t border-gray-200 px-6 py-2 flex items-center justify-between z-10 sticky bottom-0">
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <span className="text-[#F97316]">●</span>
+          <span>© 2026 Ataraxia Health. All rights reserved.</span>
+        </div>
+        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <HelpCircle className="w-4 h-4 text-gray-400" />
+        </button>
+      </div>
+
+      {/* Clear All Confirmation Dialog */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-xs overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100"
+            style={{ maxWidth: '320px' }}
+          >
+            <div className="p-5 text-center">
+              <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">Clear all notes?</h3>
+              <p className="text-gray-500 mb-5 text-sm">
+                This will permanently delete all {notes.length} sticky notes.
+              </p>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowClearConfirm(false)}
+                  className="flex-1 border-gray-300 hover:bg-gray-50 h-9 text-sm"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={confirmClearAll}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white shadow-sm border border-transparent h-9 text-sm"
+                >
+                  Clear All
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

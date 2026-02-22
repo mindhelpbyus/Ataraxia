@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit, Search, Filter, Plus, Calendar, User, Clock, FileText } from 'lucide-react';
+import { PencilSimple as Edit, MagnifyingGlass as Search, Funnel as Filter, Plus, Calendar, User, Clock, FileText } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -134,13 +134,13 @@ export function SessionNotesView() {
   };
 
   const filteredNotes = notes.filter(note => {
-    const matchesSearch = 
+    const matchesSearch =
       note.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.sessionType.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.notes.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesClient = clientFilter === 'all' || note.clientId === clientFilter;
-    
+
     return matchesSearch && matchesClient;
   });
 
@@ -211,8 +211,8 @@ export function SessionNotesView() {
           ) : (
             <div className="space-y-4">
               {filteredNotes.map((note) => (
-                <div 
-                  key={note.id} 
+                <div
+                  key={note.id}
                   className="border border-border rounded-lg p-5 hover:border-primary hover:shadow-sm transition-all cursor-pointer bg-white"
                   onClick={() => setSelectedNote(note)}
                 >
@@ -419,7 +419,7 @@ export function SessionNotesView() {
 
             <div className="space-y-2">
               <Label>Session Notes</Label>
-              <Textarea 
+              <Textarea
                 placeholder="Document what happened during the session, client's presentation, topics discussed..."
                 className="min-h-[100px]"
               />
@@ -432,7 +432,7 @@ export function SessionNotesView() {
 
             <div className="space-y-2">
               <Label>Progress & Observations</Label>
-              <Textarea 
+              <Textarea
                 placeholder="Note any progress, changes in symptoms, client insights..."
                 className="min-h-[80px]"
               />
@@ -440,7 +440,7 @@ export function SessionNotesView() {
 
             <div className="space-y-2">
               <Label>Next Steps</Label>
-              <Textarea 
+              <Textarea
                 placeholder="Plan for next session, homework assignments, follow-up items..."
                 className="min-h-[80px]"
               />

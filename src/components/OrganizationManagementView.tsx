@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { OrganizationSetupForm } from './OrganizationSetupForm';
+import { OrganizationSetupForm } from './organization';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import {

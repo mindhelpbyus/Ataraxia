@@ -99,9 +99,9 @@ export function VideoCallRoom({
           logger.info('User joined the call');
           setIsLoading(false);
           if (logId && logId !== 'mock-call-log-id') {
-            updateCallStatus(logId, 'ongoing');
+            updateCallStatus(logId, 'in-progress');
           }
-          
+
           // Start with audio muted if audio-only call
           if (callType === 'audio') {
             api.executeCommand('toggleVideo');
@@ -196,7 +196,7 @@ export function VideoCallRoom({
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"

@@ -30,7 +30,8 @@ import { EditClientProfileForm } from './EditClientProfileForm';
 import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
-import { ComprehensiveClientRegistrationForm } from './ComprehensiveClientRegistrationForm';
+import { PhoneInputV2 } from './PhoneInputV2';
+
 import { toast } from 'sonner';
 import { Switch } from './ui/switch';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from './ui/sheet';
@@ -210,6 +211,7 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
     lastName: '',
     email: '',
     phone: '',
+    countryCode: '+1',
     sendLink: true
   });
 
@@ -1226,14 +1228,13 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-medium text-muted-foreground">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
+                <PhoneInputV2
                   value={newClient.phone}
-                  onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
-                  className="h-11 bg-muted/20 border-border/50 focus:bg-background transition-all"
+                  onChange={(value) => setNewClient({ ...newClient, phone: value || '' })}
+                  label="Phone Number"
                   placeholder="(555) 123-4567"
+                  className="h-11"
+                  defaultCountry="US"
                 />
               </div>
             </div>
@@ -1281,6 +1282,7 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
                           firstName: newClient.firstName,
                           lastName: newClient.lastName,
                           phone: newClient.phone,
+                          countryCode: newClient.countryCode,
                           token: 'preview-token-' + Date.now()
                         });
                         window.open(`${window.location.origin}/?${params.toString()}`, '_blank');
@@ -1304,7 +1306,8 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
                   toast.success(`Registration link sent to ${newClient.email}`);
                 }
                 setIsAddClientOpen(false);
-                setNewClient({ firstName: '', lastName: '', email: '', phone: '', sendLink: true });
+                setIsAddClientOpen(false);
+                setNewClient({ firstName: '', lastName: '', email: '', phone: '', countryCode: '+1', sendLink: true });
               }}
               className="shadow-lg min-w-[140px]"
             >

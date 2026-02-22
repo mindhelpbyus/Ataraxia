@@ -13,6 +13,7 @@ import Select from 'react-select';
 import langs from 'langs';
 import * as ct from 'countries-and-timezones';
 import zipcodes from 'zipcodes';
+import { PhoneInputV2 } from '../PhoneInputV2';
 
 interface AccountSettingsProps {
     userId: string;
@@ -27,6 +28,8 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
     const [lastName, setLastName] = useState(userEmail.split('@')[0].split('.')[1] || '');
     const [gender, setGender] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
+    const [phone, setPhone] = useState('');
+    const [countryCode, setCountryCode] = useState('+1');
     const [addressLine1, setAddressLine1] = useState('');
     const [addressLine2, setAddressLine2] = useState('');
 
@@ -532,17 +535,13 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
 
                             {/* Phone and Email */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-medium">Phone <span className="text-red-500">*</span></Label>
-                                    <div className="flex gap-2">
-                                        <select className="flex h-10 w-24 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                            <option value="+1">+1</option>
-                                            <option value="+91">+91</option>
-                                            <option value="+44">+44</option>
-                                        </select>
-                                        <Input placeholder="+1 (555) 123-4567" className="h-10 flex-1" />
-                                    </div>
-                                </div>
+                                <PhoneInputV2
+                                    value={phone}
+                                    onChange={(value) => setPhone(value || '')}
+                                    label="Phone"
+                                    required
+                                    defaultCountry="US"
+                                />
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium">Email <span className="text-red-500">*</span></Label>
                                     <Input type="email" value={userEmail} disabled placeholder="client@example.com" className="h-10" />

@@ -292,7 +292,7 @@ export function EnhancedAppointmentForm({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:max-w-3xl p-0 overflow-hidden flex flex-col">
+      <SheetContent side="right" className="w-full p-0 overflow-hidden flex flex-col" style={{ maxWidth: '1000px' }}>
         {/* Header */}
         <div className="px-8 pt-8 pb-6 bg-gradient-to-b from-muted/30 to-background border-b flex-shrink-0">
           <SheetHeader>

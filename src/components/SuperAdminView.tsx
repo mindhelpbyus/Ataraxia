@@ -55,7 +55,7 @@ import {
 } from './ui/pagination';
 import { format } from 'date-fns';
 import { dataService } from '../api';
-import { OrganizationSetupForm, OrganizationData } from './OrganizationSetupForm';
+import { OrganizationSetupForm, OrganizationData } from './organization';
 
 interface Organization {
   orgId: string;

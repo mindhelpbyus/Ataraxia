@@ -246,7 +246,7 @@ export function PhoneInput({
     <div className={cn("space-y-1.5", className)}>
       {label && (
         <Label htmlFor={id} className={cn(error && "text-destructive")}>
-          {label} {required && <span className="text-destructive">*</span>}
+          {label} {required && <span className="text-red-500">*</span>}
         </Label>
       )}
 
@@ -271,11 +271,10 @@ export function PhoneInput({
               <div className="flex items-center gap-2">
                 <CountryFlag countryCode={selectedCountry.code} size="sm" />
                 <span className="text-muted-foreground">{selectedCountry.code}</span>
-                <ChevronDown className="h-3 w-3 opacity-50" />
               </div>
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="z-[100]">
+          <SelectContent className="z-[9999]">
             {COUNTRY_CODES.map((country) => (
               <SelectItem
                 key={`${country.code}-${country.country}`}

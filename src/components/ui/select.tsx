@@ -106,7 +106,7 @@ function SelectContent({
         data-slot="select-content"
         className={cn(
           // Base styles matching design system
-          "relative z-[150] min-w-[8rem] rounded",
+          "relative z-[100] min-w-[8rem] rounded",
           "bg-white",
           "text-[var(--content-dark-primary,#000000)]",
 

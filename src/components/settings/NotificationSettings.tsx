@@ -329,7 +329,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
     ];
 
     return (
-        <div className="max-w-5xl pl-6 pb-20 pt-0">
+        <div className="max-w-5xl pl-6 pb-8 pt-0">
             {/* Header with Stats */}
             <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                 <div className="flex items-start justify-between">
@@ -547,7 +547,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
             }
 
             {/* Action Buttons */}
-            <div className="pt-6 flex items-center justify-between sticky bottom-0 bg-white py-4 border-t border-gray-200 mt-8">
+            <div className="pt-6 flex items-center justify-between bg-white py-4 border-t border-gray-200 mt-8">
                 <div className="flex gap-3 ml-auto">
                     <Button
                         variant="outline"

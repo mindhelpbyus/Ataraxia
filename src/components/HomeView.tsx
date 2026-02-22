@@ -28,19 +28,19 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { UserRole } from '../types/appointment';
-import { DashboardWidgets } from './CustomizeDashboard';
+
 
 interface HomeViewProps {
   userRole: UserRole;
   userEmail: string;
   onNavigate: (tab: 'dashboard' | 'calendar' | 'clients' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings') => void;
-  visibleWidgets?: DashboardWidgets;
 }
 
-export function HomeView({ userRole, userEmail, onNavigate, visibleWidgets }: HomeViewProps) {
+export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const widgets = visibleWidgets || {
+  // All widgets are always visible
+  const widgets = {
     stats: true,
     agenda: true,
     categories: true,

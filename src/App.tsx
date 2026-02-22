@@ -15,7 +15,7 @@ import SessionManager from './components/SessionManager';
 
 
 
-import { ComprehensiveClientRegistrationForm } from './components/ComprehensiveClientRegistrationForm';
+import { ClientRegistrationForm } from './components/ClientRegistrationForm';
 import { logger } from './services/secureLogger';
 
 import { VerificationPendingPage } from './components/VerificationPendingPage';
@@ -388,11 +388,12 @@ export default function App() {
       <>
         <div className="min-h-screen bg-background p-4 md:p-8">
           <div className="max-w-5xl mx-auto">
-            <ComprehensiveClientRegistrationForm
+            <ClientRegistrationForm
               clientEmail={params.get('email') || ''}
               clientPhone={params.get('phone') || ''}
               clientFirstName={params.get('firstName') || ''}
               clientLastName={params.get('lastName') || ''}
+              clientCountryCode={params.get('countryCode') || '+1'}
               registrationToken={params.get('token') || ''}
               onComplete={() => {
                 window.location.href = '/';
