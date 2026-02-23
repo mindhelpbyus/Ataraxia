@@ -9,7 +9,7 @@ import {
   verifySessionAccess,
   logSecurityEvent,
   RoleVerificationResult
-} from '../services/roleVerification';
+} from './roles';
 import { getCurrentUser } from './auth';
 import {
   VideoConfiguration,
@@ -33,10 +33,10 @@ export async function getSecureVideoConfig(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // Verify session access from Firestore (source of truth)
     const roleVerification = await verifySessionAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -46,10 +46,10 @@ export async function getSecureVideoConfig(
       videoRole: roleVerification.videoRole,
       success: true
     });
-    
+
     // Get video configuration from backend
     const config = await get<VideoConfiguration>(`/video/config/${sessionId}`);
-    
+
     return {
       config,
       roleVerification
@@ -70,7 +70,7 @@ export async function getSecureVideoConfig(
     } catch {
       // Ignore logging errors
     }
-    
+
     throw error;
   }
 }
@@ -86,10 +86,10 @@ export async function executeSecureVideoCommand(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // CRITICAL: Verify moderator access from Firestore (source of truth)
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -100,7 +100,7 @@ export async function executeSecureVideoCommand(
       success: true,
       details: { command: command.command, target: command.target }
     });
-    
+
     // Execute command through backend
     return post(`/video/commands/${sessionId}`, command);
   } catch (error) {
@@ -123,7 +123,7 @@ export async function executeSecureVideoCommand(
     } catch {
       // Ignore logging errors
     }
-    
+
     throw error;
   }
 }
@@ -137,10 +137,10 @@ export async function startSecureRecording(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // Verify moderator access from Firestore
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -150,7 +150,7 @@ export async function startSecureRecording(
       videoRole: roleVerification.videoRole,
       success: true
     });
-    
+
     // Start recording through backend
     return post<RecordingStatus>(`/video/recording/${sessionId}/start`, {});
   } catch (error) {
@@ -169,7 +169,7 @@ export async function startSecureRecording(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -183,10 +183,10 @@ export async function stopSecureRecording(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // Verify moderator access from Firestore
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -196,7 +196,7 @@ export async function stopSecureRecording(
       videoRole: roleVerification.videoRole,
       success: true
     });
-    
+
     // Stop recording through backend
     return post<RecordingStatus>(`/video/recording/${sessionId}/stop`, {});
   } catch (error) {
@@ -215,7 +215,7 @@ export async function stopSecureRecording(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -230,16 +230,16 @@ export async function sendSecureVideoEvent(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // Verify session access (not requiring moderator)
-    const roleVerification = await verifySessionAccess(user.id, sessionId);
-    
+    await verifySessionAccess(user.id, sessionId);
+
     // Add userId to event if not present
     const eventWithUser = {
       ...event,
       userId: event.userId || user.id
     };
-    
+
     // Send event through backend
     return post(`/video/events/${sessionId}`, eventWithUser);
   } catch (error) {

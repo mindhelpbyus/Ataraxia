@@ -65,26 +65,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
 
   // Note: Removed auto-selection - let admin users manually choose therapists
 
-  // Debug therapist data loading
-  useEffect(() => {
-    console.log('Therapists loaded:', therapists.length, therapists.map(t => `${t.name} (${t.id})`));
-    console.log('Current selected therapist IDs:', state.selectedTherapistIds);
-    console.log('User role:', userRole);
-  }, [therapists, state.selectedTherapistIds, userRole]);
 
-  // Debug appointment data loading - show sample data
-  useEffect(() => {
-    if (appointments.length > 0) {
-      console.log('[Data] Total appointments loaded:', appointments.length);
-      console.log('[Data] Sample appointment:', {
-        title: appointments[0].title,
-        clientName: appointments[0].clientName,
-        type: appointments[0].type,
-        therapistName: appointments[0].therapistName,
-      });
-      console.log('[Data] Unique client names:', [...new Set(appointments.map(a => a.clientName).filter(Boolean))]);
-    }
-  }, [appointments]);
 
   const loadData = async () => {
     setLoading(true);
@@ -100,7 +81,6 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
 
       setAppointments(appointmentsData as unknown as Appointment[]);
       setTherapists(therapistsData);
-      console.log('Data loaded successfully - Therapists:', therapistsData.length, 'Appointments:', appointmentsData.length);
     } catch (error) {
       console.error('Failed to load data:', error);
       // Set empty arrays as fallback
@@ -168,14 +148,12 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
   const handleTherapistToggle = (therapistId: string, checked: boolean) => {
     if (userRole === 'therapist') return; // Therapists can't change this
 
-    console.log('Toggling therapist:', therapistId, 'checked:', checked);
 
     setState(prev => {
       const newSelectedIds = checked
         ? [...prev.selectedTherapistIds, therapistId]
         : prev.selectedTherapistIds.filter(id => id !== therapistId);
 
-      console.log('New selected therapist IDs:', newSelectedIds);
 
       return {
         ...prev,
@@ -185,7 +163,6 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
   };
 
   const handleSlotClick = (date: Date, time: string, therapistId?: string) => {
-    console.log(`[CalendarContainer] handleSlotClick called: date=${date.toISOString()}, time=${time}, therapistId=${therapistId}, therapist=${therapists.find(t => t.id === therapistId)?.name}`);
     setFormInitialData({ date, time, therapistId });
     setShowAppointmentForm(true);
   };
@@ -275,55 +252,45 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
   }, [userRole, therapists, currentUserId, state.selectedTherapistIds]);
 
   // Debug logging for therapist filtering
-  console.log(`[CalendarContainer] userRole=${userRole}, currentUserId=${currentUserId}, all therapists=${therapists.length}, currentTherapists=${currentTherapists.length}`, currentTherapists.map(t => `${t.name} (${t.id})`));
 
   // Filter appointments based on search query
   const filteredAppointments = useMemo(() => {
     if (!searchQuery || searchQuery.trim() === '') {
-      console.log('[Search] No query, showing all appointments:', appointments.length);
       return appointments;
     }
 
     const query = searchQuery.toLowerCase().trim();
-    console.log('[Search] Searching for:', query);
-    console.log('[Search] Total appointments before filter:', appointments.length);
 
     const filtered = appointments.filter(appointment => {
       // Search in client name (using clientName field)
       if (appointment.clientName?.toLowerCase().includes(query)) {
-        console.log('[Search] ✓ Match found in clientName:', appointment.clientName);
         return true;
       }
 
       // Search in title
       if (appointment.title?.toLowerCase().includes(query)) {
-        console.log('[Search] ✓ Match found in title:', appointment.title);
         return true;
       }
 
       // Search in appointment type
       if (appointment.type?.toLowerCase().includes(query)) {
-        console.log('[Search] ✓ Match found in type:', appointment.type);
         return true;
       }
 
       // Search in notes
       if (appointment.notes?.toLowerCase().includes(query)) {
-        console.log('[Search] ✓ Match found in notes');
         return true;
       }
 
       // Search in therapist name
       const therapist = therapists.find(t => t.id === appointment.therapistId);
       if (therapist?.name?.toLowerCase().includes(query)) {
-        console.log('[Search] ✓ Match found in therapist name:', therapist.name);
         return true;
       }
 
       return false;
     });
 
-    console.log('[Search] Filtered results:', filtered.length, 'appointments');
     return filtered;
   }, [appointments, searchQuery, therapists]);
 

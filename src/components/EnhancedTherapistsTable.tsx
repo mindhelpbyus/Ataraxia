@@ -7,6 +7,7 @@ import { Input } from './ui/input';
 // import { AvailabilityModal } from './AvailabilityModal';
 // REMOVED: TherapistVerificationDetailModal - verification is handled in separate screen
 import { dataService } from '../api';
+import { get } from '../api/client';
 import { UserRole } from '../types/appointment';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -80,17 +81,10 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
   const loadTherapists = async () => {
     try {
       setLoading(true);
-      // Call the real therapist service backend
-      const response = await fetch('http://localhost:3004/api/therapists', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      // Call the real therapist service backend using secure client
+      const data = await get<any[]>('/api/therapists');
 
-      if (response.ok) {
-        const data = await response.json();
+      if (data) {
         // Transform backend data to frontend format
         const transformedTherapists: Therapist[] = data.map((therapist: any) => ({
           id: therapist.id,

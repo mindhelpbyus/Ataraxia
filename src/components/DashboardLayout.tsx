@@ -23,6 +23,7 @@ import TherapistVerificationView from './TherapistVerificationView';
 import { VerificationBanner } from './VerificationBanner';
 import { BedrockLogo } from '../imports/BedrockLogo';
 import { UserRole, Notification } from '../types/appointment';
+import { ErrorBoundary } from './ErrorBoundary';
 import { Toaster } from './ui/sonner';
 
 import {
@@ -299,7 +300,19 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   };
 
   // Navigation structure - conditional based on user role
-  const getSuperAdminNavigation = () => [
+  type NavigationItem = {
+    id: TabType;
+    label: string;
+    icon: any;
+    badge?: string | number;
+  };
+
+  type NavigationSection = {
+    section: string;
+    items: NavigationItem[];
+  };
+
+  const getSuperAdminNavigation = (): NavigationSection[] => [
     {
       section: 'Overview',
       items: [
@@ -333,7 +346,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     },
   ];
 
-  const getStandardNavigation = () => {
+  const getStandardNavigation = (): NavigationSection[] => {
     // Restricted access for newly registered therapists
     if (userRole === 'therapist' && accountStatus === 'registered') {
       return [
@@ -374,7 +387,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     ];
   };
 
-  const getClientNavigation = () => [
+  const getClientNavigation = (): NavigationSection[] => [
     {
       section: '',
       items: [
@@ -864,49 +877,51 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   transition={{ duration: 0.3, ease: 'easeOut' }}
                   className="h-full"
                 >
-                  {/* Dashboard / Home */}
-                  {activeTab === 'dashboard' && (
-                    <>
-                      {userRole === 'therapist' ? (
-                        <TherapistHomeView userId={currentUserId} userEmail={userEmail} onNavigate={handleTabChange} accountStatus={accountStatus} />
-                      ) : (userRole === 'superadmin' || userRole === 'super_admin') ? (
-                        <SuperAdminDashboardView userId={currentUserId} userEmail={userEmail} userName={userName} onNavigate={setActiveTab} />
-                      ) : (userRole === 'admin' || userRole === 'org_admin') ? (
-                        <AdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
-                      ) : userRole === 'client' ? (
-                        <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab) => setActiveTab(tab as TabType)} />
-                      ) : (
-                        <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} />
-                      )}
-                    </>
-                  )}
-                  {/* Core Apps */}
-                  {activeTab === 'calendar' && <CalendarContainer userRole={userRole} currentUserId={currentUserId} searchQuery={searchQuery} triggerNewAppointment={triggerNewAppointment} />}
-                  {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} />}
-                  {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} />}
-                  {activeTab === 'therapist-verification' && <TherapistVerificationView />}
-                  {activeTab === 'video-rooms' && <VideoRoomsView />}
-                  {activeTab === 'organizations' && <OrganizationManagementView userId={currentUserId} userEmail={userEmail} onNavigate={() => setActiveTab('dashboard')} />}
+                  <ErrorBoundary key={`eb-${activeTab}`}>
+                    {/* Dashboard / Home */}
+                    {activeTab === 'dashboard' && (
+                      <>
+                        {userRole === 'therapist' ? (
+                          <TherapistHomeView userId={currentUserId} userEmail={userEmail} onNavigate={handleTabChange} accountStatus={accountStatus} />
+                        ) : (userRole === 'superadmin' || userRole === 'super_admin') ? (
+                          <SuperAdminDashboardView userId={currentUserId} userEmail={userEmail} userName={userName} onNavigate={setActiveTab} />
+                        ) : (userRole === 'admin' || userRole === 'org_admin') ? (
+                          <AdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
+                        ) : userRole === 'client' ? (
+                          <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab) => setActiveTab(tab as TabType)} />
+                        ) : (
+                          <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} />
+                        )}
+                      </>
+                    )}
+                    {/* Core Apps */}
+                    {activeTab === 'calendar' && <CalendarContainer userRole={userRole} currentUserId={currentUserId} searchQuery={searchQuery} triggerNewAppointment={triggerNewAppointment} />}
+                    {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} />}
+                    {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} />}
+                    {activeTab === 'therapist-verification' && <TherapistVerificationView />}
+                    {activeTab === 'video-rooms' && <VideoRoomsView />}
+                    {activeTab === 'organizations' && <OrganizationManagementView userId={currentUserId} userEmail={userEmail} onNavigate={() => setActiveTab('dashboard')} />}
 
-                  {/* Tools */}
-                  {activeTab === 'messages' && <MessagesView currentUserId={currentUserId} currentUserName={userName || getUserName(userEmail)} currentUserEmail={userEmail} userRole={userRole} />}
-                  {activeTab === 'tasks' && <TasksView userRole={userRole} />}
-                  {activeTab === 'notes' && <QuickNotesView />}
+                    {/* Tools */}
+                    {activeTab === 'messages' && <MessagesView currentUserId={currentUserId} currentUserName={userName || getUserName(userEmail)} currentUserEmail={userEmail} userRole={userRole} />}
+                    {activeTab === 'tasks' && <TasksView userRole={userRole} />}
+                    {activeTab === 'notes' && <QuickNotesView />}
 
-                  {/* Onboarding Flow */}
+                    {/* Onboarding Flow */}
 
-                  {activeTab === 'analytics' && <ReportsView userRole={userRole} currentUserId={currentUserId} userEmail={userEmail} />}
-                  {activeTab === 'settings' && (
-                    <SettingsView
-                      userId={currentUserId}
-                      userEmail={userEmail}
-                      userRole={userRole}
-                      activeSettingsTab={activeSettingsTab}
-                      setActiveSettingsTab={setActiveSettingsTab}
-                      showSettingsNav={showSettingsNav}
-                      handleBackFromSettings={handleBackFromSettings}
-                    />
-                  )}
+                    {activeTab === 'analytics' && <ReportsView userRole={userRole} currentUserId={currentUserId} userEmail={userEmail} />}
+                    {activeTab === 'settings' && (
+                      <SettingsView
+                        userId={currentUserId}
+                        userEmail={userEmail}
+                        userRole={userRole}
+                        activeSettingsTab={activeSettingsTab}
+                        setActiveSettingsTab={setActiveSettingsTab}
+                        showSettingsNav={showSettingsNav}
+                        handleBackFromSettings={handleBackFromSettings}
+                      />
+                    )}
+                  </ErrorBoundary>
                 </motion.div>
               </div>
             </main>

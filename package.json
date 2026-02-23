@@ -3,7 +3,6 @@
       "version": "0.1.0",
       "private": true,
       "dependencies": {
-            "@aws-sdk/client-cognito-identity-provider": "^3.975.0",
             "@countrystatecity/countries": "^1.0.5",
             "@phosphor-icons/react": "*",
             "@popperjs/core": "^2.11.8",
@@ -39,7 +38,6 @@
             "@types/three": "^0.182.0",
             "@vitejs/plugin-react": "*",
             "@zoom/meetingsdk": "^5.1.2",
-            "aws-jwt-verify": "^5.1.1",
             "class-variance-authority": "^0.7.1",
             "clsx": "*",
             "cmdk": "^1.1.1",

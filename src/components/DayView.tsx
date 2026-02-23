@@ -81,7 +81,6 @@ export function DayView({
   };
 
   const handleSlotClick = (hour: number, therapistId?: string) => {
-    console.log(`[DayView] Slot clicked: hour=${hour}, therapistId=${therapistId}, therapist=${therapists.find(t => t.id === therapistId)?.name}`);
     const time = `${hour.toString().padStart(2, '0')}:00`;
     onSlotClick(date, time, therapistId);
   };
@@ -287,7 +286,6 @@ function DaySlot({
 
   // Debug logging for slot clickability
   if (hour === 10) { // Only log for 10 AM to avoid spam
-    console.log(`[DaySlot ${hour}:00] allowAllSlots=${allowAllSlots}, isWorkingHour=${isWorkingHour}, isClickable=${isClickable}, therapist=${therapist?.name}`);
   }
 
   return (

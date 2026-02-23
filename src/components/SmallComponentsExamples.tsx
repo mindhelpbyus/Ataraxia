@@ -47,14 +47,14 @@ export function SmallComponentsExamples() {
         <p className="mb-6 text-lg text-[var(--content-dark-secondary)]">
           Tags represent a set of interactive, merchant-supplied keywords that help label, organize, and categorize objects.
         </p>
-        
+
         <div className="flex flex-wrap gap-3">
           <Tag variant="filled">Tag Content</Tag>
-          <Tag variant="filled" removable onRemove={() => console.log("removed")}>
+          <Tag variant="filled" removable>
             Removable Tag
           </Tag>
           <Tag variant="outlined">Outlined Tag</Tag>
-          <Tag variant="outlined" removable onRemove={() => console.log("removed")}>
+          <Tag variant="outlined" removable>
             Removable Outlined
           </Tag>
         </div>
@@ -65,7 +65,7 @@ export function SmallComponentsExamples() {
         <h2 className="mb-6 text-3xl font-medium text-[var(--content-dark-primary)]">
           Status Indicators
         </h2>
-        
+
         <div className="space-y-6">
           <div>
             <h3 className="mb-3 text-xl font-medium">Status Dots</h3>
@@ -104,7 +104,7 @@ export function SmallComponentsExamples() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Small size dots */}
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Small</p>
@@ -141,7 +141,7 @@ export function SmallComponentsExamples() {
               </div>
             </div>
           </div>
-          
+
           <div>
             <h3 className="mb-3 text-xl font-medium">Status Squares</h3>
             <div className="flex items-center gap-4">
@@ -165,7 +165,7 @@ export function SmallComponentsExamples() {
         <p className="mb-6 text-lg text-[var(--content-dark-secondary)]">
           Badges are used to inform merchants of the status of an object or of an action that's been taken.
         </p>
-        
+
         <div className="space-y-6">
           {/* With dots - Small */}
           <div>
@@ -233,7 +233,7 @@ export function SmallComponentsExamples() {
         <p className="mb-6 text-lg text-[var(--content-dark-secondary)]">
           A toggle is used to view or switch between enabled or disabled states.
         </p>
-        
+
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <Switch checked={false} />
@@ -262,7 +262,7 @@ export function SmallComponentsExamples() {
         <p className="mb-6 text-lg text-[var(--content-dark-secondary)]">
           Use pagination to let merchants move through an ordered collection of items that has been split into pages.
         </p>
-        
+
         <Pagination>
           <PaginationContent>
             <PaginationPrevious disabled href="#" />
@@ -298,7 +298,7 @@ export function SmallComponentsExamples() {
         <p className="mb-6 text-lg text-[var(--content-dark-secondary)]">
           Avatars are used to show a thumbnail representation of an individual or business in the interface.
         </p>
-        
+
         <div className="space-y-6">
           {/* Top-right status */}
           <div>
@@ -356,7 +356,7 @@ export function SmallComponentsExamples() {
         <p className="mb-6 text-lg text-[var(--content-dark-secondary)]">
           Tabs are used to organize content by grouping similar information on the same page.
         </p>
-        
+
         <div className="space-y-8">
           {/* Underline variant */}
           <div>
@@ -424,7 +424,7 @@ export function SmallComponentsExamples() {
         <h2 className="mb-6 text-3xl font-medium text-[var(--content-dark-primary)]">
           Form Controls
         </h2>
-        
+
         <div className="space-y-6">
           <div>
             <h3 className="mb-3 text-base font-medium">Checkboxes</h3>

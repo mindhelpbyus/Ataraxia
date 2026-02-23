@@ -178,22 +178,3 @@ export const RealAuthService = {
     post<{ user: AuthUser & { account_status: string }; token: string }>('/auth/therapist-phone-register', { idToken, first_name: firstName, last_name: lastName, email, password }),
 };
 
-export const localAuthService = {
-  isLocalMode: () => false,
-  login: () => Promise.reject(new Error('Use backend API')),
-  register: () => Promise.reject(new Error('Use backend API')),
-};
-
-export const firebasePhoneAuth = {
-  sendPhoneVerification: sendPhoneOtp,
-  verifyPhoneCode: (_session: any, otp: string, sessionId: string) => verifyPhoneOtp(sessionId, otp),
-  cleanup: () => { },
-};
-
-export const firebaseGoogleAuth = {
-  signInWithPopup: async () => {
-    const { url } = await getGoogleOAuthUrl();
-    window.location.href = url;
-    return null as any; // redirects — never resolves
-  },
-};

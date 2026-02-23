@@ -5,8 +5,26 @@
  */
 
 import React from 'react';
-import { useProviderAgnosticAuth } from '../hooks/useProviderAgnosticAuth';
+import { useAuthStore } from '../../store/authStore';
 
+export function useProviderAgnosticAuth() {
+    const { user, isAuthenticated, isLoading } = useAuthStore();
+
+    const hasRole = (role: string) => user?.role === role;
+    const hasPermission = (permission: string) => (user as any)?.permissions?.includes(permission) ?? false;
+    const hasAnyPermission = (permissions: string[]) => permissions.some(hasPermission);
+    const hasAllPermissions = (permissions: string[]) => permissions.every(hasPermission);
+
+    return {
+        user,
+        isAuthenticated,
+        loading: isLoading,
+        hasRole,
+        hasPermission,
+        hasAnyPermission,
+        hasAllPermissions
+    };
+}
 // ============================================================================
 // PERMISSION-BASED COMPONENTS
 // ============================================================================
@@ -323,7 +341,7 @@ export function useRole(role: string): boolean {
  */
 export function usePermissions() {
     const { user } = useProviderAgnosticAuth();
-    return user?.permissions || [];
+    return (user as any)?.permissions || [];
 }
 
 /**
@@ -335,5 +353,5 @@ export function usePermissions() {
  */
 export function useRoles() {
     const { user } = useProviderAgnosticAuth();
-    return user?.roles || [];
+    return user?.role ? [user.role] : [];
 }

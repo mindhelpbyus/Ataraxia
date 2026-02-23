@@ -18,12 +18,10 @@ export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewP
 
   const handleExportPDF = () => {
     // TODO: Implement PDF export functionality
-    console.log('Exporting to PDF...');
   };
 
   const handleExportExcel = () => {
     // TODO: Implement Excel export functionality
-    console.log('Exporting to Excel...');
   };
 
   return (

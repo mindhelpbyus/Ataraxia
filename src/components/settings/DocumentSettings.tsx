@@ -160,7 +160,6 @@ export const DocumentSettings = () => {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        console.log(`Downloaded document: ${title}`);
     };
 
     const getDocumentContent = (docId: string, title: string): string => {

@@ -10,7 +10,7 @@ import {
   logSecurityEvent,
   batchVerifyUsers,
   RoleVerificationResult
-} from '../services/roleVerification';
+} from './roles';
 import { getCurrentUser } from './auth';
 import {
   Session,
@@ -39,14 +39,14 @@ export async function createSecureSession(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // Verify user has permission to create sessions (moderator role required)
     const roleVerification = await verifyModeratorAccess(user.id);
-    
+
     // Verify all participants' roles from Firestore
     const participantIds = request.participants.map(p => p.userId);
     const participantRoles = await batchVerifyUsers(participantIds);
-    
+
     // Update participant roles based on Firestore verification
     const verifiedParticipants = request.participants.map(p => {
       const verified = participantRoles.get(p.userId);
@@ -55,7 +55,7 @@ export async function createSecureSession(
         role: verified?.videoRole || 'participant' // Use verified role from Firestore
       };
     });
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -68,13 +68,13 @@ export async function createSecureSession(
         participantCount: verifiedParticipants.length
       }
     });
-    
+
     // Create session with verified participants
     const session = await post<Session>('/sessions', {
       ...request,
       participants: verifiedParticipants
     });
-    
+
     return {
       session,
       roleVerification
@@ -94,7 +94,7 @@ export async function createSecureSession(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -108,10 +108,10 @@ export async function joinSecureSession(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // Verify session access from Firestore
     const roleVerification = await verifySessionAccess(user.id, request.sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -121,10 +121,10 @@ export async function joinSecureSession(
       videoRole: roleVerification.videoRole,
       success: true
     });
-    
+
     // Join session through backend
     const joinResponse = await post<JoinSessionResponse>('/sessions/join', request);
-    
+
     return {
       ...joinResponse,
       roleVerification,
@@ -146,7 +146,7 @@ export async function joinSecureSession(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -158,10 +158,10 @@ export async function endSecureSession(sessionId: string): Promise<void> {
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // CRITICAL: Verify moderator access from Firestore
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -171,7 +171,7 @@ export async function endSecureSession(sessionId: string): Promise<void> {
       videoRole: roleVerification.videoRole,
       success: true
     });
-    
+
     // End session through backend
     return post(`/sessions/${sessionId}/end`, {});
   } catch (error) {
@@ -190,7 +190,7 @@ export async function endSecureSession(sessionId: string): Promise<void> {
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -205,10 +205,10 @@ export async function removeSecureParticipant(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // CRITICAL: Verify moderator access from Firestore
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -219,7 +219,7 @@ export async function removeSecureParticipant(
       success: true,
       details: { targetUserId }
     });
-    
+
     // Remove participant through backend
     return post(`/sessions/${sessionId}/remove`, { userId: targetUserId });
   } catch (error) {
@@ -238,7 +238,7 @@ export async function removeSecureParticipant(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -254,10 +254,10 @@ export async function muteSecureParticipant(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // CRITICAL: Verify moderator access from Firestore
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -268,7 +268,7 @@ export async function muteSecureParticipant(
       success: true,
       details: { targetUserId, muted }
     });
-    
+
     // Mute participant through backend
     return post(`/sessions/${sessionId}/mute`, { userId: targetUserId, muted });
   } catch (error) {
@@ -287,7 +287,7 @@ export async function muteSecureParticipant(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -302,10 +302,10 @@ export async function updateSecureSessionSettings(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // CRITICAL: Verify moderator access from Firestore
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -316,7 +316,7 @@ export async function updateSecureSessionSettings(
       success: true,
       details: { settings }
     });
-    
+
     // Update settings through backend
     return put(`/sessions/${sessionId}/state`, { settings });
   } catch (error) {
@@ -335,7 +335,7 @@ export async function updateSecureSessionSettings(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -350,18 +350,18 @@ export async function grantSecureModerator(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // CRITICAL: Verify moderator access from Firestore
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Verify target user's actual role from Firestore
     const targetVerification = await verifySessionAccess(targetUserId, sessionId);
-    
+
     // Check if target user is eligible for moderator role
     if (targetVerification.role !== 'therapist' && targetVerification.role !== 'admin') {
       throw new Error('Cannot grant moderator privileges to non-therapist/admin users');
     }
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -372,7 +372,7 @@ export async function grantSecureModerator(
       success: true,
       details: { targetUserId, targetRole: targetVerification.role }
     });
-    
+
     // Grant moderator through backend
     return post(`/sessions/${sessionId}/grant-moderator`, { userId: targetUserId });
   } catch (error) {
@@ -391,7 +391,7 @@ export async function grantSecureModerator(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -406,10 +406,10 @@ export async function updateSecureParticipantPermissions(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // CRITICAL: Verify moderator access from Firestore
     const roleVerification = await verifyModeratorAccess(user.id, sessionId);
-    
+
     // Log security event
     logSecurityEvent({
       userId: user.id,
@@ -420,7 +420,7 @@ export async function updateSecureParticipantPermissions(
       success: true,
       details: { targetUserId: request.userId, permissions: request.permissions }
     });
-    
+
     // Update permissions through backend
     return put(`/sessions/${sessionId}/permissions`, request);
   } catch (error) {
@@ -439,7 +439,7 @@ export async function updateSecureParticipantPermissions(
     } catch {
       // Ignore
     }
-    
+
     throw error;
   }
 }
@@ -454,13 +454,13 @@ export async function getSecureSession(
   try {
     // Get current user
     const user = await getCurrentUser();
-    
+
     // Verify session access from Firestore
     const roleVerification = await verifySessionAccess(user.id, sessionId);
-    
+
     // Get session from backend
     const session = await get<Session>(`/sessions/${sessionId}`);
-    
+
     return {
       session,
       roleVerification

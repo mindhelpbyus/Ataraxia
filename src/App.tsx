@@ -126,7 +126,11 @@ export default function App() {
             {/* ─── Public Routes ───────────────────────────────────────── */}
             <Route
               path="/login"
-              element={user ? <Navigate to="/dashboard" replace /> : <LoginPage onLogin={(u) => useAuthStore.getState()._setUser(u)} />}
+              element={
+                <ErrorBoundary>
+                  {user ? <Navigate to="/dashboard" replace /> : <LoginPage onLogin={(u) => useAuthStore.getState()._setUser(u)} />}
+                </ErrorBoundary>
+              }
             />
             <Route
               path="/register"
@@ -148,8 +152,8 @@ export default function App() {
                 </ErrorBoundary>
               }
             />
-            <Route path="/verification-pending" element={<VerificationPendingPage />} />
-            <Route path="/documents/:documentId" element={<DocumentViewer />} />
+            <Route path="/verification-pending" element={<ErrorBoundary><VerificationPendingPage /></ErrorBoundary>} />
+            <Route path="/documents/:documentId" element={<ErrorBoundary><DocumentViewer /></ErrorBoundary>} />
 
             {/* ─── Protected Routes ─────────────────────────────────────── */}
             <Route

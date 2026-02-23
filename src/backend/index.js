@@ -131,7 +131,11 @@ function generateJitsiToken(session, user, isModerator) {
     moderator: isModerator
   };
 
-  const secret = process.env.JITSI_APP_SECRET || 'demo-jitsi-secret-key-for-testing';
+  const secret = process.env.JITSI_APP_SECRET;
+  
+  if (!secret) {
+    throw new Error('JITSI_APP_SECRET environment variable is required for secure JWT signing');
+  }
   
   return jwt.sign(payload, secret, { algorithm: 'HS256' });
 }

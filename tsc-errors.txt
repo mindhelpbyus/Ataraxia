@@ -1,0 +1,564 @@
+src/api/index.ts(1,1): error TS6192: All imports in import declaration are unused.
+src/api/index.ts(12,26): error TS6133: 'userId' is declared but its value is never read.
+src/api/index.ts(16,20): error TS6133: 'notificationId' is declared but its value is never read.
+src/api/index.ts(20,23): error TS6133: 'userId' is declared but its value is never read.
+src/api/index.ts(24,31): error TS6133: 'userId' is declared but its value is never read.
+src/api/index.ts(31,32): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(35,24): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(39,26): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(43,27): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(50,26): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(54,29): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(58,20): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(62,33): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(66,39): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(70,33): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(77,30): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(81,34): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(85,37): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(89,34): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(93,30): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(97,35): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(101,36): error TS6133: 'args' is declared but its value is never read.
+src/api/index.ts(105,34): error TS6133: 'args' is declared but its value is never read.
+src/api/jitsi.ts(4,35): error TS6133: 'args' is declared but its value is never read.
+src/api/jitsi.ts(12,37): error TS6133: 'args' is declared but its value is never read.
+src/api/sessions.ts(6,26): error TS6133: 'del' is declared but its value is never read.
+src/components/AddressAutocomplete.tsx(44,3): error TS6133: 'userCountryCode' is declared but its value is never read.
+src/components/AdminDashboardView.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/AdminDashboardView.tsx(7,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/AdminDashboardView.tsx(13,3): error TS6133: 'MoreHorizontal' is declared but its value is never read.
+src/components/AdminDashboardView.tsx(32,1): error TS6192: All imports in import declaration are unused.
+src/components/AdminDashboardView.tsx(34,1): error TS6133: 'Badge' is declared but its value is never read.
+src/components/AdminDashboardView.tsx(116,38): error TS6133: 'userId' is declared but its value is never read.
+src/components/AdminDashboardView.tsx(118,9): error TS6133: 'today' is declared but its value is never read.
+src/components/AgendaView.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/AgendaView.tsx(3,18): error TS6133: 'isSameDay' is declared but its value is never read.
+src/components/AgendaView.tsx(4,32): error TS6133: 'User' is declared but its value is never read.
+src/components/AgendaView.tsx(5,1): error TS6133: 'Badge' is declared but its value is never read.
+src/components/AgendaView.tsx(14,56): error TS6133: 'currentDate' is declared but its value is never read.
+src/components/AgendaView.tsx(73,25): error TS6133: 'endTime' is declared but its value is never read.
+src/components/ApplicationRejectedPage.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/AppLoadingFallback.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/AppointmentPanel.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/AppointmentPanel.tsx(24,3): error TS6133: 'MapPin' is declared but its value is never read.
+src/components/AppointmentPanel.tsx(25,3): error TS6133: 'X' is declared but its value is never read.
+src/components/AppointmentPanel.tsx(60,10): error TS6133: 'clients' is declared but its value is never read.
+src/components/AvatarShowcase.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/ButtonShowcase.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/CalendarContainer.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/CalendarContainer.tsx(11,1): error TS6192: All imports in import declaration are unused.
+src/components/CalendarContainer.tsx(33,10): error TS6133: 'initialSelectionDone' is declared but its value is never read.
+src/components/CalendarContainer.tsx(33,32): error TS6133: 'setInitialSelectionDone' is declared but its value is never read.
+src/components/client/AddressSection.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/client/AddressSection.tsx(6,22): error TS7016: Could not find a declaration file for module 'zipcodes'. '/Users/cvp/anti-gravity/Ataraxia/node_modules/zipcodes/lib/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/zipcodes` if it exists or add a new declaration (.d.ts) file containing `declare module 'zipcodes';`
+src/components/client/AddressSection.tsx(58,33): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'Record<"GB" | "Japan" | "Singapore" | "NZ" | "Africa/Abidjan" | "Africa/Accra" | "Africa/Addis_Ababa" | "Africa/Algiers" | "Africa/Asmara" | "Africa/Asmera" | "Africa/Bamako" | ... 586 more ... | "Zulu", Timezone>'.
+  No index signature with a parameter of type 'string' was found on type 'Record<"GB" | "Japan" | "Singapore" | "NZ" | "Africa/Abidjan" | "Africa/Accra" | "Africa/Addis_Ababa" | "Africa/Algiers" | "Africa/Asmara" | "Africa/Asmera" | "Africa/Bamako" | ... 586 more ... | "Zulu", Timezone>'.
+src/components/client/AppointmentSetupStep.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/client/BasicInformationStep.tsx(7,16): error TS6133: 'MapPin' is declared but its value is never read.
+src/components/client/BasicInformationStep.tsx(11,1): error TS6133: 'Country' is declared but its value is never read.
+src/components/client/BasicInformationStep.tsx(18,19): error TS7016: Could not find a declaration file for module 'langs'. '/Users/cvp/anti-gravity/Ataraxia/node_modules/langs/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/langs` if it exists or add a new declaration (.d.ts) file containing `declare module 'langs';`
+src/components/client/CameraCaptureDialog.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/client/CameraCaptureDialog.tsx(4,18): error TS6133: 'X' is declared but its value is never read.
+src/components/client/ClinicalIntakeStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/client/ConsentDocumentModal.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/client/ConsentFormsStep.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/client/ConsentFormsStep.tsx(359,36): error TS6133: 'formData' is declared but its value is never read.
+src/components/client/NavigationButtons.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/client/OTPVerificationStep.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/client/OTPVerificationStep.tsx(5,29): error TS6133: 'CardHeader' is declared but its value is never read.
+src/components/client/OTPVerificationStep.tsx(5,41): error TS6133: 'CardTitle' is declared but its value is never read.
+src/components/client/PaymentSetupStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/client/PaymentSetupStep.tsx(2,1): error TS6133: 'Button' is declared but its value is never read.
+src/components/client/PresentingConcernsStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/client/ProgressHeader.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/client/ProgressHeader.tsx(11,59): error TS6133: 'stepTitle' is declared but its value is never read.
+src/components/client/SafetyScreeningStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/client/SignatureStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/ClientDashboardView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ClientDashboardView.tsx(10,5): error TS6133: 'Sun' is declared but its value is never read.
+src/components/ClientDashboardView.tsx(11,5): error TS6133: 'Moon' is declared but its value is never read.
+src/components/ClientDashboardView.tsx(60,39): error TS6133: 'userId' is declared but its value is never read.
+src/components/ClientDashboardView.tsx(60,47): error TS6133: 'userEmail' is declared but its value is never read.
+src/components/ClientDashboardView.tsx(60,68): error TS6133: 'onNavigate' is declared but its value is never read.
+src/components/ClientDetailsSidebar.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/ClientDetailView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ClientDetailView.tsx(13,5): error TS6133: 'Clock' is declared but its value is never read.
+src/components/ClientDetailView.tsx(14,17): error TS6133: 'Minus' is declared but its value is never read.
+src/components/ClientJournalView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ClientJournalView.tsx(10,5): error TS6133: 'Sun' is declared but its value is never read.
+src/components/ClientJournalView.tsx(11,5): error TS6133: 'Moon' is declared but its value is never read.
+src/components/ClientJournalView.tsx(13,5): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/ClientJournalView.tsx(14,17): error TS6133: 'CalendarIcon' is declared but its value is never read.
+src/components/ClientJournalView.tsx(15,5): error TS6133: 'ChevronLeft' is declared but its value is never read.
+src/components/ClientJournalView.tsx(16,5): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/components/ClientLayout.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ClientLayout.tsx(60,32): error TS6133: 'userId' is declared but its value is never read.
+src/components/ClientLayout.tsx(60,40): error TS6133: 'userEmail' is declared but its value is never read.
+src/components/ClientRegistrationForm.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ClientRegistrationForm.tsx(3,1): error TS6133: 'Card' is declared but its value is never read.
+src/components/ClientRegistrationForm.tsx(43,5): error TS6133: 'registrationToken' is declared but its value is never read.
+src/components/ClientRegistrationForm.tsx(45,5): error TS6133: 'organizationMode' is declared but its value is never read.
+src/components/ClientSidebar.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/DashboardLayout.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/DashboardLayout.tsx(30,3): error TS6133: 'Plus' is declared but its value is never read.
+src/components/DashboardLayout.tsx(36,3): error TS6133: 'User' is declared but its value is never read.
+src/components/DashboardLayout.tsx(38,3): error TS6133: 'X' is declared but its value is never read.
+src/components/DashboardLayout.tsx(39,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+src/components/DashboardLayout.tsx(45,3): error TS6133: 'Mail' is declared but its value is never read.
+src/components/DashboardLayout.tsx(47,3): error TS6133: 'Palette' is declared but its value is never read.
+src/components/DashboardLayout.tsx(60,3): error TS6133: 'Shield' is declared but its value is never read.
+src/components/DashboardLayout.tsx(65,63): error TS6133: 'DropdownMenuLabel' is declared but its value is never read.
+src/components/DashboardLayout.tsx(68,1): error TS6133: 'Input' is declared but its value is never read.
+src/components/DashboardLayout.tsx(69,1): error TS6133: 'SearchBar' is declared but its value is never read.
+src/components/DashboardLayout.tsx(73,1): error TS6133: 'Separator' is declared but its value is never read.
+src/components/DashboardLayout.tsx(75,18): error TS6133: 'AnimatePresence' is declared but its value is never read.
+src/components/DashboardLayout.tsx(94,177): error TS6133: 'onNavigateToSecurity' is declared but its value is never read.
+src/components/DashboardLayout.tsx(94,199): error TS6133: 'onNavigateToMFA' is declared but its value is never read.
+src/components/DashboardLayout.tsx(94,216): error TS6133: 'onNavigateToSessions' is declared but its value is never read.
+src/components/DashboardLayout.tsx(103,33): error TS6133: 'setTriggerNewAppointment' is declared but its value is never read.
+src/components/DashboardLayout.tsx(233,9): error TS6133: 'handleNotificationClick' is declared but its value is never read.
+src/components/DashboardLayout.tsx(270,9): error TS6133: 'formatTimestamp' is declared but its value is never read.
+src/components/DashboardLayout.tsx(295,9): error TS6133: 'getGreeting' is declared but its value is never read.
+src/components/DashboardLayout.tsx(416,9): error TS6133: 'getNotificationIcon' is declared but its value is never read.
+src/components/DashboardLayout.tsx(425,9): error TS6133: 'getNotificationColor' is declared but its value is never read.
+src/components/DashboardView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/DashboardView.tsx(8,1): error TS6133: 'Tag' is declared but its value is never read.
+src/components/DashboardView.tsx(23,3): error TS6133: 'MoreVertical' is declared but its value is never read.
+src/components/DashboardView.tsx(24,15): error TS6133: 'CalendarIcon' is declared but its value is never read.
+src/components/DashboardView.tsx(29,1): error TS6133: 'BedrockLogo' is declared but its value is never read.
+src/components/DashboardView.tsx(43,33): error TS6133: 'userRole' is declared but its value is never read.
+src/components/DashboardView.tsx(43,54): error TS6133: 'onNavigate' is declared but its value is never read.
+src/components/DashboardView.tsx(314,55): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/components/DashboardView.tsx(417,60): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/components/DayView.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/DayView.tsx(25,3): error TS6133: 'isAdminMode' is declared but its value is never read.
+src/components/DayView.tsx(263,3): error TS6133: 'therapist' is declared but its value is never read.
+src/components/DayView.tsx(309,15): error TS18048: 'e' is possibly 'undefined'.
+src/components/EditClientProfileForm.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/EditClientProfileForm.tsx(7,60): error TS6133: 'DialogFooter' is declared but its value is never read.
+src/components/EditClientProfileForm.tsx(9,1): error TS6133: 'ScrollArea' is declared but its value is never read.
+src/components/EditClientProfileForm.tsx(12,70): error TS6133: 'Heart' is declared but its value is never read.
+src/components/EditClientProfileForm.tsx(36,11): error TS6133: 'handleChange' is declared but its value is never read.
+src/components/EnhancedAppointmentCard.tsx(3,29): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/components/EnhancedAppointmentCard.tsx(64,9): error TS6133: 'isInternalOrExternal' is declared but its value is never read.
+src/components/EnhancedAppointmentCard.tsx(100,7): error TS2322: Type 'ConnectDragSource' is not assignable to type 'Ref<HTMLDivElement> | undefined'.
+  Type 'ConnectDragSource' is not assignable to type '(instance: HTMLDivElement | null) => void | (() => VoidOrUndefinedOnly)'.
+    Type 'ReactElement<unknown, string | JSXElementConstructor<any>> | null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+      Type 'null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+src/components/EnhancedAppointmentCard.tsx(107,49): error TS2367: This comparison appears to be unintentional because the types '"confirmed" | "pending"' and '"tentative"' have no overlap.
+src/components/EnhancedAppointmentForm.tsx(12,10): error TS6133: 'X' is declared but its value is never read.
+src/components/EnhancedAppointmentForm.tsx(12,39): error TS6133: 'Clock' is declared but its value is never read.
+src/components/EnhancedAppointmentForm.tsx(12,52): error TS6133: 'FileText' is declared but its value is never read.
+src/components/EnhancedAppointmentForm.tsx(13,1): error TS6133: 'Badge' is declared but its value is never read.
+src/components/EnhancedAppointmentForm.tsx(73,10): error TS6133: 'showColorPicker' is declared but its value is never read.
+src/components/EnhancedAppointmentForm.tsx(83,9): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/components/EnhancedAppointmentForm.tsx(273,9): error TS6133: 'selectedType' is declared but its value is never read.
+src/components/EnhancedCalendarSidebar.tsx(6,1): error TS6133: 'Button' is declared but its value is never read.
+src/components/EnhancedCalendarSidebar.tsx(8,64): error TS6133: 'PanelLeftClose' is declared but its value is never read.
+src/components/EnhancedCalendarSidebar.tsx(8,80): error TS6133: 'PanelLeftOpen' is declared but its value is never read.
+src/components/EnhancedCalendarSidebar.tsx(9,1): error TS6133: 'Separator' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(2,80): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(2,110): error TS6133: 'Building2' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(2,128): error TS6133: 'X' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(2,144): error TS6133: 'Shield' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(12,1): error TS6133: 'Badge' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(68,10): error TS6133: 'selectedTherapistId' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(74,10): error TS6133: 'loading' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(75,10): error TS6133: 'searchTerm' is declared but its value is never read.
+src/components/EnhancedTherapistsTable.tsx(75,22): error TS6133: 'setSearchTerm' is declared but its value is never read.
+src/components/ErrorBoundary.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/FormInputsShowcase.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/FormInputsShowcase.tsx(3,53): error TS6133: 'EyeSlash' is declared but its value is never read.
+src/components/GlobalSearchBar.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/GlobalSearchBar.tsx(14,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/GlobalSearchBar.tsx(15,3): error TS6133: 'Clock' is declared but its value is never read.
+src/components/GlobalSearchBar.tsx(16,3): error TS6133: 'Mail' is declared but its value is never read.
+src/components/GlobalSearchBar.tsx(351,27): error TS6133: 'category' is declared but its value is never read.
+src/components/GlobalSearchBar.tsx(448,51): error TS6133: 'idx' is declared but its value is never read.
+src/components/HomeView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/HomeView.tsx(4,1): error TS6133: 'Badge' is declared but its value is never read.
+src/components/HomeView.tsx(39,28): error TS6133: 'userRole' is declared but its value is never read.
+src/components/HomeView.tsx(39,49): error TS6133: 'onNavigate' is declared but its value is never read.
+src/components/HomeView.tsx(435,59): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/components/InputShowcase.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/InputShowcase.tsx(8,1): error TS6133: 'Input' is declared but its value is never read.
+src/components/LoginPage.tsx(4,1): error TS6133: 'PixelSnow' is declared but its value is never read.
+src/components/LoginPage.tsx(18,1): error TS6133: 'illustrationImage' is declared but its value is never read.
+src/components/MessagesView.tsx(35,64): error TS6133: 'currentUserEmail' is declared but its value is never read.
+src/components/MFASetup.tsx(45,10): error TS6133: 'totpSecret' is declared but its value is never read.
+src/components/MFASetup.tsx(82,25): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string>'.
+src/components/MiniCalendar.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/MiniCalendar.tsx(19,3): error TS6133: 'appointments' is declared but its value is never read.
+src/components/molecules/index.ts(11,10): error TS2305: Module '"../AddressAutocomplete"' has no exported member 'default'.
+src/components/MonthView.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/MonthView.tsx(21,9): error TS6133: 'lastDayOfMonth' is declared but its value is never read.
+src/components/MonthView.tsx(76,33): error TS6133: 'index' is declared but its value is never read.
+src/components/NavigationExamples.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/NavigationExamples.tsx(8,1): error TS6133: 'StatusSquare' is declared but its value is never read.
+src/components/NavigationExamples.tsx(10,39): error TS6133: 'TabsContent' is declared but its value is never read.
+src/components/NavigationExamples.tsx(24,3): error TS6133: 'Settings' is declared but its value is never read.
+src/components/NavigationExamples.tsx(25,3): error TS6133: 'Bell' is declared but its value is never read.
+src/components/NavigationExamples.tsx(31,3): error TS6133: 'MapPin' is declared but its value is never read.
+src/components/organisms/index.ts(42,10): error TS2724: '"../PatientIntakeForm"' has no exported member named 'PatientIntakeForm'. Did you mean 'ClientIntakeForm'?
+src/components/organisms/index.ts(49,10): error TS2305: Module '"../JitsiVideoRoom"' has no exported member 'JitsiVideoRoom'.
+src/components/organisms/index.ts(53,10): error TS2614: Module '"../TherapistVerificationView"' has no exported member 'TherapistVerificationView'. Did you mean to use 'import TherapistVerificationView from "../TherapistVerificationView"' instead?
+src/components/organization/AnalyticsReportsStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/organization/BasicDetailsStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/organization/BasicDetailsStep.tsx(16,21): error TS6133: 'ServiceLocation' is declared but its value is never read.
+src/components/organization/BasicDetailsStep.tsx(85,29): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'Record<"GB" | "Japan" | "Singapore" | "NZ" | "Africa/Abidjan" | "Africa/Accra" | "Africa/Addis_Ababa" | "Africa/Algiers" | "Africa/Asmara" | "Africa/Asmera" | "Africa/Bamako" | ... 586 more ... | "Zulu", Timezone>'.
+  No index signature with a parameter of type 'string' was found on type 'Record<"GB" | "Japan" | "Singapore" | "NZ" | "Africa/Abidjan" | "Africa/Accra" | "Africa/Addis_Ababa" | "Africa/Algiers" | "Africa/Asmara" | "Africa/Asmera" | "Africa/Bamako" | ... 586 more ... | "Zulu", Timezone>'.
+src/components/organization/BillingSubscriptionStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/organization/CommunicationsStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/organization/OrganizationSetupForm.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/organization/OrganizationSizeStep.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(16,10): error TS6133: 'MapPin' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(16,26): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(16,40): error TS6133: 'XCircle' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(16,49): error TS6133: 'Eye' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(17,13): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(17,25): error TS6133: 'Calendar' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(18,3): error TS6133: 'Globe' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(18,10): error TS6133: 'Command' is declared but its value is never read.
+src/components/OrganizationManagementView.tsx(59,44): error TS6198: All destructured elements are unused.
+src/components/OrganizationManagementView.tsx(391,52): error TS6133: 'index' is declared but its value is never read.
+src/components/PatientIntakeForm.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/PatientIntakeForm.tsx(2,31): error TS6133: 'SheetHeader' is declared but its value is never read.
+src/components/PatientIntakeForm.tsx(11,1): error TS6133: 'ScrollArea' is declared but its value is never read.
+src/components/PatientIntakeForm.tsx(12,39): error TS6133: 'MapPin' is declared but its value is never read.
+src/components/PatientIntakeForm.tsx(14,42): error TS2307: Cannot find module '../integrations/cometchat' or its corresponding type declarations.
+src/components/PhoneInput.tsx(6,1): error TS6133: 'ChevronDown' is declared but its value is never read.
+src/components/PhoneInput.tsx(217,33): error TS6133: 'e' is declared but its value is never read.
+src/components/PhoneInputV2.tsx(2,8): error TS6133: 'PhoneInputLib' is declared but its value is never read.
+src/components/PresentingConcerns.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/PresentingConcerns.tsx(2,47): error TS6133: 'Clock' is declared but its value is never read.
+src/components/PresentingConcerns.tsx(2,108): error TS6133: 'Scale' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(3,75): error TS6133: 'MapPin' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(9,1): error TS6133: 'Progress' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(31,1): error TS6133: 'Checkbox' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(37,31): error TS6133: 'SheetHeader' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(37,44): error TS6133: 'SheetTitle' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(37,56): error TS6133: 'SheetTrigger' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(37,70): error TS6133: 'SheetClose' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(38,10): error TS6133: 'ClientDetailView' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(204,41): error TS6133: 'userRole' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(219,10): error TS6133: 'loading' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(394,10): error TS6133: 'showEmergencyContact' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(394,32): error TS6133: 'setShowEmergencyContact' is declared but its value is never read.
+src/components/ProfessionalClientsView.tsx(864,86): error TS18048: 'detailData.assessments.latest.PHQ9' is possibly 'undefined'.
+src/components/ProfessionalClientsView.tsx(865,63): error TS18048: 'detailData.assessments.latest.PHQ9' is possibly 'undefined'.
+src/components/ProfessionalClientsView.tsx(866,38): error TS18048: 'detailData.assessments.latest.PHQ9' is possibly 'undefined'.
+src/components/ProfessionalClientsView.tsx(873,86): error TS18048: 'detailData.assessments.latest.GAD7' is possibly 'undefined'.
+src/components/ProfessionalClientsView.tsx(880,44): error TS18048: 'detailData.assessments.latest.PHQ9' is possibly 'undefined'.
+src/components/ProfessionalClientsView.tsx(1354,26): error TS6133: 'data' is declared but its value is never read.
+src/components/ProfessionalDashboard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/ProfessionalDashboard.tsx(4,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/ProfessionalDashboard.tsx(5,3): error TS6133: 'TrendingDown' is declared but its value is never read.
+src/components/ProfessionalDashboard.tsx(8,3): error TS6133: 'DollarSign' is declared but its value is never read.
+src/components/ProfessionalDashboard.tsx(18,3): error TS6133: 'Heart' is declared but its value is never read.
+src/components/ProfessionalDashboard.tsx(22,3): error TS6133: 'MoreHorizontal' is declared but its value is never read.
+src/components/ProfessionalDashboard.tsx(23,3): error TS6133: 'CalendarDays' is declared but its value is never read.
+src/components/ProfessionalDashboard.tsx(77,41): error TS6133: 'userRole' is declared but its value is never read.
+src/components/ProfileCompletionBanner.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/QuickNotesView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/QuickNotesView.tsx(235,28): error TS6133: 'e' is declared but its value is never read.
+src/components/QuickNotesView.tsx(239,30): error TS6133: 'e' is declared but its value is never read.
+src/components/QuickNotesView.tsx(239,33): error TS6133: 'direction' is declared but its value is never read.
+src/components/QuickNotesView.tsx(239,49): error TS6133: 'delta' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(5,35): error TS6133: 'PieChart' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(5,45): error TS6133: 'Pie' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(5,50): error TS6133: 'Cell' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(5,56): error TS6133: 'ComposedChart' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(6,70): error TS6133: 'Area' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(6,76): error TS6133: 'AreaChart' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(9,44): error TS6133: 'Clock' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(10,3): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(10,26): error TS6133: 'FileText' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(10,44): error TS6133: 'Briefcase' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(11,33): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(11,46): error TS6133: 'Zap' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(46,7): error TS6133: 'revenueByServiceData' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(54,7): error TS6133: 'roomUtilizationData' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(124,30): error TS6133: 'dateRange' is declared but its value is never read.
+src/components/reports/AdminReports.tsx(359,50): error TS6133: 'i' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(5,3): error TS6133: 'BarChart' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(9,20): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(9,42): error TS6133: 'Video' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(10,3): error TS6133: 'MessageSquare' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(10,18): error TS6133: 'AlertTriangle' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(10,33): error TS6133: 'Clock' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(11,33): error TS6133: 'Zap' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(40,7): error TS6133: 'sessionVolumeData' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(71,7): error TS6133: 'errorLogs' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(128,35): error TS6133: 'dateRange' is declared but its value is never read.
+src/components/reports/SuperAdminReports.tsx(419,47): error TS6133: 'index' is declared but its value is never read.
+src/components/reports/TherapistReports.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/reports/TherapistReports.tsx(9,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/reports/TherapistReports.tsx(9,15): error TS6133: 'TrendingDown' is declared but its value is never read.
+src/components/reports/TherapistReports.tsx(10,3): error TS6133: 'Users' is declared but its value is never read.
+src/components/reports/TherapistReports.tsx(10,17): error TS6133: 'FileText' is declared but its value is never read.
+src/components/reports/TherapistReports.tsx(10,40): error TS6133: 'Activity' is declared but its value is never read.
+src/components/reports/TherapistReports.tsx(84,80): error TS6133: 'delay' is declared but its value is never read.
+src/components/reports/TherapistReports.tsx(108,34): error TS6198: All destructured elements are unused.
+src/components/ReportsView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/RoleSelectionPage.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/SafetyRiskScreening.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/SafetyRiskScreening.tsx(2,25): error TS6133: 'Phone' is declared but its value is never read.
+src/components/SafetyRiskScreening.tsx(3,29): error TS6133: 'CardDescription' is declared but its value is never read.
+src/components/SelectorExamples.tsx(10,1): error TS6133: 'FormHelper' is declared but its value is never read.
+src/components/SessionNotesView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/SessionNotesView.tsx(2,93): error TS6133: 'User' is declared but its value is never read.
+src/components/SessionTimeoutWarning.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(7,1): error TS6133: 'Textarea' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(9,1): error TS6133: 'SettingsSection' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(13,19): error TS7016: Could not find a declaration file for module 'langs'. '/Users/cvp/anti-gravity/Ataraxia/node_modules/langs/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/langs` if it exists or add a new declaration (.d.ts) file containing `declare module 'langs';`
+src/components/settings/AccountSettings.tsx(15,22): error TS7016: Could not find a declaration file for module 'zipcodes'. '/Users/cvp/anti-gravity/Ataraxia/node_modules/zipcodes/lib/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/zipcodes` if it exists or add a new declaration (.d.ts) file containing `declare module 'zipcodes';`
+src/components/settings/AccountSettings.tsx(32,12): error TS6133: 'countryCode' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(32,25): error TS6133: 'setCountryCode' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(48,22): error TS6133: 'setShortBio' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(49,12): error TS6133: 'extendedBio' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(49,25): error TS6133: 'setExtendedBio' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(50,12): error TS6133: 'clientExpectations' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(50,32): error TS6133: 'setClientExpectations' is declared but its value is never read.
+src/components/settings/AccountSettings.tsx(183,18): error TS7006: Parameter 'lang' implicitly has an 'any' type.
+src/components/settings/AccountSettings.tsx(188,21): error TS7006: Parameter 'lang' implicitly has an 'any' type.
+src/components/settings/AccountSettings.tsx(189,20): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/components/settings/AccountSettings.tsx(189,23): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/components/settings/AccountSettings.tsx(203,30): error TS7006: Parameter 'lang' implicitly has an 'any' type.
+src/components/settings/AccountSettings.tsx(225,28): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'Record<"GB" | "Japan" | "Singapore" | "NZ" | "Africa/Abidjan" | "Africa/Accra" | "Africa/Addis_Ababa" | "Africa/Algiers" | "Africa/Asmara" | "Africa/Asmera" | "Africa/Bamako" | ... 586 more ... | "Zulu", Timezone>'.
+  No index signature with a parameter of type 'string' was found on type 'Record<"GB" | "Japan" | "Singapore" | "NZ" | "Africa/Abidjan" | "Africa/Accra" | "Africa/Addis_Ababa" | "Africa/Algiers" | "Africa/Asmara" | "Africa/Asmera" | "Africa/Bamako" | ... 586 more ... | "Zulu", Timezone>'.
+src/components/settings/AccountSettings.tsx(243,13): error TS2783: 'phonecode' is specified more than once, so this usage will be overwritten.
+src/components/settings/AccountSettings.tsx(244,13): error TS2783: 'currency' is specified more than once, so this usage will be overwritten.
+src/components/settings/AccountSettings.tsx(255,13): error TS2783: 'countryCode' is specified more than once, so this usage will be overwritten.
+src/components/settings/AccountSettings.tsx(333,58): error TS7006: Parameter 'lang' implicitly has an 'any' type.
+src/components/settings/CredentialsSettings.tsx(9,10): error TS6133: 'GraduationCap' is declared but its value is never read.
+src/components/settings/DocumentSettings.tsx(167,15): error TS6133: 'signatureData' is declared but its value is never read.
+src/components/settings/InsuranceSettings.tsx(9,10): error TS6133: 'CreditCard' is declared but its value is never read.
+src/components/settings/LicenseSettings.tsx(1,27): error TS6133: 'useEffect' is declared but its value is never read.
+src/components/settings/LicenseSettings.tsx(9,10): error TS6133: 'Shield' is declared but its value is never read.
+src/components/settings/NotificationSettings.tsx(17,5): error TS6133: 'Moon' is declared but its value is never read.
+src/components/settings/NotificationSettings.tsx(18,5): error TS6133: 'Volume2' is declared but its value is never read.
+src/components/settings/NotificationSettings.tsx(19,5): error TS6133: 'VolumeX' is declared but its value is never read.
+src/components/settings/NotificationSettings.tsx(20,5): error TS6133: 'Send' is declared but its value is never read.
+src/components/settings/NotificationSettings.tsx(21,5): error TS6133: 'Info' is declared but its value is never read.
+src/components/SettingsSidebar.tsx(6,3): error TS6133: 'Globe' is declared but its value is never read.
+src/components/SettingsView.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/SignatureCapture.tsx(143,9): error TS6133: 'generateTypedSignatureCanvas' is declared but its value is never read.
+src/components/SlotAvailability.tsx(2,1): error TS6192: All imports in import declaration are unused.
+src/components/SlotAvailability.tsx(5,54): error TS6133: 'User' is declared but its value is never read.
+src/components/SlotAvailability.tsx(92,9): error TS6133: 'timeSlots' is declared but its value is never read.
+src/components/SmallComponentsExamples.tsx(17,39): error TS6133: 'TabsContent' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(8,5): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(12,5): error TS6133: 'MoreHorizontal' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(13,5): error TS6133: 'Calendar' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(15,5): error TS6133: 'ShieldCheck' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(33,1): error TS6192: All imports in import declaration are unused.
+src/components/SuperAdminDashboardView.tsx(34,1): error TS6192: All imports in import declaration are unused.
+src/components/SuperAdminDashboardView.tsx(132,43): error TS6133: 'userId' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(132,51): error TS6133: 'userEmail' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(132,72): error TS6133: 'onNavigate' is declared but its value is never read.
+src/components/SuperAdminDashboardView.tsx(257,76): error TS6133: 'entry' is declared but its value is never read.
+src/components/SuperAdminView.tsx(26,3): error TS6133: 'Filter' is declared but its value is never read.
+src/components/SuperAdminView.tsx(35,3): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/components/SuperAdminView.tsx(37,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/components/SuperAdminView.tsx(38,3): error TS6133: 'Users' is declared but its value is never read.
+src/components/SuperAdminView.tsx(39,3): error TS6133: 'Database' is declared but its value is never read.
+src/components/SuperAdminView.tsx(85,32): error TS6198: All destructured elements are unused.
+src/components/SuperAdminView.tsx(373,29): error TS6133: 'action' is declared but its value is never read.
+src/components/SystemStatusChecker.tsx(8,8): error TS6133: 'React' is declared but its value is never read.
+src/components/TasksView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(2,18): error TS6133: 'AnimatePresence' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(3,1): error TS6192: All imports in import declaration are unused.
+src/components/TherapistHomeView.tsx(6,1): error TS6192: All imports in import declaration are unused.
+src/components/TherapistHomeView.tsx(10,3): error TS6133: 'ClipboardList' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(12,3): error TS6133: 'AlertTriangle' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(16,3): error TS6133: 'UserPlus' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(25,32): error TS6133: 'YAxis' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(27,1): error TS6133: 'dataService' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(28,90): error TS6133: 'isFuture' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(108,63): error TS6133: 'index' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(218,48): error TS6133: 'idx' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(286,10): error TS6133: 'loading' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(292,10): error TS6133: 'riskAlerts' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(300,10): error TS6133: 'showCompletionBanner' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(324,9): error TS6133: 'handleCompleteProfile' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(328,9): error TS6133: 'handleDismissBanner' is declared but its value is never read.
+src/components/TherapistHomeView.tsx(405,71): error TS2322: Type '(tab: "notes" | "clients" | "calendar" | "dashboard" | "messages" | "tasks" | "analytics" | "settings", subTab?: string | undefined) => void' is not assignable to type '(tab: string, subTab?: string | undefined) => void'.
+  Types of parameters 'tab' and 'tab' are incompatible.
+    Type 'string' is not assignable to type '"notes" | "clients" | "calendar" | "dashboard" | "messages" | "tasks" | "analytics" | "settings"'.
+src/components/TherapistHomeView.tsx(412,32): error TS2322: Type '(tab: "notes" | "clients" | "calendar" | "dashboard" | "messages" | "tasks" | "analytics" | "settings", subTab?: string | undefined) => void' is not assignable to type '(tab: string, subTab?: string | undefined) => void'.
+  Types of parameters 'tab' and 'tab' are incompatible.
+    Type 'string' is not assignable to type '"notes" | "clients" | "calendar" | "dashboard" | "messages" | "tasks" | "analytics" | "settings"'.
+src/components/TherapistVerificationDetailModal.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/TherapistVerificationDetailModal.tsx(10,1): error TS6133: 'Separator' is declared but its value is never read.
+src/components/TherapistVerificationDetailModal.tsx(23,12): error TS6133: 'loading' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(4,5): error TS6133: 'Activity' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(5,32): error TS6133: 'Circle' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(6,41): error TS6133: 'Rocket' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(7,13): error TS6133: 'Calendar' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(7,23): error TS6133: 'Briefcase' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(11,21): error TS6133: 'VerificationStage' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(11,40): error TS6133: 'VerificationStatus' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(34,5): error TS6133: 'SheetHeader' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(35,5): error TS6133: 'SheetTitle' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(36,5): error TS6133: 'SheetDescription' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(172,12): error TS6133: 'notes' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(172,19): error TS6133: 'setNotes' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(173,12): error TS6133: 'backgroundChecks' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(173,30): error TS6133: 'setBackgroundChecks' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(222,54): error TS6133: 'documentName' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(232,11): error TS6133: 'getDocumentName' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(243,11): error TS6133: 'isDocVerified' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(244,11): error TS6133: 'isBgCheckPassed' is declared but its value is never read.
+src/components/TherapistVerificationView.tsx(424,79): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/TherapistVerificationView.tsx(443,79): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/TherapistVerificationView.tsx(462,79): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/TherapistVerificationView.tsx(481,79): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/TherapistVerificationView.tsx(500,79): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/TwoFactorSetup.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(12,28): error TS6133: 'phone' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(13,38): error TS6133: 'vid' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(13,51): error TS6133: 'code' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(13,65): error TS6133: 'dn' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(14,28): error TS6133: 'uid' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(16,30): error TS6133: 'id' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(16,42): error TS6133: 'v' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(24,34): error TS6133: 'userId' is declared but its value is never read.
+src/components/TwoFactorSetup.tsx(34,23): error TS6133: 'setCountryCode' is declared but its value is never read.
+src/components/ui/avatar.tsx(5,24): error TS6133: 'X' is declared but its value is never read.
+src/components/ui/avatar.tsx(5,35): error TS6133: 'Clock' is declared but its value is never read.
+src/components/ui/avatar.tsx(113,13): error TS6133: 'hasSize' is declared but its value is never read.
+src/components/ui/form-inputs.tsx(17,58): error TS2305: Module '"../PhoneInput"' has no exported member 'formatPhoneForDisplay'.
+src/components/ui/input-field.tsx(3,1): error TS6133: 'MagnifyingGlass' is declared but its value is never read.
+src/components/ui/pagination.tsx(5,3): error TS6133: 'MoreHorizontalIcon' is declared but its value is never read.
+src/components/ui/pagination.tsx(9,18): error TS6133: 'buttonVariants' is declared but its value is never read.
+src/components/ui/parallax-anti-gravity.tsx(150,5): error TS6133: 'intensity' is declared but its value is never read.
+src/components/ui/search-bar.tsx(81,11): error TS6133: 'commandKey' is declared but its value is never read.
+src/components/ui/select.tsx(6,3): error TS6133: 'CheckIcon' is declared but its value is never read.
+src/components/ui/spotlight.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ui/use-mouse-position.ts(1,10): error TS6133: 'useRef' is declared but its value is never read.
+src/components/UnauthorizedDomainAlert.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/VerificationBanner.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/VerificationBanner.tsx(2,30): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/components/VerificationBanner.tsx(2,44): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/components/VerificationPendingPage.tsx(75,23): error TS6133: 'savedEmail' is declared but its value is never read.
+src/components/VideoCallRoom.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/VideoCallRoom.tsx(2,10): error TS6133: 'X' is declared but its value is never read.
+src/components/VideoCallRoom.tsx(34,3): error TS6133: 'jwtToken' is declared but its value is never read.
+src/components/VideoCallRoom.tsx(181,48): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Record<string, any> | undefined'.
+src/components/VideoRoomsView.tsx(1,27): error TS6133: 'useEffect' is declared but its value is never read.
+src/components/WeekView.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/WeekView.tsx(26,3): error TS6133: 'isAdminMode' is declared but its value is never read.
+src/components/WeekView.tsx(395,3): error TS6133: 'therapist' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(3,5): error TS6133: 'Check' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(5,5): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(7,5): error TS6133: 'Calendar' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(8,5): error TS6133: 'Shield' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(9,5): error TS6133: 'User' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(10,5): error TS6133: 'Clock' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(11,5): error TS6133: 'ExternalLink' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(16,5): error TS6133: 'DialogHeader' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(18,5): error TS6133: 'DialogFooter' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(19,5): error TS6133: 'DialogDescription' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(25,1): error TS6192: All imports in import declaration are unused.
+src/components/workflow/TherapistVerificationModal.tsx(29,1): error TS6192: All imports in import declaration are unused.
+src/components/workflow/TherapistVerificationModal.tsx(30,1): error TS6133: 'toast' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(50,12): error TS6133: 'activeTab' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(50,23): error TS6133: 'setActiveTab' is declared but its value is never read.
+src/components/workflow/TherapistVerificationModal.tsx(169,68): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/workflow/TherapistVerificationModal.tsx(170,59): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/workflow/VerificationStep.tsx(1,46): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/components/workflow/WorkflowStepper.tsx(1,17): error TS6133: 'Circle' is declared but its value is never read.
+src/hooks/useSession.ts(27,9): error TS6133: 'polledSession' is declared but its value is never read.
+src/hooks/useSession.ts(46,39): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/imports/BedrockLogo.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(3,1): error TS6133: 'img2' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(4,1): error TS6133: 'img3' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(5,1): error TS6133: 'img4' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(6,1): error TS6133: 'img5' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(7,1): error TS6133: 'img6' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(8,1428): error TS6133: 'img' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(8,1433): error TS6133: 'img1' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(13,10): error TS6133: 'IconCaretDoubleVertical' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(41,10): error TS6133: 'IconSquaresFour' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(74,10): error TS6133: 'ChartLineUp' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(104,10): error TS6133: 'IconCalendar' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(149,10): error TS6133: 'IconCaretDown' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(169,10): error TS6133: 'IconNoteBlank' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(194,10): error TS6133: 'IconBell' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(219,10): error TS6133: 'IconChartPie' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(249,10): error TS6133: 'CaretDoubleHorizontal' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(277,10): error TS6133: 'Logogram' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(297,10): error TS6133: 'IconMapPin' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(326,10): error TS6133: 'BrandLogos' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(734,10): error TS6133: 'TableBaseHeader' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(745,17): error TS2552: Cannot find name 'IconCaretDoubleVertical1'. Did you mean 'IconCaretDoubleVertical'?
+src/imports/Dashboard-6430-5255.tsx(753,10): error TS6133: 'IconCommand' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(801,10): error TS6133: 'IconMagnifyingGlass' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(826,10): error TS6133: 'IconDotsThreeVertical' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(869,10): error TS6133: 'IconEnvelopeSimpleOpen' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(892,10): error TS6133: 'IconPhone' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(910,10): error TS6133: 'IconEnvelope' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(951,10): error TS6133: 'Checkbox' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(1042,10): error TS6133: 'IconGenderMale' is declared but its value is never read.
+src/imports/Dashboard-6430-5255.tsx(1076,8): error TS2304: Cannot find name 'SearchBar'.
+src/imports/Dashboard-6430-5255.tsx(1079,12): error TS2304: Cannot find name 'NavigationSidebarMenu'.
+src/imports/Dashboard-6430-5255.tsx(1086,12): error TS2552: Cannot find name 'IconCaretDown1'. Did you mean 'IconCaretDown'?
+src/imports/Dashboard-6430-5255.tsx(1224,10): error TS2552: Cannot find name 'HeaderSectionHeader'. Did you mean 'HeaderTopHeader'?
+src/imports/Dashboard-6430-5255.tsx(1231,20): error TS2304: Cannot find name 'IconEnvelope1'.
+src/imports/Dashboard-6430-5255.tsx(1233,18): error TS2304: Cannot find name 'IconCaretRight'.
+src/imports/Dashboard-6430-5255.tsx(1246,20): error TS2304: Cannot find name 'IconBriefcase'.
+src/imports/Dashboard-6430-5255.tsx(1248,18): error TS2304: Cannot find name 'IconCaretRight1'.
+src/imports/Dashboard-6430-5255.tsx(1261,20): error TS2304: Cannot find name 'IconAddressBook'.
+src/imports/Dashboard-6430-5255.tsx(1263,18): error TS2304: Cannot find name 'IconCaretRight2'.
+src/imports/Dashboard-6430-5255.tsx(1276,20): error TS2304: Cannot find name 'IconClipboardText'.
+src/imports/Dashboard-6430-5255.tsx(1278,18): error TS2304: Cannot find name 'IconCaretRight3'.
+src/imports/Dashboard-6430-5255.tsx(1296,20): error TS2304: Cannot find name 'Badge'.
+src/imports/Dashboard-6430-5255.tsx(1303,20): error TS2304: Cannot find name 'Badge1'.
+src/imports/Dashboard-6430-5255.tsx(1308,20): error TS2304: Cannot find name 'Badge2'.
+src/imports/Dashboard-6430-5255.tsx(1313,20): error TS2304: Cannot find name 'Badge3'.
+src/imports/Dashboard-6430-5255.tsx(1326,22): error TS2304: Cannot find name 'Badge4'.
+src/imports/Dashboard-6430-5255.tsx(1331,20): error TS2304: Cannot find name 'Buttons'.
+src/imports/Dashboard-6430-5255.tsx(1332,20): error TS2304: Cannot find name 'Buttons1'.
+src/imports/Dashboard-6430-5255.tsx(1386,18): error TS2304: Cannot find name 'Indicator'.
+src/imports/Dashboard-6430-5255.tsx(1449,18): error TS2304: Cannot find name 'SearchBar1'.
+src/imports/Dashboard-6430-5255.tsx(1450,18): error TS2304: Cannot find name 'Buttons2'.
+src/imports/Dashboard-6430-5255.tsx(1451,18): error TS2304: Cannot find name 'Buttons3'.
+src/imports/Dashboard-6430-5255.tsx(1455,16): error TS2304: Cannot find name 'TableHeader'.
+src/imports/Dashboard-6430-5255.tsx(1456,16): error TS2304: Cannot find name 'Rows'.
+src/imports/Dashboard-6430-5255.tsx(1457,16): error TS2304: Cannot find name 'Rows1'.
+src/imports/Dashboard-6430-5255.tsx(1458,16): error TS2304: Cannot find name 'Rows2'.
+src/imports/Dashboard-6430-5255.tsx(1459,16): error TS2304: Cannot find name 'Rows3'.
+src/imports/Dashboard-6430-5255.tsx(1460,16): error TS2304: Cannot find name 'Rows4'.
+src/imports/Dashboard-6430-5255.tsx(1479,24): error TS2304: Cannot find name 'SearchBar2'.
+src/imports/Dashboard-6430-5255.tsx(1480,24): error TS2304: Cannot find name 'Buttons14'.
+src/imports/Dashboard-6430-5255.tsx(1481,24): error TS2304: Cannot find name 'Buttons15'.
+src/imports/Dashboard-6430-5255.tsx(1485,22): error TS2304: Cannot find name 'TableHeader1'.
+src/imports/Dashboard-6430-5255.tsx(1486,22): error TS2304: Cannot find name 'Rows5'.
+src/imports/Dashboard-6430-5255.tsx(1487,22): error TS2304: Cannot find name 'Rows6'.
+src/imports/Dashboard-6430-5255.tsx(1488,22): error TS2304: Cannot find name 'Rows7'.
+src/imports/Dashboard-6430-5255.tsx(1489,22): error TS2304: Cannot find name 'Rows8'.
+src/imports/Dashboard-6430-5255.tsx(1490,22): error TS2304: Cannot find name 'Rows9'.
+src/imports/Dashboard-6430-5255.tsx(1648,8): error TS2304: Cannot find name 'NavigationSidebar'.
+src/store/authStore.ts(43,15): error TS6133: 'get' is declared but its value is never read.
+src/store/authStore.ts(80,88): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Record<string, any> | undefined'.
+src/utils/sanitization.ts(122,40): error TS7006: Parameter 'item' implicitly has an 'any' type.

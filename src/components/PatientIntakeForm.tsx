@@ -13,6 +13,7 @@ import { User, Phone, EnvelopeSimple, MapPin, FirstAidKit, Warning, Identificati
 import { Badge } from './ui/badge';
 import { useCometChatUserCreation } from '../integrations/cometchat';
 import { toast } from 'sonner';
+import { logger } from '../utils/secureLogger';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { format } from 'date-fns';
 
@@ -205,7 +206,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
 
       // Create messaging user (non-blocking)
       const fullName = `${formData.firstName} ${formData.lastName}`;
-      console.log(`🚀 Creating messaging user for: ${fullName} (${formData.email})`);
+      logger.debug(`🚀 Creating messaging user for: ${fullName} (${formData.email})`);
 
       const userCreated = await createUser({
         email: formData.email,
@@ -221,7 +222,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
           description: `${fullName} can now receive messages and notifications`,
           duration: 5000
         });
-        console.log(`✅ Client ${fullName} registered and ready for messaging`);
+        logger.debug(`✅ Client ${fullName} registered and ready for messaging`);
       } else {
         toast.success('Client registered', {
           description: 'Profile created (messaging setup pending)'

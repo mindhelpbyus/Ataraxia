@@ -16,11 +16,7 @@ import {
 } from "./ui/tooltip";
 import { Alert, AlertDescription } from "./ui/alert";
 import illustrationImage from 'figma:asset/25680757734faa188ce1cb1feebb30b3ebb124bb.png';
-import { verifyPhoneOtp, getGoogleOAuthUrl } from '../api/auth';
-import {
-  localAuthService,
-  firebasePhoneAuth,
-} from '../api/auth'; // ✅ Single backend-facing auth service — no Firebase SDK
+import { verifyPhoneOtp, getGoogleOAuthUrl, sendPhoneOtp } from '../api/auth';
 import { PhoneInput, validatePhoneNumber as validatePhone } from './PhoneInput';
 import { Spotlight } from './ui/spotlight';
 import type { AuthUser } from '../api/auth';
@@ -166,7 +162,7 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
         }
         const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
         // ✅ Backend sends OTP via Twilio/Firebase Admin — no client SDK
-        const { sessionId } = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber) as unknown as { sessionId: string };
+        const { sessionId } = await sendPhoneOtp(fullPhoneNumber);
         setConfirmationResult(sessionId);
         setOtpSent(true);
         toast.success('Verification code sent to your phone');
@@ -189,7 +185,7 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
     if (confirmationResult) {
       try {
         const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
-        const { sessionId } = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber) as unknown as { sessionId: string };
+        const { sessionId } = await sendPhoneOtp(fullPhoneNumber);
         setConfirmationResult(sessionId);
         toast.success('OTP resent successfully');
       } catch {
@@ -213,12 +209,6 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
     }
   };
 
-  // Cleanup Firebase auth on unmount
-  useEffect(() => {
-    return () => {
-      firebasePhoneAuth.cleanup();
-    };
-  }, []);
 
   return (
     <TooltipProvider>

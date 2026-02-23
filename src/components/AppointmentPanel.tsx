@@ -241,7 +241,6 @@ export function AppointmentPanel({
 
     // If appointment has video call scheduled, use stored room and JWT
     if (appointment.isVideoCall && appointment.videoCallRoomName) {
-      console.log('Joining scheduled video call room:', appointment.videoCallRoomName);
       setShowVideoCall(true);
     } else {
       // Create ad-hoc call

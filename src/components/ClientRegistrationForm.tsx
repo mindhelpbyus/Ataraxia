@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '../utils/secureLogger';
 import { Card } from './ui/card';
 import { ComprehensiveClientData } from './client/types';
 import { ProgressHeader } from './client/ProgressHeader';
@@ -315,7 +316,7 @@ export function ClientRegistrationForm({
                     onPrevious={handlePrevious}
                     onNext={currentStep === STEPS.length ? handleSubmit : handleNext}
                     onSaveAndExit={() => {
-                        console.log('Save and exit:', formData);
+                        logger.debug('Save and exit:', { ...formData });
                         alert('Your progress has been saved. You can continue later.');
                     }}
                     isStepValid={validateStep()}
@@ -325,7 +326,7 @@ export function ClientRegistrationForm({
                 <div className="text-center pt-4">
                     <button
                         onClick={() => {
-                            console.log('Save and exit:', formData);
+                            logger.debug('Save and exit:', { ...formData });
                             alert('Your progress has been saved. You can continue later.');
                         }}
                         className="text-sm text-gray-500 hover:text-gray-900 underline transition-colors"

@@ -371,11 +371,9 @@ export function SuperAdminView({ userId, userEmail }: SuperAdminViewProps) {
   };
 
   const handleBulkAction = (action: string) => {
-    console.log(`Bulk action: ${action} for orgs:`, selectedOrgs);
   };
 
   const handleExport = () => {
-    console.log('Exporting organizations...');
   };
 
   const handleCreateOrganization = () => {

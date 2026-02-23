@@ -122,22 +122,8 @@ export const verificationService = {
      * Activate a therapist account after all verification stages pass.
      */
     async activateTherapistAccount(therapistId: string): Promise<unknown> {
-        interface TherapistRecord { firebase_uid?: string; email: string }
-        interface PendingResponse {
-            registrations: Array<{ id: string; firebase_uid?: string; email: string }>
-        }
-
-        const therapist = await get<TherapistRecord>(`/api/therapists/${therapistId}`);
-        const pendingData = await get<PendingResponse>('/api/verification/pending');
-        const registration = pendingData.registrations?.find(
-            (reg) => reg.firebase_uid === therapist.firebase_uid || reg.email === therapist.email
-        );
-
-        if (!registration) {
-            throw new Error('Registration not found for this therapist');
-        }
-
-        return post(`/api/verification/${registration.id}/activate`);
+        // Direct backend logic using unified id — no more firebase_uid tracking
+        return post(`/api/verification/${therapistId}/activate`);
     },
 
     /**

@@ -491,13 +491,7 @@ By signing below, you agree to uphold these ethical standards and code of conduc
         });
         localStorage.setItem(`document_${docData.id}_date`, signedDate);
 
-        // Log the signed document data
-        console.log('Document signed:', {
-            documentId: docData.id,
-            documentTitle: docData.title,
-            signatures: signatures,
-            signedAt: new Date().toISOString(),
-        });
+        // Ensure that PHI signature data is securely handled without console logs.
 
         alert('Document signed successfully! You can now download it.');
 
@@ -661,8 +655,8 @@ By signing below, you agree to uphold these ethical standards and code of conduc
                                 onClick={handleSignDocument}
                                 disabled={documentSigned}
                                 className={`mt-8 px-6 py-3 rounded-md font-medium transition-colors ${documentSigned
-                                        ? 'bg-green-600 text-white cursor-not-allowed'
-                                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                                    ? 'bg-green-600 text-white cursor-not-allowed'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
                                     }`}
                             >
                                 {documentSigned ? (
