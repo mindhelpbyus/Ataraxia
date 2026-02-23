@@ -3,11 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Video, Plus, User, Key, Users, Hash, Maximize2, AlertCircle, Settings } from 'lucide-react';
+import { Video, Plus, User, Key, Users, Hash, Maximize2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from './ui/alert';
-import ZoomMtgEmbedded from '@zoom/meetingsdk/embedded';
-import { logger } from '../services/secureLogger';
-import { KJUR } from 'jsrsasign';
+import { logger } from '../utils/secureLogger';
+import { post } from '../api/client';
+import { useAuthStore } from '../store/authStore';
+// ✅ PERFORMANCE (Chief Architect §4.1): Zoom SDK (2.5MB) is NOT imported statically.
+// It is dynamically imported ONLY when a user clicks "Join" — preventing it from
+// inflating the initial bundle for every page load, even for non-video users.
+
+// ✅ SECURITY: jsrsasign REMOVED.
+// Client-side JWT signing exposed the Zoom SDK Secret to every user's browser —
+// any user could open DevTools, extract the secret, and sign their own tokens to
+// impersonate hosts or join any meeting. The secret now lives ONLY in the
+// backend environment variables and is never transmitted to the frontend.
 
 interface Room {
     id: string;
@@ -44,32 +53,15 @@ export function VideoRoomsView() {
     const [newRoomName, setNewRoomName] = useState('');
     const [newMeetingNumber, setNewMeetingNumber] = useState('');
     const [newPasscode, setNewPasscode] = useState('');
-    const [userName, setUserName] = useState('Guest User'); // Could pull from context
     const [error, setError] = useState<string | null>(null);
-    const [isAudioMuted, setIsAudioMuted] = useState(true);
-    const [isVideoMuted, setIsVideoMuted] = useState(true);
-
-    const [showSettings, setShowSettings] = useState(false);
-    const [sdkKeyInput, setSdkKeyInput] = useState(localStorage.getItem('zoomSdkKey') || '');
-    const [sdkSecretInput, setSdkSecretInput] = useState(localStorage.getItem('zoomSdkSecret') || '');
-
     const zoomMeetingRef = useRef<HTMLDivElement>(null);
     const zoomClient = useRef<any>(null);
 
-    useEffect(() => {
-        // Initialize the Zoom client once
-        try {
-            if (!zoomClient.current) {
-                zoomClient.current = ZoomMtgEmbedded.createClient();
-            }
-        } catch (e) {
-            logger.error('Failed to initialize Zoom Embedded Client:', e);
-        }
+    // ✅ Wire auth store — replaces hardcoded 'Guest User'
+    const userName = useAuthStore((s) => s.user?.name ?? 'Guest User');
 
-        return () => {
-            // Cleanup zoom resources conditionally if active
-        };
-    }, []);
+    // ✅ PERFORMANCE: Zoom client is lazily initialized on first join — not on mount.
+    // This removes 2.5MB from the initial bundle for users who never open a video room.
 
     const handleCreateRoom = (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,56 +86,39 @@ export function VideoRoomsView() {
         setError(null);
     };
 
-    const handleSaveSettings = (e: React.FormEvent) => {
-        e.preventDefault();
-        localStorage.setItem('zoomSdkKey', sdkKeyInput);
-        localStorage.setItem('zoomSdkSecret', sdkSecretInput);
-        setShowSettings(false);
-        setError(null);
-    };
-
-    const getSignature = async (meetingNumber: string, role: number) => {
-        const sdkKey = localStorage.getItem('zoomSdkKey');
-        const sdkSecret = localStorage.getItem('zoomSdkSecret');
-
-        if (!sdkKey || !sdkSecret) {
-            throw new Error("Missing Zoom SDK Key or Secret in settings. Please configure via the Settings button.");
-        }
-
-        const iat = Math.round(new Date().getTime() / 1000) - 30;
-        const exp = iat + 60 * 60 * 2;
-
-        const oHeader = { alg: 'HS256', typ: 'JWT' };
-
-        // Meeting SDK payload format (differ from Video SDK)
-        const oPayload = {
-            appKey: sdkKey, // Used over sdkKey for >= v3
-            mn: meetingNumber,
-            role: role,
-            iat: iat,
-            exp: exp,
-            tokenExp: exp
-        };
-
-        const sHeader = JSON.stringify(oHeader);
-        const sPayload = JSON.stringify(oPayload);
-        const signature = KJUR.jws.JWS.sign('HS256', sHeader, sPayload, sdkSecret);
-
-        return signature;
+    // ✅ SECURITY FIX: Signature is now generated on the backend.
+    // The backend holds ZOOM_SDK_KEY and ZOOM_SDK_SECRET as environment variables.
+    // The frontend only receives a short-lived, meeting-scoped signature token.
+    // Attack vector eliminated: no user can DevTools-extract a secret and forge host tokens.
+    //
+    // Backend endpoint: POST /api/v1/zoom/signature
+    // Request:  { meetingNumber: string, role: 0 | 1 }
+    // Response: { signature: string, sdkKey: string }  ← sdkKey is public, secret is not returned
+    const getSignature = async (meetingNumber: string, role: 0 | 1): Promise<{ signature: string; sdkKey: string }> => {
+        const result = await post<{ signature: string; sdkKey: string }>(
+            '/api/v1/zoom/signature',
+            { meetingNumber, role }
+        );
+        return result;
     };
 
     const startMeeting = async (meetingNumber: string, passcode: string) => {
         setError(null);
-        if (!zoomClient.current || !zoomMeetingRef.current) {
-            setError('Zoom Meeting SDK client failed to initialize');
-            return;
-        }
-
-        setActiveMeetingInfo({ meetingNumber, passcode });
-
         try {
-            const signature = await getSignature(meetingNumber, 0); // 0 = attendee, 1 = host
-            const sdkKey = localStorage.getItem('zoomSdkKey');
+            // ✅ PERFORMANCE: Dynamically import the 2.5MB Zoom SDK only when joining
+            const { default: ZoomMtgEmbedded } = await import('@zoom/meetingsdk/embedded');
+            if (!zoomClient.current) {
+                zoomClient.current = ZoomMtgEmbedded.createClient();
+            }
+            if (!zoomClient.current || !zoomMeetingRef.current) {
+                setError('Video session client failed to initialize. Please refresh the page.');
+                return;
+            }
+
+            setActiveMeetingInfo({ meetingNumber, passcode });
+
+            // ✅ SECURITY: Signature and sdkKey come from backend — never from localStorage
+            const { signature, sdkKey } = await getSignature(meetingNumber, 0); // 0=attendee, 1=host
 
             await zoomClient.current.init({
                 zoomAppRoot: zoomMeetingRef.current,
@@ -152,28 +127,28 @@ export function VideoRoomsView() {
                     video: {
                         isResizable: true,
                         viewSizes: {
-                            default: {
-                                width: 800,
-                                height: 600
-                            }
+                            default: { width: 800, height: 600 }
                         }
                     }
                 }
             });
 
             await zoomClient.current.join({
-                signature: signature,
-                meetingNumber: meetingNumber,
+                signature,
+                sdkKey,
+                meetingNumber,
                 password: passcode,
-                userName: userName,
-                userEmail: '', // optional
+                userName,
+                userEmail: '',
             });
 
+            // ✅ AUDIT LOG: Session join logged server-side via apiFetch interceptor
             logger.info('Successfully joined video session');
 
-        } catch (err: any) {
-            console.error(err);
-            setError('Failed to join the meeting. Ensure your Zoom credentials and JWT SDK Signature are properly configured in the backend.');
+        } catch (err: unknown) {
+            // ✅ SECURITY: Never log err details to console — could contain meeting tokens
+            logger.error('Video session join failed', err);
+            setError('Failed to join the session. Please contact support if this persists.');
             setActiveMeetingInfo(null);
         }
     };
@@ -196,7 +171,8 @@ export function VideoRoomsView() {
                 }
                 await zoomClient.current.leave();
             } catch (e) {
-                console.error("Error leaving meeting", e);
+                // ✅ Route through secureLogger — not console.error
+                logger.error('Error leaving video session', e);
             }
         }
         setActiveMeetingInfo(null);
@@ -209,19 +185,12 @@ export function VideoRoomsView() {
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
                         Video Rooms
                     </h1>
-                    <p className="text-muted-foreground mt-2">Manage multiple Zoom meeting rooms or join video calls effortlessly.</p>
+                    <p className="text-muted-foreground mt-2">Manage Zoom meeting rooms and join secure video sessions.</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    {/* ✅ SECURITY: Settings panel removed — SDK credentials are backend-only config */}
                     <Button
-                        onClick={() => { setIsCreating(false); setShowSettings(!showSettings); }}
-                        variant="outline"
-                        className="shadow-sm font-medium"
-                    >
-                        <Settings className="w-4 h-4 mr-2" />
-                        Settings
-                    </Button>
-                    <Button
-                        onClick={() => { setShowSettings(false); setIsCreating(!isCreating); }}
+                        onClick={() => setIsCreating(!isCreating)}
                         className="bg-primary hover:bg-primary/90 shadow-sm transition-colors font-medium"
                     >
                         <Plus className="h-4 w-4 mr-2" />
@@ -267,61 +236,10 @@ export function VideoRoomsView() {
                 </div>
             </div>
 
-            {showSettings && !activeMeetingInfo && (
-                <Card className="border-border shadow-xl ring-1 ring-black/5 dark:ring-white/5 bg-gradient-to-b from-card to-muted/20">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Settings className="w-5 h-5 text-gray-500" />
-                            Zoom SDK Settings (Local Sandbox)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSaveSettings} className="space-y-4">
-                            <Alert className="bg-amber-50 text-amber-900 border-amber-200">
-                                <AlertCircle className="h-4 w-4 text-amber-600" />
-                                <AlertDescription>
-                                    These credentials are saved securely in your browser's local storage for development. Make sure you use a <b>Video SDK</b> app's credentials.
-                                </AlertDescription>
-                            </Alert>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Zoom SDK Key</Label>
-                                    <div className="relative">
-                                        <Key className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Your Client ID / SDK Key"
-                                            className="pl-9"
-                                            value={sdkKeyInput}
-                                            onChange={(e) => setSdkKeyInput(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Zoom SDK Secret</Label>
-                                    <div className="relative">
-                                        <Key className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Your Client Secret / SDK Secret"
-                                            type="password"
-                                            className="pl-9"
-                                            value={sdkSecretInput}
-                                            onChange={(e) => setSdkSecretInput(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4">
-                                <Button variant="outline" type="button" onClick={() => setShowSettings(false)}>
-                                    Cancel
-                                </Button>
-                                <Button type="submit" className="bg-primary hover:bg-primary/90 text-white shadow-sm transition-colors font-medium">
-                                    Save Locally
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
-            )}
+            {/* ✅ SECURITY: Zoom SDK Settings panel permanently removed.
+                ZOOM_SDK_KEY and ZOOM_SDK_SECRET are backend environment variables only.
+                They are set in Cloud Run secrets/environment and never exposed to the browser. */}
+
 
             {isCreating && !activeMeetingInfo && (
                 <Card className="border-border shadow-xl ring-1 ring-black/5 dark:ring-white/5 bg-gradient-to-b from-card to-muted/20">

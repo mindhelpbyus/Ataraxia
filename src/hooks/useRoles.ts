@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllRoles, getProfessionalRoles, getUserRole, type Role } from '../api/services/roles';
+import { getAllRoles, getProfessionalRoles, getUserRole, type Role } from '../api/roles';
 
 /**
  * Hook to fetch all roles from the database

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -38,196 +38,90 @@ interface HomeViewProps {
 
 export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [statsData, setStatsData] = useState([
+    { icon: <Mail className="h-5 w-5 text-content-secondary" />, label: 'Sessions Sent', value: '—', unit: 'Sessions' },
+    { icon: <Building2 className="h-5 w-5 text-content-secondary" />, label: 'Active Therapists', value: '—', unit: 'Therapists' },
+    { icon: <Users className="h-5 w-5 text-content-secondary" />, label: 'Total Clients', value: '—', unit: 'Clients' },
+    { icon: <ClipboardList className="h-5 w-5 text-content-secondary" />, label: 'Ongoing Sessions', value: '—', unit: 'Sessions' },
+  ]);
+  const [upcomingAgenda, setUpcomingAgenda] = useState<any[]>([]);
+  const [peopleData, setPeopleData] = useState<any[]>([]);
+  const [companiesData, setCompaniesData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<{ month: string; value: number }[]>([]);
 
-  // All widgets are always visible
-  const widgets = {
-    stats: true,
-    agenda: true,
-    categories: true,
-    completionRate: true,
-    people: true,
-    companies: true
-  };
+  const widgets = { stats: true, agenda: true, categories: true, completionRate: true, people: true, companies: true };
 
-  // Mock data
-  const statsData = [
-    {
-      icon: <Mail className="h-5 w-5 text-content-secondary" />,
-      label: 'Sessions Sent',
-      value: '1,251',
-      unit: 'Sessions'
-    },
-    {
-      icon: <Building2 className="h-5 w-5 text-content-secondary" />,
-      label: 'Active Therapists',
-      value: '43',
-      unit: 'Therapists'
-    },
-    {
-      icon: <Users className="h-5 w-5 text-content-secondary" />,
-      label: 'Total Clients',
-      value: '162',
-      unit: 'Clients'
-    },
-    {
-      icon: <ClipboardList className="h-5 w-5 text-content-secondary" />,
-      label: 'Ongoing Sessions',
-      value: '5',
-      unit: 'Sessions'
-    }
-  ];
+  useEffect(() => {
+    // Fetch dashboard stats
+    fetch('/api/v1/dashboard/stats', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        if (!data) return;
+        setStatsData([
+          { icon: <Mail className="h-5 w-5 text-content-secondary" />, label: 'Sessions Sent', value: String(data.sessionsSent ?? '—'), unit: 'Sessions' },
+          { icon: <Building2 className="h-5 w-5 text-content-secondary" />, label: 'Active Therapists', value: String(data.activeTherapists ?? '—'), unit: 'Therapists' },
+          { icon: <Users className="h-5 w-5 text-content-secondary" />, label: 'Total Clients', value: String(data.totalClients ?? '—'), unit: 'Clients' },
+          { icon: <ClipboardList className="h-5 w-5 text-content-secondary" />, label: 'Ongoing Sessions', value: String(data.ongoingSessions ?? '—'), unit: 'Sessions' },
+        ]);
+        if (data.completionRateByMonth) setChartData(data.completionRateByMonth);
+      })
+      .catch(() => { });
 
-  const upcomingAgenda = [
-    {
-      id: '1',
-      time: '11:00 - 12:00 Feb 2, 2025',
-      title: 'Session with Client',
-      description: 'This monthly progress session',
-      badgeColor: 'bg-[#FED7AA] text-[#F97316]'
-    },
-    {
-      id: '2',
-      time: '14:00 - 15:00 Feb 2, 2025',
-      title: 'Session with Client',
-      description: 'This monthly progress session',
-      badgeColor: 'bg-[#BFDBFE] text-[#3B82F6]'
-    },
-    {
-      id: '3',
-      time: '16:00 - 17:00 Feb 2, 2025',
-      title: 'Session with Client',
-      description: 'This monthly progress session',
-      badgeColor: 'bg-[#DDD6FE] text-[#8B5CF6]'
-    },
-    {
-      id: '4',
-      time: '09:00 - 10:00 Feb 3, 2025',
-      title: 'Session with Client',
-      description: 'This monthly progress session',
-      badgeColor: 'bg-[#FECACA] text-[#EF4444]'
-    }
-  ];
+    // Fetch upcoming agenda
+    fetch('/api/v1/appointments?upcoming=true&limit=4', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        const colors = ['bg-[#FED7AA] text-[#F97316]', 'bg-[#BFDBFE] text-[#3B82F6]', 'bg-[#DDD6FE] text-[#8B5CF6]', 'bg-[#FECACA] text-[#EF4444]'];
+        setUpcomingAgenda((data ?? []).map((a: any, i: number) => ({
+          id: a.id,
+          time: `${new Date(a.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${new Date(a.endTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} ${new Date(a.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+          title: a.title || `Session with ${a.clientName || 'Client'}`,
+          description: a.notes || 'Therapy session',
+          badgeColor: colors[i % colors.length],
+        })));
+      })
+      .catch(() => { });
 
-  // Chart data
-  const chartData = [
-    { month: 'Jan', value: 87 },
-    { month: 'Feb', value: 53 },
-    { month: 'Mar', value: 100 },
-    { month: 'Apr', value: 73 },
-    { month: 'May', value: 87 },
-    { month: 'Jun', value: 47 },
-    { month: 'Jul', value: 73 },
-    { month: 'Aug', value: 60 },
-    { month: 'Sep', value: 80 },
-    { month: 'Oct', value: 60 },
-    { month: 'Nov', value: 93 },
-    { month: 'Dec', value: 73 }
-  ];
+    // Fetch recent people (clients + therapists)
+    fetch('/api/v1/users?limit=5', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        const catColors: Record<string, string> = {
+          therapist: 'bg-[#DDD6FE] text-[#8B5CF6]',
+          client: 'bg-[#BFDBFE] text-[#3B82F6]',
+          admin: 'bg-[#FED7AA] text-[#F97316]',
+        };
+        setPeopleData((data ?? []).map((u: any) => ({
+          id: u.id,
+          name: u.name || `${u.first_name} ${u.last_name}`,
+          email: u.email,
+          phone: u.phone || '—',
+          category: u.role?.charAt(0).toUpperCase() + u.role?.slice(1) || 'User',
+          categoryColor: catColors[u.role] || 'bg-gray-100 text-gray-700',
+          location: u.location || '—',
+          gender: u.gender || '—',
+        })));
+      })
+      .catch(() => { });
 
-  const maxChartValue = Math.max(...chartData.map(d => d.value));
+    // Fetch organizations
+    fetch('/api/v1/organizations?limit=5', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        setCompaniesData((data ?? []).map((o: any) => ({
+          id: o.id,
+          name: o.name,
+          industry: o.specialty || o.type || 'Healthcare',
+          location: o.location || '—',
+          status: o.status || 'Active',
+          statusColor: o.status === 'Active' ? 'bg-[#BFDBFE] text-[#3B82F6]' : 'bg-[#FED7AA] text-[#F97316]',
+          logo: '🏥',
+        })));
+      })
+      .catch(() => { });
+  }, [userEmail]);
 
-  // People data
-  const peopleData = [
-    {
-      id: '1',
-      name: 'Robert Fox',
-      email: 'robertfox@example.com',
-      phone: '(671) 555-0110',
-      category: 'Employee',
-      categoryColor: 'bg-[#DDD6FE] text-[#8B5CF6]',
-      location: 'Austin',
-      gender: 'Male'
-    },
-    {
-      id: '2',
-      name: 'Cody Fisher',
-      email: 'codyfisher@example.com',
-      phone: '(505) 555-0125',
-      category: 'Customers',
-      categoryColor: 'bg-[#BFDBFE] text-[#3B82F6]',
-      location: 'Orange',
-      gender: 'Male'
-    },
-    {
-      id: '3',
-      name: 'Albert Flores',
-      email: 'albertflores@example.com',
-      phone: '(704) 555-0127',
-      category: 'Customers',
-      categoryColor: 'bg-[#BFDBFE] text-[#3B82F6]',
-      location: 'Pembroke Pines',
-      gender: 'Female'
-    },
-    {
-      id: '4',
-      name: 'Floyd Miles',
-      email: 'floydmiles@example.com',
-      phone: '(405) 555-0128',
-      category: 'Employee',
-      categoryColor: 'bg-[#DDD6FE] text-[#8B5CF6]',
-      location: 'Fairfield',
-      gender: 'Male'
-    },
-    {
-      id: '5',
-      name: 'Arlene McCoy',
-      email: 'arlenemccoy@example.com',
-      phone: '(219) 555-0114',
-      category: 'Partners',
-      categoryColor: 'bg-[#FED7AA] text-[#F97316]',
-      location: 'Toledo',
-      gender: 'Female'
-    }
-  ];
-
-  // Companies data
-  const companiesData = [
-    {
-      id: '1',
-      name: 'Therapy Center North',
-      industry: 'Mental Health',
-      location: 'San Francisco, CA',
-      status: 'Active',
-      statusColor: 'bg-[#BFDBFE] text-[#3B82F6]',
-      logo: '🏥'
-    },
-    {
-      id: '2',
-      name: 'Wellness Hub',
-      industry: 'Counseling Services',
-      location: 'Oakland, CA',
-      status: 'Active',
-      statusColor: 'bg-[#BFDBFE] text-[#3B82F6]',
-      logo: '🧘'
-    },
-    {
-      id: '3',
-      name: 'Mindful Practice',
-      industry: 'Psychology Clinic',
-      location: 'Berkeley, CA',
-      status: 'Active',
-      statusColor: 'bg-[#BFDBFE] text-[#3B82F6]',
-      logo: '🧠'
-    },
-    {
-      id: '4',
-      name: 'Recovery Center',
-      industry: 'Addiction Treatment',
-      location: 'San Jose, CA',
-      status: 'Lead',
-      statusColor: 'bg-[#FED7AA] text-[#F97316]',
-      logo: '🌱'
-    },
-    {
-      id: '5',
-      name: 'Family Therapy Group',
-      industry: 'Family Counseling',
-      location: 'Palo Alto, CA',
-      status: 'Lead',
-      statusColor: 'bg-[#FED7AA] text-[#F97316]',
-      logo: '👨‍👩‍👧‍👦'
-    }
-  ];
+  const maxChartValue = chartData.length > 0 ? Math.max(...chartData.map(d => d.value)) : 100;
 
   return (
     <div className="h-full overflow-y-auto bg-white">

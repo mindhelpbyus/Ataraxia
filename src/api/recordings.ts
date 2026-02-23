@@ -210,5 +210,5 @@ export async function getSessionRecordings(
 export async function handleJibriWebhook(
   payload: JibriWebhookPayload
 ): Promise<void> {
-  return post('/recordings/webhook', payload, false);
+  return post('/recordings/webhook', payload);
 }

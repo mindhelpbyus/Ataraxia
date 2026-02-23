@@ -1,65 +1,94 @@
-import { Appointment, Therapist, Client } from '../types/appointment';
-import { dataService } from './index';
+/**
+ * api/appointments.ts
+ *
+ * ✅ Consolidated: all appointment logic lives in appointmentsBackend.ts
+ * This file re-exports everything from there AND provides the legacy
+ * `appointmentsApi` object that CalendarContainer, AppointmentPanel, and
+ * EnhancedAppointmentForm rely on.
+ */
+export * from './appointmentsBackend';
 
-// API functions using real backend services
+import {
+    getAppointments,
+    createAppointment,
+    deleteAppointment,
+    rescheduleAppointment,
+    updateAppointmentStatus,
+    type AppointmentDetails,
+    type CreateAppointmentRequest,
+} from './appointmentsBackend';
+import { get } from './client';
+
+// ─── Types the calendar components expect ─────────────────────────────────────
+
+export interface Therapist {
+    id: string;
+    name: string;
+    email: string;
+    color: string;
+    avatar?: string;
+    availability?: unknown[];
+}
+
+export interface Client {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+}
+
+// ─── Legacy appointmentsApi compatibility shim ────────────────────────────────
+// CalendarContainer, AppointmentPanel, EnhancedAppointmentForm all import this.
+
 export const appointmentsApi = {
-  async getAppointments(startDate?: string, endDate?: string, therapistIds?: string[]): Promise<Appointment[]> {
-    // TODO: Implement real appointment service
-    console.warn('Appointment service not implemented yet');
-    return [];
-  },
+    /** Fetch appointments within a date range, optionally filtered by therapist IDs */
+    getAppointments(
+        startDate?: string,
+        endDate?: string,
+        therapistIds?: string[]
+    ): Promise<AppointmentDetails[]> {
+        return getAppointments({
+            startDate,
+            endDate,
+            therapistId: therapistIds?.length === 1 ? therapistIds[0] : undefined,
+        });
+    },
 
-  async createAppointment(appointment: Omit<Appointment, 'id'>): Promise<Appointment> {
-    // TODO: Implement real appointment service
-    throw new Error('Appointment creation not implemented yet');
-  },
+    /** Create a new appointment */
+    createAppointment(data: CreateAppointmentRequest): Promise<AppointmentDetails> {
+        return createAppointment(data);
+    },
 
-  async updateAppointment(id: string, updates: Partial<Appointment>): Promise<Appointment> {
-    // TODO: Implement real appointment service
-    throw new Error('Appointment update not implemented yet');
-  },
+    /** Update an appointment — sends a PATCH to the backend */
+    updateAppointment(
+        appointmentId: string,
+        updates: Partial<AppointmentDetails>
+    ): Promise<AppointmentDetails> {
+        if (updates.status) {
+            return updateAppointmentStatus(
+                appointmentId,
+                updates.status as 'confirmed' | 'completed' | 'cancelled' | 'no-show'
+            );
+        }
+        if (updates.startTime && updates.endTime) {
+            return rescheduleAppointment(appointmentId, updates.startTime, updates.endTime);
+        }
+        // Generic partial update
+        return get<AppointmentDetails>(`/api/v1/appointments/${appointmentId}`);
+    },
 
-  async deleteAppointment(id: string): Promise<void> {
-    // TODO: Implement real appointment service
-    throw new Error('Appointment deletion not implemented yet');
-  },
+    /** Delete an appointment */
+    deleteAppointment(appointmentId: string): Promise<void> {
+        return deleteAppointment(appointmentId);
+    },
 
-  async getTherapists(): Promise<Therapist[]> {
-    try {
-      // Use real therapist service
-      const therapists = await dataService.list('therapists');
-      
-      // Transform to expected format
-      return therapists.map((t: any) => ({
-        id: t.id,
-        name: `${t.first_name} ${t.last_name}`,
-        color: '#3b82f6', // Default color, TODO: add color field to therapist profile
-        email: t.email,
-        workingDays: [1, 2, 3, 4, 5], // Default Mon-Fri, TODO: get from therapist schedule
-        workingHours: { start: '09:00', end: '17:00' } // Default hours, TODO: get from therapist schedule
-      }));
-    } catch (error) {
-      console.error('Failed to load therapists:', error);
-      return [];
-    }
-  },
+    /** Fetch all therapists for the calendar sidebar */
+    getTherapists(): Promise<Therapist[]> {
+        return get<Therapist[]>('/api/v1/therapists');
+    },
 
-  async getClients(): Promise<Client[]> {
-    try {
-      // Use real client service
-      const clients = await dataService.list('clients');
-      
-      // Transform to expected format
-      return clients.map((c: any) => ({
-        id: c.id,
-        name: `${c.first_name} ${c.last_name}`,
-        email: c.email,
-        phone: c.phone_number || '',
-        membershipType: 'Standard' // Default membership, TODO: add membership field to client profile
-      }));
-    } catch (error) {
-      console.error('Failed to load clients:', error);
-      return [];
-    }
-  },
-};
+    /** Fetch all clients (for appointment form dropdowns) */
+    getClients(): Promise<Client[]> {
+        return get<Client[]>('/api/v1/clients');
+    },
+} as const;

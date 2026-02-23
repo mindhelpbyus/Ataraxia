@@ -98,7 +98,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
         appointmentsApi.getTherapists(),
       ]);
 
-      setAppointments(appointmentsData);
+      setAppointments(appointmentsData as unknown as Appointment[]);
       setTherapists(therapistsData);
       console.log('Data loaded successfully - Therapists:', therapistsData.length, 'Appointments:', appointmentsData.length);
     } catch (error) {
@@ -196,7 +196,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
 
   const handleAppointmentUpdate = async (appointmentId: string, updates: Partial<Appointment>) => {
     try {
-      await appointmentsApi.updateAppointment(appointmentId, updates);
+      await appointmentsApi.updateAppointment(appointmentId, updates as any);
       await loadData();
       setSelectedAppointment(null);
     } catch (error) {
@@ -216,7 +216,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
 
   const handleAppointmentCreate = async (appointmentData: Omit<Appointment, 'id'>) => {
     try {
-      await appointmentsApi.createAppointment(appointmentData);
+      await appointmentsApi.createAppointment(appointmentData as any);
       await loadData();
       setShowAppointmentForm(false);
       setFormInitialData(null);

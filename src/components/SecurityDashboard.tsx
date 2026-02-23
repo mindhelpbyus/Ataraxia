@@ -16,12 +16,12 @@ import { Alert, AlertDescription } from './ui/alert';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { 
-  Shield, 
-  ShieldCheck, 
-  ShieldAlert, 
-  Smartphone, 
-  QrCode, 
+import {
+  Shield,
+  ShieldCheck,
+  ShieldAlert,
+  Smartphone,
+  QrCode,
   Key,
   Monitor,
   AlertTriangle,
@@ -32,7 +32,7 @@ import {
   Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getMFAStatus, getActiveSessions } from '../services/authService';
+import { getMFAStatus, getActiveSessions } from '../api/auth';
 import MFASetup from './MFASetup';
 import SessionManager from './SessionManager';
 
@@ -62,7 +62,7 @@ export const SecurityDashboard: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const [mfaStatus, sessionsData] = await Promise.all([
         getMFAStatus(),
         getActiveSessions()
@@ -73,16 +73,16 @@ export const SecurityDashboard: React.FC = () => {
       const recommendations: string[] = [];
 
       // MFA enabled (+40 points)
-      if (mfaStatus.mfaEnabled) {
+      if (mfaStatus.enabled) {
         score += 40;
       } else {
         recommendations.push('Enable two-factor authentication for better security');
       }
 
       // TOTP enabled (+20 points)
-      if (mfaStatus.totpEnabled) {
+      if (mfaStatus.type === 'totp') {
         score += 20;
-      } else if (!mfaStatus.mfaEnabled) {
+      } else if (!mfaStatus.enabled) {
         recommendations.push('Use an authenticator app for the most secure MFA method');
       }
 
@@ -92,7 +92,7 @@ export const SecurityDashboard: React.FC = () => {
         const daysSinceAccess = (Date.now() - lastAccess.getTime()) / (1000 * 60 * 60 * 24);
         return daysSinceAccess < 7;
       }) || [];
-      
+
       if (recentSessions.length > 0) {
         score += 20;
       }
@@ -115,9 +115,9 @@ export const SecurityDashboard: React.FC = () => {
       }
 
       setSecurityStatus({
-        mfaEnabled: mfaStatus.mfaEnabled,
-        totpEnabled: mfaStatus.totpEnabled,
-        smsEnabled: mfaStatus.smsEnabled,
+        mfaEnabled: mfaStatus.enabled,
+        totpEnabled: mfaStatus.type === 'totp',
+        smsEnabled: mfaStatus.type === 'sms',
         activeSessions: sessionsData.sessions?.length || 0,
         accountAge,
         securityScore: Math.min(score, 100),
@@ -231,7 +231,7 @@ export const SecurityDashboard: React.FC = () => {
                     </div>
                   </div>
                   <Progress value={securityStatus.securityScore} className="mb-4" />
-                  
+
                   <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Recommendations:</h4>
                     {securityStatus.recommendations.map((rec, index) => (
@@ -269,7 +269,7 @@ export const SecurityDashboard: React.FC = () => {
                           Enabled
                         </Badge>
                       </div>
-                      
+
                       {securityStatus.totpEnabled && (
                         <div className="flex items-center gap-2 text-sm">
                           <QrCode className="w-4 h-4 text-blue-600" />
@@ -277,7 +277,7 @@ export const SecurityDashboard: React.FC = () => {
                           <Badge variant="outline" className="text-xs">Active</Badge>
                         </div>
                       )}
-                      
+
                       {securityStatus.smsEnabled && (
                         <div className="flex items-center gap-2 text-sm">
                           <Smartphone className="w-4 h-4 text-green-600" />
@@ -316,15 +316,15 @@ export const SecurityDashboard: React.FC = () => {
                         {securityStatus?.activeSessions || 0} devices
                       </Badge>
                     </div>
-                    
+
                     <div className="text-sm text-muted-foreground">
                       You're signed in on {securityStatus?.activeSessions || 0} device(s)
                     </div>
-                    
-                    <Button 
-                      onClick={() => setActiveTab('sessions')} 
-                      size="sm" 
-                      variant="outline" 
+
+                    <Button
+                      onClick={() => setActiveTab('sessions')}
+                      size="sm"
+                      variant="outline"
                       className="w-full"
                     >
                       Manage Sessions
@@ -354,7 +354,7 @@ export const SecurityDashboard: React.FC = () => {
                       <div className="text-xs text-muted-foreground">Today at 2:30 PM</div>
                     </div>
                   </div>
-                  
+
                   {securityStatus?.mfaEnabled && (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                       <Shield className="w-5 h-5 text-blue-600" />
@@ -364,7 +364,7 @@ export const SecurityDashboard: React.FC = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <Key className="w-5 h-5 text-purple-600" />
                     <div className="flex-1">

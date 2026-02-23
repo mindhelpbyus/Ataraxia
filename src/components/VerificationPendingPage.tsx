@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, FileCheck, Shield, Mail } from 'lucide-react';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
-import { verificationService, RegistrationStatus } from '../api/services/verification';
-import { getCurrentUser } from '../services/authService';
+import { verificationService, RegistrationStatus } from '../api/verification';
+import { getCurrentUser } from '../api/auth';
 
 interface TimelineStepProps {
     title: string;
@@ -66,9 +66,9 @@ export function VerificationPendingPage() {
         try {
             setLoading(true);
             setError(null);
-            
+
             // Try to get user from current auth system
-            let user = getCurrentUser();
+            let user = await getCurrentUser();
 
             // If not authenticated, try to get from localStorage (saved during registration)
             if (!user) {
@@ -92,7 +92,7 @@ export function VerificationPendingPage() {
                 }
             }
 
-            const result = await verificationService.getRegistrationStatus(user.uid);
+            const result = await verificationService.getRegistrationStatus(user.id);
             setStatus(result);
             setLoading(false);
         } catch (err: any) {
@@ -293,7 +293,7 @@ export function VerificationPendingPage() {
                                 <Button
                                     variant="outline"
                                     onClick={async () => {
-                                        const { signOut } = await import('../services/authService');
+                                        const { logout: signOut } = await import('../api/auth');
                                         await signOut();
                                         window.location.href = '/';
                                     }}

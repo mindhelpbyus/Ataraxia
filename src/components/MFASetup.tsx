@@ -16,18 +16,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Alert, AlertDescription } from './ui/alert';
 import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { 
-  Shield, 
-  Smartphone, 
-  QrCode, 
-  Copy, 
-  Check, 
+import {
+  Shield,
+  Smartphone,
+  QrCode,
+  Copy,
+  Check,
   AlertTriangle,
   Key,
   Download
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { setupMFA, verifyMFA, getMFAStatus } from '../services/authService';
+import { setupMFA, verifyMFA, getMFAStatus } from '../api/auth';
 
 interface MFASetupProps {
   onComplete?: () => void;
@@ -39,22 +39,22 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
   const [method, setMethod] = useState<'totp' | 'sms'>('totp');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // TOTP Setup
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [totpSecret, setTotpSecret] = useState('');
   const [manualEntryKey, setManualEntryKey] = useState('');
-  
+
   // SMS Setup
   const [phoneNumber, setPhoneNumber] = useState('');
-  
+
   // Verification
   const [verificationCode, setVerificationCode] = useState('');
-  
+
   // Backup Codes
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [copiedCodes, setCopiedCodes] = useState(false);
-  
+
   // MFA Status
   const [mfaStatus, setMfaStatus] = useState<any>(null);
 
@@ -74,7 +74,7 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
   const handleSetupTOTP = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await setupMFA('totp');
       setQrCodeUrl(result.qrCodeUrl);
@@ -97,7 +97,7 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
 
     setLoading(true);
     setError(null);
-    
+
     try {
       await setupMFA('sms', phoneNumber);
       setStep('verify');
@@ -117,10 +117,10 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
 
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await verifyMFA(method, verificationCode, method === 'sms' ? phoneNumber : undefined);
-      
+
       if (result.verified) {
         if (method === 'totp' && backupCodes.length > 0) {
           setStep('backup-codes');
@@ -160,7 +160,7 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
     toast.success('Backup codes downloaded');
   };
 
-  if (mfaStatus?.mfaEnabled) {
+  if (mfaStatus?.enabled) {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
@@ -174,16 +174,16 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            {mfaStatus.totpEnabled && (
+            {mfaStatus.type === 'totp' && (
               <Badge variant="secondary" className="w-full justify-center">
                 <QrCode className="w-4 h-4 mr-2" />
                 Authenticator App Enabled
               </Badge>
             )}
-            {mfaStatus.smsEnabled && (
+            {mfaStatus.type === 'sms' && (
               <Badge variant="secondary" className="w-full justify-center">
                 <Smartphone className="w-4 h-4 mr-2" />
-                SMS Enabled ({mfaStatus.smsPhoneNumber})
+                SMS Enabled
               </Badge>
             )}
           </div>
@@ -219,7 +219,7 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
                   <TabsTrigger value="totp">Authenticator App</TabsTrigger>
                   <TabsTrigger value="sms">SMS</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="totp" className="space-y-4">
                   <div className="text-center space-y-2">
                     <QrCode className="w-8 h-8 mx-auto text-blue-600" />
@@ -232,7 +232,7 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
                     {loading ? 'Setting up...' : 'Setup Authenticator App'}
                   </Button>
                 </TabsContent>
-                
+
                 <TabsContent value="sms" className="space-y-4">
                   <div className="text-center space-y-2">
                     <Smartphone className="w-8 h-8 mx-auto text-green-600" />
@@ -334,9 +334,9 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
                 <Button onClick={() => setStep('choose')} variant="outline" className="flex-1">
                   Back
                 </Button>
-                <Button 
-                  onClick={handleVerifyMFA} 
-                  disabled={loading || verificationCode.length !== 6} 
+                <Button
+                  onClick={handleVerifyMFA}
+                  disabled={loading || verificationCode.length !== 6}
                   className="flex-1"
                 >
                   {loading ? 'Verifying...' : 'Verify & Enable'}
@@ -379,9 +379,9 @@ export const MFASetup: React.FC<MFASetupProps> = ({ onComplete, onCancel }) => {
                 <Button onClick={() => setStep('choose')} variant="outline" className="flex-1">
                   Back
                 </Button>
-                <Button 
-                  onClick={handleVerifyMFA} 
-                  disabled={loading || verificationCode.length !== 6} 
+                <Button
+                  onClick={handleVerifyMFA}
+                  disabled={loading || verificationCode.length !== 6}
                   className="flex-1"
                 >
                   {loading ? 'Verifying...' : 'Verify & Enable'}

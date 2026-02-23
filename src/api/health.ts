@@ -31,7 +31,7 @@ export interface ApiStatus {
 export async function checkHealth(): Promise<HealthStatus> {
   // Health endpoint is at https://...cloudfunctions.net/bedrockBackendApi/health (no /api)
   const healthUrl = 'https://us-central1-ataraxia-c150f.cloudfunctions.net/bedrockBackendApi/health';
-  return apiRequest<HealthStatus>(healthUrl, { requireAuth: false });
+  return apiRequest<HealthStatus>(healthUrl, {});
 }
 
 /**
@@ -39,5 +39,5 @@ export async function checkHealth(): Promise<HealthStatus> {
  */
 export async function getApiStatus(): Promise<ApiStatus> {
   // Status endpoint is under /api
-  return apiRequest<ApiStatus>('/status', { requireAuth: false });
+  return apiRequest<ApiStatus>('/status', {});
 }

@@ -33,7 +33,7 @@ export async function sendLog(log: Omit<FrontendLog, 'timestamp'>): Promise<void
   };
 
   try {
-    await post('/logs', logWithTimestamp, false);
+    await post('/logs', logWithTimestamp);
   } catch (error) {
     // Silently fail - don't want logging errors to break the app
     console.debug('Failed to send log to backend:', error);
@@ -54,7 +54,7 @@ export async function sendBatchLogs(
   }));
 
   try {
-    await post('/logs', { logs: logsWithTimestamp }, false);
+    await post('/logs', { logs: logsWithTimestamp });
   } catch (error) {
     // Silently fail
     console.debug('Failed to send batch logs to backend:', error);

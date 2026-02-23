@@ -22,8 +22,8 @@ import {
   Briefcase,
   ShieldCheck
 } from 'lucide-react';
-import { messagingService } from '../services/messagingService';
-import type { Conversation, Message, UserRole } from '../utils/mockMessagingData';
+import { messagingService } from '../api/messaging';
+import type { Conversation, Message, UserRole } from '../api/messaging';
 
 interface MessagesViewProps {
   currentUserId: string;
@@ -48,27 +48,24 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
   const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize messaging service and load data
+  // Load conversations on mount
   useEffect(() => {
-    const initializeMessaging = async () => {
+    const loadConversations = async () => {
       setIsLoading(true);
       try {
-        await messagingService.initialize(currentUserId, currentUserName, userRole as UserRole);
         const loadedConversations = await messagingService.getConversations();
         setConversations(loadedConversations);
-
         if (loadedConversations.length > 0) {
           setSelectedConversation(loadedConversations[0]);
         }
       } catch (error) {
-        console.error('Failed to initialize messaging:', error);
+        console.error('Failed to load conversations:', error);
       } finally {
         setIsLoading(false);
       }
     };
-
-    initializeMessaging();
-  }, [currentUserId, currentUserName, userRole]);
+    loadConversations();
+  }, [currentUserId]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -98,20 +95,9 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
 
-    const message: Message = {
-      id: `msg-${Date.now()}`,
-      conversationId: selectedConversation.id,
-      senderId: CURRENT_USER.id,
-      senderName: CURRENT_USER.name,
-      senderRole: CURRENT_USER.role,
-      content: newMessage,
-      timestamp: new Date(),
-      read: false
-    };
-
     try {
-      await messagingService.sendMessage(message);
-      setMessages(prev => [...prev, message]);
+      const sent = await messagingService.sendMessage(selectedConversation.id, newMessage.trim());
+      setMessages(prev => [...prev, sent]);
       setNewMessage('');
 
       const updatedConversations = await messagingService.getConversations();
@@ -181,7 +167,8 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
       .slice(0, 2);
   };
 
-  const formatTimestamp = (date: Date) => {
+  const formatTimestamp = (isoString: string) => {
+    const date = new Date(isoString);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
@@ -218,7 +205,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
     .sort((a, b) => {
       if (a.isStarred && !b.isStarred) return -1;
       if (!a.isStarred && b.isStarred) return 1;
-      return b.lastMessage.timestamp.getTime() - a.lastMessage.timestamp.getTime();
+      return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
     });
 
   const otherParticipant = selectedConversation?.participants.find(p => p.id !== CURRENT_USER.id);

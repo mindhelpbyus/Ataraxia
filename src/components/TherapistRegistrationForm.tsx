@@ -16,7 +16,7 @@ import {
 import { Alert, AlertDescription } from "./ui/alert";
 import { PhoneInput, validatePhoneNumber as validatePhone } from './PhoneInput';
 import { Spotlight } from './ui/spotlight';
-import { localAuthService } from '../services/localAuthService'; // Use Local Service for now
+import { register } from '../api/auth';
 
 
 interface TherapistRegistrationFormProps {
@@ -73,14 +73,13 @@ export function TherapistRegistrationForm({ onRegisterComplete, onBackToLogin }:
       // 2. Local Registration Logic (Simulating Backend w/ Prisma/Local DB)
       // Pending backend API integration: This uses the local service to mimic the DB call
 
-      const newUser = await localAuthService.register({
+      const newUser = await register({
         email,
         password,
         firstName,
         lastName,
         role: 'therapist', // Hardcoded for this form
         phoneNumber: fullPhoneNumber,
-        countryCode: phoneCountryCode
       });
 
       // 3. Success Handling

@@ -1,8 +1,22 @@
 /**
- * Appointments Backend API - Refactored to use API Abstraction Layer
+ * api/appointmentsBackend.ts — Appointments API
+ *
+ * ✅ All appointment operations call the Gravity Reunion backend.
+ * ✅ No mock data, no hardcoded defaults.
+ *
+ * Backend endpoints:
+ *   GET    /api/v1/appointments
+ *   POST   /api/v1/appointments
+ *   GET    /api/v1/appointments/:id
+ *   PATCH  /api/v1/appointments/:id/status
+ *   DELETE /api/v1/appointments/:id
+ *   GET    /api/v1/appointments/:id/join-link
  */
 
-// Define types locally since mock files are removed
+import { get, post, patch, del } from './client';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 export interface AppointmentDetails {
   id: string;
   therapistId: string;
@@ -31,94 +45,74 @@ export interface CreateAppointmentRequest {
 export interface JoinLinkResponse {
   joinLink: string;
   sessionId: string;
-  jwt: string;
 }
 
-// TODO: Implement real appointment service when needed
-// For now, these are placeholder functions
-
-/**
- * Create a new appointment
- */
-export async function createAppointment(
-  request: CreateAppointmentRequest
-): Promise<AppointmentDetails> {
-  throw new Error('Appointment service not implemented yet');
+export interface AppointmentFilters {
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+  therapistId?: string;
+  clientId?: string;
 }
 
-/**
- * Get appointment details
- */
-export async function getAppointmentDetails(
-  appointmentId: string
-): Promise<AppointmentDetails> {
-  throw new Error('Appointment service not implemented yet');
+// ─── API Functions ────────────────────────────────────────────────────────────
+
+export function getAppointments(filters?: AppointmentFilters): Promise<AppointmentDetails[]> {
+  const params = filters ? '?' + new URLSearchParams(filters as Record<string, string>).toString() : '';
+  return get<AppointmentDetails[]>(`/api/v1/appointments${params}`);
 }
 
-/**
- * Get therapist's appointments
- */
-export async function getTherapistAppointments(
+export function createAppointment(request: CreateAppointmentRequest): Promise<AppointmentDetails> {
+  return post<AppointmentDetails>('/api/v1/appointments', request);
+}
+
+export function getAppointmentDetails(appointmentId: string): Promise<AppointmentDetails> {
+  return get<AppointmentDetails>(`/api/v1/appointments/${appointmentId}`);
+}
+
+export function getTherapistAppointments(
   therapistId: string,
-  filters?: {
-    startDate?: string;
-    endDate?: string;
-    status?: string;
-  }
+  filters?: Omit<AppointmentFilters, 'therapistId'>
 ): Promise<AppointmentDetails[]> {
-  throw new Error('Appointment service not implemented yet');
+  return getAppointments({ ...filters, therapistId });
 }
 
-/**
- * Get client's appointments
- */
-export async function getClientAppointments(
+export function getClientAppointments(
   clientId: string,
-  filters?: {
-    startDate?: string;
-    endDate?: string;
-    status?: string;
-  }
+  filters?: Omit<AppointmentFilters, 'clientId'>
 ): Promise<AppointmentDetails[]> {
-  throw new Error('Appointment service not implemented yet');
+  return getAppointments({ ...filters, clientId });
 }
 
-/**
- * Cancel an appointment
- */
-export async function cancelAppointment(
-  appointmentId: string,
-  reason?: string
-): Promise<void> {
-  throw new Error('Appointment service not implemented yet');
+export function cancelAppointment(appointmentId: string, reason?: string): Promise<void> {
+  return patch<void>(`/api/v1/appointments/${appointmentId}/status`, {
+    status: 'cancelled',
+    reason,
+  });
 }
 
-/**
- * Get meeting join link for appointment
- */
-export async function getAppointmentJoinLink(
-  appointmentId: string
-): Promise<JoinLinkResponse> {
-  throw new Error('Appointment service not implemented yet');
-}
-
-/**
- * Update appointment status
- */
-export async function updateAppointmentStatus(
+export function updateAppointmentStatus(
   appointmentId: string,
   status: 'confirmed' | 'completed' | 'cancelled' | 'no-show'
 ): Promise<AppointmentDetails> {
-  throw new Error('Appointment service not implemented yet');
+  return patch<AppointmentDetails>(`/api/v1/appointments/${appointmentId}/status`, { status });
 }
 
-/**
- * Reschedule appointment
- */
-export async function rescheduleAppointment(
+export function rescheduleAppointment(
   appointmentId: string,
   newStartTime: string,
   newEndTime: string
 ): Promise<AppointmentDetails> {
-  throw new Error('Appointment service not implemented yet');
+  return patch<AppointmentDetails>(`/api/v1/appointments/${appointmentId}`, {
+    startTime: newStartTime,
+    endTime: newEndTime,
+  });
+}
+
+export function getAppointmentJoinLink(appointmentId: string): Promise<JoinLinkResponse> {
+  return get<JoinLinkResponse>(`/api/v1/appointments/${appointmentId}/join-link`);
+}
+
+export function deleteAppointment(appointmentId: string): Promise<void> {
+  return del<void>(`/api/v1/appointments/${appointmentId}`);
 }

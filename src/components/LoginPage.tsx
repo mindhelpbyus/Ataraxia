@@ -16,16 +16,19 @@ import {
 } from "./ui/tooltip";
 import { Alert, AlertDescription } from "./ui/alert";
 import illustrationImage from 'figma:asset/25680757734faa188ce1cb1feebb30b3ebb124bb.png';
-import { RealAuthService as authService } from '../api/services/auth';
-import { localAuthService } from '../services/localAuthService';
+import { verifyPhoneOtp, getGoogleOAuthUrl } from '../api/auth';
+import {
+  localAuthService,
+  firebasePhoneAuth,
+} from '../api/auth'; // ✅ Single backend-facing auth service — no Firebase SDK
 import { PhoneInput, validatePhoneNumber as validatePhone } from './PhoneInput';
 import { Spotlight } from './ui/spotlight';
-import { firebasePhoneAuth, firebaseGoogleAuth } from '../services/firebase';
+import type { AuthUser } from '../api/auth';
 
 type LoginMode = 'email' | 'phone';
 
 interface LoginPageProps {
-  onLogin: (email: string, userName: string, role: 'therapist' | 'admin' | 'superadmin' | 'client', userId: string, onboardingStatus?: string, token?: string) => void;
+  onLogin: (user: AuthUser) => void;
   onRegisterTherapist?: () => void;
   onBackToHome?: () => void;
 }
@@ -135,51 +138,12 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
     setError(null);
 
     try {
-      if (!email || !password) {
-        throw new Error('Please enter both email and password');
-      }
+      if (!email || !password) throw new Error('Please enter both email and password');
 
-      // Use local auth service for development
-      const isLocal = localAuthService.isLocalMode();
-      const response = isLocal 
-        ? await localAuthService.login(email, password)
-        : await authService.login(email, password);
-
-      // Defensive check for response structure
-      if (!response || !response.user) {
-        console.error('Invalid login response:', response);
-        throw new Error('Invalid response from server. Please try again.');
-      }
-
-      // Option A: Check account_status (single source of truth)
-      const accountStatus = response.user.account_status || 'active';
-
-      // Map account_status to onboardingStatus for App.tsx routing
-      let onboardingStatus = 'active';
-      if (accountStatus === 'pending_verification' ||
-        accountStatus === 'documents_review' ||
-        accountStatus === 'background_check' ||
-        accountStatus === 'onboarding_pending' ||
-        accountStatus === 'registration_submitted' ||
-        accountStatus === 'final_review' ||
-        accountStatus === 'account_created') {
-        onboardingStatus = 'pending';
-      } else if (accountStatus === 'rejected') {
-        onboardingStatus = 'rejected';
-      } else if (accountStatus === 'suspended') {
-        onboardingStatus = 'suspended';
-      } else if (accountStatus === 'incomplete_registration' || accountStatus === 'draft') {
-        onboardingStatus = 'incomplete';
-      }
-
-      onLogin(
-        email,
-        response.user.name || `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() || email,
-        response.user.role as any,
-        response.user.id,
-        onboardingStatus,
-        response.tokens?.accessToken || response.token
-      );
+      // ✅ Direct backend call via api/auth — sets HTTP-only cookies, returns AuthUser
+      const { login: loginFn } = await import('../api/auth');
+      const user = await loginFn(email, password);
+      onLogin(user);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid credentials');
     } finally {
@@ -194,147 +158,42 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
 
     try {
       if (!otpSent) {
-        // Send OTP via Firebase
         if (!validatePhone(phoneNumber, phoneCountryCode)) {
           throw new Error('Please enter a valid phone number');
         }
-
         if (isSignup && (!firstName || !lastName)) {
           throw new Error('Please enter your name');
         }
-
         const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
-
-        // Use Firebase Phone Auth
-        const confirmation = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber);
-        setConfirmationResult(confirmation);
+        // ✅ Backend sends OTP via Twilio/Firebase Admin — no client SDK
+        const { sessionId } = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber) as unknown as { sessionId: string };
+        setConfirmationResult(sessionId);
         setOtpSent(true);
-
         toast.success('Verification code sent to your phone');
-
       } else {
-        // Verify OTP
-        if (otp.length !== 6) {
-          throw new Error('Please enter a valid 6-digit OTP');
-        }
-
-        const result = await firebasePhoneAuth.verifyPhoneCode(confirmationResult, otp);
-
-        if (result.user) {
-          // Get Firebase ID token
-          const idToken = await result.user.getIdToken();
-
-          try {
-            // Check if user exists and what type they are
-            const userCheck = await authService.checkPhoneUserExists(idToken);
-
-            if (userCheck.exists) {
-              // User exists - login them
-              if (userCheck.userType === 'therapist') {
-                const response = await authService.loginTherapistWithPhone(idToken);
-                if (response.user) {
-                  onLogin(
-                    response.user.email,
-                    response.user.name,
-                    response.user.role as any,
-                    response.user.id,
-                    response.user.account_status,
-                    response.token
-                  );
-                }
-              } else {
-                // Client login
-                const response = await authService.loginWithFirebase(
-                  idToken,
-                  userCheck.user?.first_name || '',
-                  userCheck.user?.last_name || '',
-                  userCheck.user?.email || ''
-                );
-                if (response.user) {
-                  onLogin(
-                    response.user.email,
-                    response.user.name,
-                    response.user.role as any,
-                    response.user.id,
-                    response.user.account_status,
-                    response.token
-                  );
-                }
-              }
-            } else {
-              // User doesn't exist
-              if (isSignup) {
-                // User wants to register - collect additional info if needed
-                if (!firstName || !lastName) {
-                  setError('Please enter your name to create an account');
-                  return;
-                }
-
-                // Create new client account (default for phone registration)
-                const response = await authService.loginWithFirebase(
-                  idToken,
-                  firstName,
-                  lastName,
-                  result.user.email || `${result.user.phoneNumber}@phone.local`
-                );
-
-                if (response.user) {
-                  onLogin(
-                    response.user.email,
-                    response.user.name,
-                    response.user.role as any,
-                    response.user.id,
-                    response.user.account_status,
-                    response.token
-                  );
-                }
-              } else {
-                // User trying to sign in but account doesn't exist
-                setError('No account found with this phone number. Would you like to sign up?');
-                setIsSignup(true);
-              }
-            }
-          } catch (error: any) {
-            console.error('Phone authentication error:', error);
-            if (error.message.includes('constraint')) {
-              setError('Account already exists. Please try signing in instead.');
-              setIsSignup(false);
-            } else {
-              throw error;
-            }
-          }
-        }
+        if (otp.length !== 6) throw new Error('Please enter a valid 6-digit OTP');
+        // ✅ Backend verifies OTP, sets HTTP-only cookies, returns AuthUser
+        const user = await verifyPhoneOtp(confirmationResult as string, otp);
+        onLogin(user);
       }
-    } catch (err: any) {
-      console.error('Phone auth error:', err);
-
-      // Handle specific Firebase errors
-      if (err.code === 'auth/invalid-phone-number') {
-        setError('Invalid phone number format');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many requests. Please try again later.');
-      } else if (err.code === 'auth/invalid-verification-code') {
-        setError('Invalid verification code');
-      } else {
-        setError(err.message || 'Authentication failed');
-      }
-
-      toast.error(err.message || 'Authentication failed');
+    } catch (err: unknown) {
+      const e = err as { message?: string; code?: string };
+      setError(e.message || 'Authentication failed');
+      toast.error(e.message || 'Authentication failed');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSendOTP = async () => {
-    // Resend logic
     if (confirmationResult) {
       try {
         const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
-        const confirmation = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber);
-        setConfirmationResult(confirmation);
-        toast.success("OTP resent successfully");
-      } catch (error: any) {
-        toast.error("Failed to resend OTP");
+        const { sessionId } = await firebasePhoneAuth.sendPhoneVerification(fullPhoneNumber) as unknown as { sessionId: string };
+        setConfirmationResult(sessionId);
+        toast.success('OTP resent successfully');
+      } catch {
+        toast.error('Failed to resend OTP');
       }
     }
   };
@@ -342,101 +201,14 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
-
     try {
-      const result = await firebaseGoogleAuth.signInWithPopup();
-
-      if (result.user && result.idToken) {
-        // ENHANCED: Check if user already exists with this email before proceeding
-        try {
-          const userCheck = await authService.checkEmailPhoneExists(result.user.email);
-
-          if (userCheck.emailExists) {
-            // User already exists with this email - attempt to link accounts
-            console.log('Existing user found with Gmail address, attempting account linking...');
-
-            // Try to login/link the existing account
-            const response = await authService.loginWithFirebase(
-              result.idToken,
-              result.user.displayName?.split(' ')[0] || '',
-              result.user.displayName?.split(' ')[1] || '',
-              result.user.email || '',
-              true // linkAccount flag
-            );
-
-            if (response.user) {
-              toast.success('Welcome back! Your Google account has been linked.');
-              onLogin(
-                response.user.email,
-                response.user.name,
-                response.user.role as any,
-                response.user.id,
-                response.user.account_status,
-                response.token
-              );
-            }
-          } else {
-            // New user - proceed with normal Google OAuth registration
-            const response = await authService.loginWithFirebase(
-              result.idToken,
-              result.user.displayName?.split(' ')[0] || '',
-              result.user.displayName?.split(' ')[1] || '',
-              result.user.email || ''
-            );
-
-            if (response.user) {
-              toast.success('Welcome! Your Google account has been created.');
-              onLogin(
-                response.user.email,
-                response.user.name,
-                response.user.role as any,
-                response.user.id,
-                response.user.account_status,
-                response.token
-              );
-            }
-          }
-        } catch (checkError: any) {
-          console.error('User existence check failed:', checkError);
-
-          // Fallback: Try normal login flow
-          const response = await authService.loginWithFirebase(
-            result.idToken,
-            result.user.displayName?.split(' ')[0] || '',
-            result.user.displayName?.split(' ')[1] || '',
-            result.user.email || ''
-          );
-
-          if (response.user) {
-            onLogin(
-              response.user.email,
-              response.user.name,
-              response.user.role as any,
-              response.user.id,
-              response.user.account_status,
-              response.token
-            );
-          }
-        }
-      }
-    } catch (err: any) {
-      console.error('Google sign-in error:', err);
-
-      // Handle specific Google OAuth errors
-      if (err.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in was cancelled');
-      } else if (err.code === 'auth/popup-blocked') {
-        setError('Popup was blocked. Please allow popups and try again.');
-      } else if (err.code === 'auth/cancelled-popup-request') {
-        setError('Another sign-in popup is already open');
-      } else if (err.message?.includes('already exists')) {
-        setError('An account with this email already exists. Your accounts have been linked successfully.');
-      } else {
-        setError(err.message || 'Google sign-in failed');
-      }
-
-      toast.error(err.message || 'Google sign-in failed');
-    } finally {
+      // ✅ Backend-driven Google OAuth — redirects to Google, backend sets cookies after callback
+      const { url } = await getGoogleOAuthUrl();
+      window.location.href = url;
+    } catch (err) {
+      const e = err as { message?: string };
+      setError(e.message || 'Google sign-in failed');
+      toast.error(e.message || 'Google sign-in failed');
       setIsLoading(false);
     }
   };

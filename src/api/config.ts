@@ -41,14 +41,14 @@ export interface ConfigHealth {
  * Get public configuration (no auth required)
  */
 export async function getPublicConfig(): Promise<PublicConfig> {
-  return get<PublicConfig>('/config/public', false);
+  return get<PublicConfig>('/config/public');
 }
 
 /**
  * Get configuration health status
  */
 export async function getConfigHealth(): Promise<ConfigHealth> {
-  return get<ConfigHealth>('/config/health', false);
+  return get<ConfigHealth>('/config/health');
 }
 
 /**

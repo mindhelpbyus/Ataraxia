@@ -14,13 +14,13 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Badge } from './ui/badge';
-import { 
-  Monitor, 
-  Smartphone, 
-  Tablet, 
-  Globe, 
-  Clock, 
-  MapPin, 
+import {
+  Monitor,
+  Smartphone,
+  Tablet,
+  Globe,
+  Clock,
+  MapPin,
   Shield,
   LogOut,
   AlertTriangle,
@@ -28,7 +28,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getActiveSessions, invalidateAllSessions } from '../services/authService';
+import { getActiveSessions, invalidateAllSessions } from '../api/auth';
 
 interface SessionInfo {
   id: string;
@@ -73,7 +73,7 @@ export const SessionManager: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await getActiveSessions();
       setSessions(response.sessions || []);
       setAnalytics(response.analytics || null);
@@ -87,9 +87,9 @@ export const SessionManager: React.FC = () => {
   const handleLogoutAllOtherDevices = async () => {
     try {
       setLogoutLoading(true);
-      
+
       const result = await invalidateAllSessions(true);
-      
+
       toast.success(`Logged out from ${result.invalidatedCount} other devices`);
       await loadSessions(); // Refresh the list
     } catch (err: any) {
@@ -245,11 +245,10 @@ export const SessionManager: React.FC = () => {
                     key={session.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className={`p-4 rounded-lg border ${
-                      session.isCurrent 
-                        ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950' 
+                    className={`p-4 rounded-lg border ${session.isCurrent
+                        ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
                         : 'border-border bg-card'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
@@ -268,7 +267,7 @@ export const SessionManager: React.FC = () => {
                               </Badge>
                             )}
                           </div>
-                          
+
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                               <Globe className="w-4 h-4" />
@@ -280,19 +279,19 @@ export const SessionManager: React.FC = () => {
                                 </>
                               )}
                             </div>
-                            
+
                             <div className="flex items-center gap-2">
                               <Clock className="w-4 h-4" />
                               <span>Last active: {formatLastAccessed(session.lastAccessedAt)}</span>
                             </div>
-                            
+
                             <div className="text-xs opacity-75">
                               Created: {new Date(session.createdAt).toLocaleString()}
                             </div>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Badge variant={session.isActive ? 'default' : 'secondary'}>
                           {session.isActive ? 'Active' : 'Inactive'}

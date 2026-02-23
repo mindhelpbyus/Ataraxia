@@ -172,9 +172,9 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
       }
 
       try {
-        const { SubscriptionService } = await import('../api/services/subscription');
+        const { SubscriptionService } = await import('../api/subscription');
         const info = await SubscriptionService.getUserSubscription(currentUserId);
-        setSubscriptionInfo(info);
+        setSubscriptionInfo(info as any);
       } catch (error: any) {
         if (error.message === 'CLIENT_NO_SUBSCRIPTION') {
           // Clients don't need subscription info

@@ -7,8 +7,8 @@ import { Label } from '../ui/label';
 import { Eye, EyeOff, Phone, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription } from "../ui/alert";
 import { PhoneInput, validatePhoneNumber as validatePhone } from '../PhoneInput';
-import { firebasePhoneAuth } from '../../services/firebase';
-import { RealAuthService as authService } from '../../api/services/auth';
+import { firebasePhoneAuth } from '../../api/auth';
+import { RealAuthService as authService } from '../../api/auth';
 
 interface TherapistPhoneRegistrationProps {
   onRegistrationComplete: (email: string, userName: string, role: 'therapist', userId: string, onboardingStatus: string, token: string) => void;
@@ -84,13 +84,12 @@ export function TherapistPhoneRegistration({ onRegistrationComplete, onBackToLog
         throw new Error('Please request a new verification code');
       }
 
-      const result = await firebasePhoneAuth.verifyPhoneCode(confirmationResult, otp);
+      // verifyPhoneCode(session, otp, sessionId) — shim extracts sessionId from confirmationResult
+      await firebasePhoneAuth.verifyPhoneCode(confirmationResult, otp, confirmationResult?.sessionId || '');
 
-      if (result.user) {
-        // Phone verified successfully - move to Step 1 details
-        setCurrentStep('details');
-        toast.success('Phone verified successfully! Please complete your profile.');
-      }
+      // Phone verified successfully - move to Step 1 details
+      setCurrentStep('details');
+      toast.success('Phone verified successfully! Please complete your profile.');
 
     } catch (err: any) {
       console.error('OTP verification error:', err);

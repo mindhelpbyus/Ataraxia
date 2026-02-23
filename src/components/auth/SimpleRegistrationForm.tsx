@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Alert, AlertDescription } from '../ui/alert';
 import { Loader2, UserPlus } from 'lucide-react';
 import { post } from '../../api/client';
-import { logger } from '../../services/secureLogger';
+import { logger } from '../../utils/secureLogger';
 
 interface RegistrationData {
   email: string;
@@ -72,28 +72,15 @@ export function SimpleRegistrationForm() {
       const result = await post<RegistrationResponse>('/auth/register-lightweight', formData);
 
       if (result.success) {
-        // Store auth token
-        localStorage.setItem('authToken', result.token);
-
-        // Store user info
-        localStorage.setItem('user', JSON.stringify(result.user));
-
         logger.info('Simple registration successful', {
           userId: result.user.id,
           role: result.user.role,
           needsOnboarding: result.needsOnboarding
         });
 
-        // Route based on role and onboarding status
-        if (result.needsOnboarding) {
-          if (result.user.role === 'therapist') {
-            navigate('/dashboard');
-          } else {
-            navigate('/dashboard');
-          }
-        } else {
-          navigate('/dashboard');
-        }
+        // ✅ No token storage — backend set HTTP-only cookie on registration response.
+        // App.tsx will read auth state from GET /auth/me on mount.
+        navigate('/dashboard');
       } else {
         throw new Error(result.message || 'Registration failed');
       }

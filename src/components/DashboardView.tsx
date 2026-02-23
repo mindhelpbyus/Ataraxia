@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -8,12 +8,12 @@ import { StatusDot } from './ui/status-dot';
 import { Tag } from './ui/tag';
 import { Checkbox } from './ui/checkbox';
 import { SearchBar } from './ui/search-bar';
-import { 
-  CalendarDays, 
-  Users, 
-  ClipboardList, 
-  FileText, 
-  ChevronRight, 
+import {
+  CalendarDays,
+  Users,
+  ClipboardList,
+  FileText,
+  ChevronRight,
   Search,
   Bell,
   ChevronDown,
@@ -44,183 +44,88 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
   const [searchQuery, setSearchQuery] = useState('');
   const userName = getUserName(userEmail);
 
-  // Mock data adapted for wellness system
-  const statsData = [
-    {
-      icon: <CalendarDays className="h-6 w-6" />,
-      label: 'Sessions Completed',
-      value: '1,251 Sessions',
-      bgColor: 'bg-[#f2f2f2]'
-    },
-    {
-      icon: <Users className="h-6 w-6" />,
-      label: 'Active Clients',
-      value: '43 Clients',
-      bgColor: 'bg-[#f2f2f2]'
-    },
-    {
-      icon: <ClipboardList className="h-6 w-6" />,
-      label: 'Total Appointments',
-      value: '162 Scheduled',
-      bgColor: 'bg-[#f2f2f2]'
-    },
-    {
-      icon: <FileText className="h-6 w-6" />,
-      label: 'Pending Notes',
-      value: '5 Notes',
-      bgColor: 'bg-[#f2f2f2]'
-    }
-  ];
-
-  const upcomingAgenda = [
-    {
-      id: '1',
-      time: '10:00 - 11:00 Feb 2, 2025',
-      title: 'Session with Client',
-      description: 'This monthly progress agenda',
-      color: 'bg-[#F97316]'
-    },
-    {
-      id: '2',
-      time: '14:00 - 15:00 Feb 2, 2025',
-      title: 'Session with Client',
-      description: 'This monthly progress agenda',
-      color: 'bg-[#4B4B4B]'
-    },
-    {
-      id: '3',
-      time: '16:00 - 17:00 Feb 2, 2025',
-      title: 'Session with Client',
-      description: 'This monthly progress agenda',
-      color: 'bg-[#727272]'
-    },
-    {
-      id: '4',
-      time: '09:00 - 10:00 Feb 3, 2025',
-      title: 'Session with Client',
-      description: 'This monthly progress agenda',
-      color: 'bg-[#AFAFAF]'
-    }
-  ];
-
-  const chartData = [
-    { month: 'Jan', rate: 90 },
-    { month: 'Feb', rate: 55 },
-    { month: 'Mar', rate: 100 },
-    { month: 'Apr', rate: 72 },
-    { month: 'May', rate: 86 },
-    { month: 'Jun', rate: 49 },
-    { month: 'Jul', rate: 74 },
-    { month: 'Aug', rate: 58 },
-    { month: 'Sep', rate: 82 },
-    { month: 'Oct', rate: 64 },
-    { month: 'Nov', rate: 95 },
-    { month: 'Dec', rate: 74 }
-  ];
-
-  const peopleData = [
-    {
-      id: '1',
-      name: 'Robert Fox',
-      email: 'robertfox@example.com',
-      phone: '(671) 555-0110',
-      category: 'Therapist',
-      categoryColor: 'bg-[#F8E7F0] text-[#C13584]',
-      location: 'Austin',
-      gender: 'Male'
-    },
-    {
-      id: '2',
-      name: 'Cody Fisher',
-      email: 'codyfisher@example.com',
-      phone: '(505) 555-0125',
-      category: 'Client',
-      categoryColor: 'bg-[#E0F2FE] text-[#0284C7]',
-      location: 'Orange',
-      gender: 'Male'
-    },
-    {
-      id: '3',
-      name: 'Albert Flores',
-      email: 'albertflores@example.com',
-      phone: '(704) 555-0127',
-      category: 'Client',
-      categoryColor: 'bg-[#E0F2FE] text-[#0284C7]',
-      location: 'Panthersville',
-      gender: 'Female'
-    },
-    {
-      id: '4',
-      name: 'Floyd Miles',
-      email: 'floydmiles@example.com',
-      phone: '(405) 555-0128',
-      category: 'Therapist',
-      categoryColor: 'bg-[#F8E7F0] text-[#C13584]',
-      location: 'Fairfield',
-      gender: 'Male'
-    },
-    {
-      id: '5',
-      name: 'Arlene McCoy',
-      email: 'arlenemccoy@example.com',
-      phone: '(219) 555-0114',
-      category: 'Admin',
-      categoryColor: 'bg-[#FEF3C7] text-[#D97706]',
-      location: 'Toledo',
-      gender: 'Female'
-    }
-  ];
-
-  const therapistsData = [
-    {
-      id: '1',
-      name: 'Dr. Sarah Chen',
-      specialty: 'Clinical Psychology',
-      location: 'San Francisco, CA',
-      status: 'Active',
-      statusColor: 'bg-black'
-    },
-    {
-      id: '2',
-      name: 'Dr. Michael Roberts',
-      specialty: 'Trauma Therapy',
-      location: 'Oakland, CA',
-      status: 'Active',
-      statusColor: 'bg-black'
-    },
-    {
-      id: '3',
-      name: 'Dr. Emily Thompson',
-      specialty: 'Family Counseling',
-      location: 'Berkeley, CA',
-      status: 'Active',
-      statusColor: 'bg-black'
-    },
-    {
-      id: '4',
-      name: 'Dr. James Wilson',
-      specialty: 'Addiction Therapy',
-      location: 'San Jose, CA',
-      status: 'Lead',
-      statusColor: 'bg-[#F97316]'
-    },
-    {
-      id: '5',
-      name: 'Dr. Maria Garcia',
-      specialty: 'Art Therapy',
-      location: 'Palo Alto, CA',
-      status: 'Lead',
-      statusColor: 'bg-[#F97316]'
-    }
-  ];
-
-  const categoryData = [
+  const [statsData, setStatsData] = useState([
+    { icon: <CalendarDays className="h-6 w-6" />, label: 'Sessions Completed', value: '— Sessions', bgColor: 'bg-[#f2f2f2]' },
+    { icon: <Users className="h-6 w-6" />, label: 'Active Clients', value: '— Clients', bgColor: 'bg-[#f2f2f2]' },
+    { icon: <ClipboardList className="h-6 w-6" />, label: 'Total Appointments', value: '— Scheduled', bgColor: 'bg-[#f2f2f2]' },
+    { icon: <FileText className="h-6 w-6" />, label: 'Pending Notes', value: '— Notes', bgColor: 'bg-[#f2f2f2]' },
+  ]);
+  const [upcomingAgenda, setUpcomingAgenda] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<{ month: string; rate: number }[]>([]);
+  const [peopleData, setPeopleData] = useState<any[]>([]);
+  const [therapistsData, setTherapistsData] = useState<any[]>([]);
+  const [categoryData] = useState([
     { name: 'Individual Therapy', color: 'black', percentage: 35 },
     { name: 'Group Therapy', color: '#4B4B4B', percentage: 25 },
     { name: 'Family Therapy', color: '#727272', percentage: 20 },
     { name: 'EMDR Sessions', color: '#AFAFAF', percentage: 12 },
-    { name: 'Art Therapy', color: '#D8D8D8', percentage: 8 }
-  ];
+    { name: 'Art Therapy', color: '#D8D8D8', percentage: 8 },
+  ]);
+
+  useEffect(() => {
+    // Dashboard stats
+    fetch('/api/v1/dashboard/stats', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (!d) return;
+        setStatsData([
+          { icon: <CalendarDays className="h-6 w-6" />, label: 'Sessions Completed', value: `${d.sessionsCompleted ?? '—'} Sessions`, bgColor: 'bg-[#f2f2f2]' },
+          { icon: <Users className="h-6 w-6" />, label: 'Active Clients', value: `${d.activeClients ?? '—'} Clients`, bgColor: 'bg-[#f2f2f2]' },
+          { icon: <ClipboardList className="h-6 w-6" />, label: 'Total Appointments', value: `${d.totalAppointments ?? '—'} Scheduled`, bgColor: 'bg-[#f2f2f2]' },
+          { icon: <FileText className="h-6 w-6" />, label: 'Pending Notes', value: `${d.pendingNotes ?? '—'} Notes`, bgColor: 'bg-[#f2f2f2]' },
+        ]);
+        if (d.completionRateByMonth) setChartData(d.completionRateByMonth);
+      })
+      .catch(() => { });
+
+    // Upcoming appointments as agenda
+    fetch('/api/v1/appointments?upcoming=true&limit=4', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        const colors = ['bg-[#F97316]', 'bg-[#4B4B4B]', 'bg-[#727272]', 'bg-[#AFAFAF]'];
+        setUpcomingAgenda((data ?? []).map((a: any, i: number) => ({
+          id: a.id,
+          time: `${new Date(a.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${new Date(a.endTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} ${new Date(a.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+          title: a.title || `Session with ${a.clientName || 'Client'}`,
+          description: a.notes || 'Therapy session',
+          color: colors[i % colors.length],
+        })));
+      })
+      .catch(() => { });
+
+    // People (mixed users)
+    fetch('/api/v1/users?limit=5', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        const catColors: Record<string, string> = { therapist: 'bg-[#F8E7F0] text-[#C13584]', client: 'bg-[#E0F2FE] text-[#0284C7]', admin: 'bg-[#FEF3C7] text-[#D97706]' };
+        setPeopleData((data ?? []).map((u: any) => ({
+          id: u.id,
+          name: u.name || `${u.first_name} ${u.last_name}`,
+          email: u.email,
+          phone: u.phone || '—',
+          category: u.role?.charAt(0).toUpperCase() + u.role?.slice(1) || 'User',
+          categoryColor: catColors[u.role] || 'bg-gray-100 text-gray-700',
+          location: u.location || '—',
+          gender: u.gender || '—',
+        })));
+      })
+      .catch(() => { });
+
+    // Therapists
+    fetch('/api/v1/therapists?limit=5', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        setTherapistsData((data ?? []).map((t: any) => ({
+          id: t.id,
+          name: t.name || `${t.first_name} ${t.last_name}`,
+          specialty: t.specialty || t.specialization || '—',
+          location: t.location || '—',
+          status: t.is_active ? 'Active' : 'Inactive',
+          statusColor: t.is_active ? 'bg-black' : 'bg-[#F97316]',
+        })));
+      })
+      .catch(() => { });
+  }, [userEmail]);
 
   return (
     <div className="h-full overflow-y-auto bg-[#F9F9F9]">
@@ -233,9 +138,9 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
               <SearchBar
                 placeholder="Search"
                 value={searchQuery}
-                onValueChange={setSearchQuery}
+                onSearch={setSearchQuery}
                 showKeyboardShortcut
-                containerClassName="border-[#e4e4e4] rounded-full"
+                className="border-[#e4e4e4] rounded-full"
               />
             </div>
           </div>
@@ -339,7 +244,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                   <div className="absolute inset-0 left-[72px] flex items-end justify-between px-2 pb-6">
                     {chartData.map((data, index) => (
                       <div key={data.month} className="flex flex-col items-center gap-4" style={{ height: '100%', justifyContent: 'flex-end' }}>
-                        <div 
+                        <div
                           className={`w-8 rounded ${index === 6 ? 'bg-black' : 'bg-[#d8d8d8]'}`}
                           style={{ height: `${data.rate}%` }}
                         ></div>
@@ -360,8 +265,8 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AFAFAF]" />
-                    <Input 
-                      placeholder="Search" 
+                    <Input
+                      placeholder="Search"
                       className="pl-10 w-64 border-[#e4e4e4] rounded"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-[#AFAFAF]">
@@ -401,7 +306,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                       <Checkbox />
                     </div>
                     <div className="flex-1 flex items-center gap-3">
-                      <Avatar 
+                      <Avatar
                         className="h-8 w-8"
                         status={person.category === 'Therapist' ? 'online' : person.category === 'Client' ? 'away' : 'offline'}
                       >
@@ -423,11 +328,11 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                       {person.category === 'Therapist' && <StatusDot variant="purple" />}
                       {person.category === 'Client' && <StatusDot variant="blue" />}
                       {person.category === 'Admin' && <StatusDot variant="orange" />}
-                      <Badge 
+                      <Badge
                         variant={
                           person.category === 'Therapist' ? 'purple-square' :
-                          person.category === 'Client' ? 'blue-square' :
-                          'orange-square'
+                            person.category === 'Client' ? 'blue-square' :
+                              'orange-square'
                         }
                         size="sm"
                       >
@@ -466,8 +371,8 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AFAFAF]" />
-                      <Input 
-                        placeholder="Search" 
+                      <Input
+                        placeholder="Search"
                         className="pl-10 w-48 border-[#e4e4e4] rounded"
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-[#AFAFAF]">
@@ -504,7 +409,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                         <Checkbox />
                       </div>
                       <div className="flex-1 flex items-center gap-3">
-                        <Avatar 
+                        <Avatar
                           className="h-8 w-8"
                           status={therapist.status === 'Active' ? 'online' : 'busy'}
                         >
@@ -520,7 +425,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                         {therapist.location}
                       </div>
                       <div className="w-24">
-                        <Badge 
+                        <Badge
                           variant={therapist.status === 'Lead' ? 'orange' : 'neutral'}
                           dot
                           size="sm"
@@ -538,29 +443,29 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
             <Card className="border border-[#e4e4e4] rounded-lg bg-white">
               <CardContent className="p-5 space-y-4">
                 <h3 className="text-black">Session Categories</h3>
-                
+
                 {/* Pie Chart */}
                 <div className="relative h-[216px] w-[216px] mx-auto">
                   <svg viewBox="0 0 216 216" className="transform -rotate-90">
                     {/* Background circle */}
                     <circle cx="108" cy="108" r="86.176" fill="none" stroke="#D8D8D8" strokeWidth="40" opacity="0.1" />
-                    
+
                     {/* Pie segments */}
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="black" strokeWidth="40" 
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="black" strokeWidth="40"
                       strokeDasharray={`${35 * 5.41} ${100 * 5.41}`} strokeDashoffset="0" />
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#4B4B4B" strokeWidth="40" 
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#4B4B4B" strokeWidth="40"
                       strokeDasharray={`${25 * 5.41} ${100 * 5.41}`} strokeDashoffset={`${-35 * 5.41}`} />
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#727272" strokeWidth="40" 
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#727272" strokeWidth="40"
                       strokeDasharray={`${20 * 5.41} ${100 * 5.41}`} strokeDashoffset={`${-(35 + 25) * 5.41}`} />
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#AFAFAF" strokeWidth="40" 
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#AFAFAF" strokeWidth="40"
                       strokeDasharray={`${12 * 5.41} ${100 * 5.41}`} strokeDashoffset={`${-(35 + 25 + 20) * 5.41}`} />
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#D8D8D8" strokeWidth="40" 
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#D8D8D8" strokeWidth="40"
                       strokeDasharray={`${8 * 5.41} ${100 * 5.41}`} strokeDashoffset={`${-(35 + 25 + 20 + 12) * 5.41}`} />
-                    
+
                     {/* Center white circle */}
                     <circle cx="108" cy="108" r="61.554" fill="white" />
                   </svg>
-                  
+
                   {/* Center text */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
@@ -574,8 +479,8 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                 <div className="space-y-1">
                   {categoryData.map((category, index) => (
                     <div key={index} className="flex items-center gap-4 px-3 py-1 rounded hover:bg-gray-50">
-                      <div 
-                        className="w-2 h-2 rounded-full" 
+                      <div
+                        className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: category.color }}
                       ></div>
                       <span className="text-black">{category.name}</span>

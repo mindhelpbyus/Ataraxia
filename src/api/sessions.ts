@@ -4,7 +4,7 @@
  */
 
 import { get, post, put, del } from './client';
-import { logger, AuditEventType } from '../services/secureLogger';
+import { logger, AuditEventType } from '../utils/secureLogger';
 
 export interface CreateSessionRequest {
   appointmentId?: string;
@@ -240,7 +240,7 @@ export async function getSession(sessionId: string): Promise<Session> {
 export async function getTherapistStatus(
   sessionId: string
 ): Promise<{ hasJoined: boolean; joinedAt?: string }> {
-  return get(`/sessions/${sessionId}/therapist-status`, false);
+  return get(`/sessions/${sessionId}/therapist-status`);
 }
 
 /**
@@ -328,7 +328,7 @@ export async function getSessionStats(
  * Get session state
  */
 export async function getSessionState(sessionId: string): Promise<SessionState> {
-  return get<SessionState>(`/sessions/${sessionId}/state`, false);
+  return get<SessionState>(`/sessions/${sessionId}/state`);
 }
 
 /**

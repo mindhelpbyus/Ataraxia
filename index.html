@@ -5,13 +5,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CRM - Waste</title>
-  
+
+  <!-- Content Security Policy (HIPAA / Security Audit Requirement) -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'nonce-${SERVER_NONCE}' https://accounts.google.com https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' data: https: blob:;
+    font-src 'self' data: https://fonts.gstatic.com;
+    connect-src 'self' http://localhost:3002 wss://localhost:3002 https://accounts.google.com;
+    frame-ancestors 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
   <!-- Google Identity Services for OAuth -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script nonce="${SERVER_NONCE}" src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
-  <script>
+  <script nonce="${SERVER_NONCE}">
     // Force light mode - remove dark class if it exists
     document.documentElement.classList.remove('dark');
     document.body.classList.remove('dark');

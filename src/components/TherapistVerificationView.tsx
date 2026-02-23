@@ -7,7 +7,7 @@ import {
     MapPin, Calendar, Briefcase, Phone, Loader2, RefreshCw, Award
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { verificationService } from '@/services/verificationService';
+import { verificationService } from '@/api/verification';
 import { Therapist, VerificationStage, VerificationStatus } from '@/types/therapist';
 import {
     Select,
@@ -224,7 +224,7 @@ function VerificationSheet({
             toast.error('Document not available');
             return;
         }
-        
+
         // Open document in new tab
         window.open(documentUrl, '_blank', 'noopener,noreferrer');
     };
@@ -259,7 +259,7 @@ function VerificationSheet({
                             <ChevronRight className="h-6 w-6 rotate-180" />
                         </Button>
                         <Avatar className="h-20 w-20 ring-4 ring-orange-100 shadow-md rounded-2xl">
-                            <AvatarImage 
+                            <AvatarImage
                                 src={therapist.profile_image_url || `https://ui-avatars.com/api/?name=${therapist.first_name}+${therapist.last_name}`}
                                 alt={`${therapist.first_name} ${therapist.last_name}`}
                             />
@@ -272,11 +272,10 @@ function VerificationSheet({
                                 <h2 className="text-2xl font-bold tracking-tight text-gray-900">
                                     {therapist.first_name} {therapist.last_name}
                                 </h2>
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${
-                                    isActive ? 'bg-green-100 text-green-700' :
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${isActive ? 'bg-green-100 text-green-700' :
                                     therapist.registration_status === 'pending_review' ? 'bg-orange-100 text-orange-700' :
-                                    'bg-red-100 text-red-700'
-                                }`}>
+                                        'bg-red-100 text-red-700'
+                                    }`}>
                                     {isActive ? 'Active' : therapist.registration_status?.replace('_', ' ')}
                                 </span>
                             </div>
@@ -293,8 +292,8 @@ function VerificationSheet({
                     </div>
 
                     <div className="flex gap-3">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={handleReject}
                             disabled={isLoading}
                             className="text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50"
@@ -302,7 +301,7 @@ function VerificationSheet({
                             <X className="h-4 w-4 mr-2" />
                             Reject
                         </Button>
-                        <Button 
+                        <Button
                             onClick={handleApprove}
                             disabled={isLoading}
                             className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -401,10 +400,10 @@ function VerificationSheet({
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Specializations</label>
                                         <p className="text-base text-foreground">
-                                            {therapist.specializations ? 
-                                                (Array.isArray(therapist.specializations) ? 
-                                                    therapist.specializations.join(', ') : 
-                                                    therapist.specializations) : 
+                                            {therapist.specializations ?
+                                                (Array.isArray(therapist.specializations) ?
+                                                    therapist.specializations.join(', ') :
+                                                    therapist.specializations) :
                                                 'Not provided'}
                                         </p>
                                     </div>
@@ -422,7 +421,7 @@ function VerificationSheet({
                                     {/* License Document */}
                                     {therapist.license_document_url && (
                                         <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
-                                             onClick={() => handleViewDocument(therapist.license_document_url, 'Professional License')}>
+                                            onClick={() => handleViewDocument(therapist.license_document_url, 'Professional License')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -441,7 +440,7 @@ function VerificationSheet({
                                     {/* Degree Certificate */}
                                     {therapist.degree_certificate_url && (
                                         <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
-                                             onClick={() => handleViewDocument(therapist.degree_certificate_url, 'Degree Certificate')}>
+                                            onClick={() => handleViewDocument(therapist.degree_certificate_url, 'Degree Certificate')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -460,7 +459,7 @@ function VerificationSheet({
                                     {/* Malpractice Insurance */}
                                     {therapist.malpractice_document_url && (
                                         <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
-                                             onClick={() => handleViewDocument(therapist.malpractice_document_url, 'Malpractice Insurance')}>
+                                            onClick={() => handleViewDocument(therapist.malpractice_document_url, 'Malpractice Insurance')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -479,7 +478,7 @@ function VerificationSheet({
                                     {/* Photo ID */}
                                     {therapist.photo_id_url && (
                                         <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
-                                             onClick={() => handleViewDocument(therapist.photo_id_url, 'Photo ID')}>
+                                            onClick={() => handleViewDocument(therapist.photo_id_url, 'Photo ID')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -498,7 +497,7 @@ function VerificationSheet({
                                     {/* Professional Headshot */}
                                     {therapist.headshot_url && (
                                         <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
-                                             onClick={() => handleViewDocument(therapist.headshot_url, 'Professional Headshot')}>
+                                            onClick={() => handleViewDocument(therapist.headshot_url, 'Professional Headshot')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -515,13 +514,13 @@ function VerificationSheet({
                                     )}
 
                                     {/* No Documents Message */}
-                                    {!therapist.license_document_url && !therapist.degree_certificate_url && 
-                                     !therapist.malpractice_document_url && !therapist.photo_id_url && !therapist.headshot_url && (
-                                        <div className="col-span-2 p-6 border border-gray-200 rounded-xl bg-gray-50 text-center">
-                                            <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                            <p className="text-gray-500">No documents uploaded yet</p>
-                                        </div>
-                                    )}
+                                    {!therapist.license_document_url && !therapist.degree_certificate_url &&
+                                        !therapist.malpractice_document_url && !therapist.photo_id_url && !therapist.headshot_url && (
+                                            <div className="col-span-2 p-6 border border-gray-200 rounded-xl bg-gray-50 text-center">
+                                                <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                                <p className="text-gray-500">No documents uploaded yet</p>
+                                            </div>
+                                        )}
                                 </div>
                             </div>
                         </div>
@@ -608,7 +607,7 @@ function VerificationSheet({
                                     <div>
                                         <h5 className="font-medium text-blue-900 mb-1">Ready for Activation</h5>
                                         <p className="text-sm text-blue-700">
-                                            This therapist application has been reviewed and is ready for activation. 
+                                            This therapist application has been reviewed and is ready for activation.
                                             Approving will create their account and grant access to the platform.
                                         </p>
                                     </div>
@@ -634,7 +633,7 @@ export default function TherapistVerificationView() {
         try {
             setIsLoading(true);
             const data = await verificationService.getAllTherapists();
-            setTherapists(data);
+            setTherapists(data as unknown as Therapist[]);
         } catch (error) {
             toast.error('Failed to load therapists');
         } finally {

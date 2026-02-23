@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Maximize2, Minimize2, Phone } from 'lucide-react';
 import { Button } from './ui/button';
-import { getJitsiConfig, getJitsiDomain } from '../services/jitsiService';
-import { createCallLog, endCall, updateCallStatus } from '../services/callService';
-import { logger } from '../services/secureLogger';
+// TODO: Replace with Zoom VideoSDK component (VideoRoomsView.tsx). Jitsi shim kept for build compatibility.
+import { getJitsiConfig, getJitsiDomain } from '../api/jitsi';
+import { createCallLog, endCall, updateCallStatus } from '../api/calls';
+import { logger } from '../utils/secureLogger';
 
 
 interface VideoCallRoomProps {
@@ -80,7 +81,7 @@ export function VideoCallRoom({
           // Silently continue - expected when not authenticated
         }
 
-        const config = getJitsiConfig(roomName, userName, userEmail, jwtToken);
+        const config = getJitsiConfig(roomName, userName, userEmail);
         const domain = getJitsiDomain();
 
         // Add moderator settings if user is moderator

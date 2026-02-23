@@ -13,8 +13,8 @@ import { X, Calendar as CalendarIcon, Clock, User, FileText, Flag, Palette, Coff
 import { Badge } from './ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
-import { generateRoomName, getJitsiDomain, generateJitsiJWT } from '../services/jitsiService';
-import { useAuth } from '../hooks/useAuth';
+import { generateRoomName } from '../api/jitsi';
+import { useAuthStore } from '../store/authStore';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -72,7 +72,7 @@ export function EnhancedAppointmentForm({
   const [loading, setLoading] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [openClientSelect, setOpenClientSelect] = useState(false);
-  const { user } = useAuth();
+  const { user } = useAuthStore();
 
   // combine passed therapists with current user if they are a therapist but not in the list (e.g. backend/mock mismatch)
   const effectiveTherapists = React.useMemo(() => {
@@ -118,7 +118,7 @@ export function EnhancedAppointmentForm({
   const loadClients = async () => {
     try {
       const clientsData = await appointmentsApi.getClients();
-      setClients(clientsData);
+      setClients(clientsData as unknown as Client[]);
     } catch (error) {
       console.error('Failed to load clients:', error);
     }
@@ -226,29 +226,11 @@ export function EnhancedAppointmentForm({
         videoCallType: formData.videoCallType,
       };
 
-      // Generate video call data if enabled
+      // Generate video call room name (JWT is issued server-side via Zoom SDK — see api/video.ts)
       if (formData.isVideoCall) {
-        try {
-          const roomName = generateRoomName(Date.now().toString());
-          const domain = getJitsiDomain();
-
-          // Generate JWT token for the therapist (moderator)
-          const jwt = await generateJitsiJWT(
-            roomName,
-            selectedTherapist?.name || 'Therapist',
-            selectedTherapist?.email,
-            formData.therapistId,
-            true, // therapist is moderator
-            undefined // appointmentId will be added after creation
-          );
-
-          appointmentData.videoCallRoomName = roomName;
-          appointmentData.videoCallUrl = `https://${domain}/${roomName}`;
-          appointmentData.videoCallJWT = jwt;
-        } catch (error) {
-          console.error('Failed to generate video call data:', error);
-          // Continue with saving appointment even if video call setup fails
-        }
+        const roomName = generateRoomName(Date.now().toString());
+        appointmentData.videoCallRoomName = roomName;
+        // videoCallUrl and JWT will be returned by the backend after appointment creation
       }
 
       await onSave(appointmentData);

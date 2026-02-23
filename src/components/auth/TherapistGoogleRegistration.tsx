@@ -6,8 +6,8 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, Mail, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription } from "../ui/alert";
-import { firebaseGoogleAuth } from '../../services/firebase';
-import { RealAuthService as authService } from '../../api/services/auth';
+import { firebaseGoogleAuth } from '../../api/auth';
+import { RealAuthService as authService } from '../../api/auth';
 
 interface TherapistGoogleRegistrationProps {
   onRegistrationComplete: (email: string, userName: string, role: 'therapist', userId: string, onboardingStatus: string, token: string) => void;
@@ -54,7 +54,7 @@ export function TherapistGoogleRegistration({ onRegistrationComplete, onBackToLo
         try {
           const userCheck = await authService.checkEmailPhoneExists(result.user.email);
 
-          if (userCheck.emailExists) {
+          if (userCheck.exists) {
             // User already exists - show error
             setError('An account already exists with this email. Please try signing in instead.');
             return;

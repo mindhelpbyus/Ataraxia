@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { logger } from '../services/secureLogger';
+import { logger } from '../utils/secureLogger';
 
 
 interface Props {
@@ -71,7 +71,7 @@ export class ErrorBoundary extends Component<Props, State> {
               >
                 Reload Application
               </button>
-              
+
               <button
                 onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
                 className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"

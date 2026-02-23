@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Country, State, City } from 'country-state-city';
+import { State, City } from 'country-state-city';
 
 // AddressAutocomplete uses components with countryCode
 import { AddressComponents } from '../components/AddressAutocomplete';
+import { logger } from '../utils/secureLogger';
 
 export interface UseAddressAutocompleteOptions {
     country: string;
@@ -22,7 +23,7 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
     // Auto-populate states when country changes
     useEffect(() => {
         if (country && country !== lastCountry) {
-            console.log('🌍 Country changed:', { country, lastCountry, isAutocomplete: isAutocompleteUpdate.current });
+            logger.debug('🌍 Country changed:', { country, lastCountry, isAutocomplete: isAutocompleteUpdate.current });
 
             // Use country-state-city library for comprehensive data
             const states = State.getStatesOfCountry(country);
@@ -33,18 +34,18 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
 
             // DON'T reset if this is from autocomplete
             if (isAutocompleteUpdate.current) {
-                console.log('✅ Skipping reset - autocomplete update');
+                logger.debug('✅ Skipping reset - autocomplete update');
                 onUpdate({ timezone });
                 // Don't reset flag here - let timeout handle it to allow state effect to see it too
             } else if (lastCountry) {
                 // Manual change - reset dependent fields
-                console.log('🔄 Manual country change - resetting state and city');
+                logger.debug('🔄 Manual country change - resetting state and city');
                 onUpdate({ timezone, state: '', city: '' });
                 setAvailableCities([]);
                 setShowOtherCityInput(false);
             } else {
                 // Initial load
-                console.log('🆕 Initial load - just setting timezone');
+                logger.debug('🆕 Initial load - just setting timezone');
                 onUpdate({ timezone });
             }
 
@@ -55,7 +56,7 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
     // Auto-populate cities when state changes
     useEffect(() => {
         if (country && state && state !== lastState) {
-            console.log('🏙️ State changed:', { state, lastState, isAutocomplete: isAutocompleteUpdate.current });
+            logger.debug('🏙️ State changed:', { state, lastState, isAutocomplete: isAutocompleteUpdate.current });
 
             // Use country-state-city library for comprehensive data
             const cities = City.getCitiesOfState(country, state);
@@ -66,25 +67,25 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
 
             // DON'T reset if this is from autocomplete
             if (isAutocompleteUpdate.current) {
-                console.log('✅ Skipping city reset - autocomplete update');
-                console.log('📍 Accepting Google Maps data as-is (prioritizing over library)');
+                logger.debug('✅ Skipping city reset - autocomplete update');
+                logger.debug('📍 Accepting Google Maps data as-is (prioritizing over library)');
 
                 // Google Maps data takes priority - don't validate against library
                 // The city from Google Maps might not be in country-state-city library, but that's OK
                 onUpdate({ timezone });
             } else if (lastState) {
                 // Manual change - reset city
-                console.log('🔄 Manual state change - resetting city');
+                logger.debug('🔄 Manual state change - resetting city');
                 onUpdate({ timezone, city: '' });
                 setShowOtherCityInput(false);
             } else {
                 // Initial load
-                console.log('🆕 Initial state load - just setting timezone');
+                logger.debug('🆕 Initial state load - just setting timezone');
 
                 // Also check on initial load
                 const cityExists = cities.some(c => c.name === city);
                 if (!cityExists && city) {
-                    console.log('⚠️ Initial city not in list - enabling custom input:', city);
+                    logger.debug('⚠️ Initial city not in list - enabling custom input:', { city });
                     setShowOtherCityInput(true);
                 }
 
@@ -147,10 +148,10 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
      */
     const handleAddressSelect = (value: string, components?: AddressComponents) => {
         if (components) {
-            console.log('📍 Autocomplete selected:', components);
-            console.log('🔑 Country code from autocomplete:', components.countryCode);
-            console.log('🏙️ State code from autocomplete:', components.state);
-            console.log('🌆 City from autocomplete:', components.city);
+            logger.debug('📍 Autocomplete selected:', components);
+            logger.debug('🔑 Country code from autocomplete:', { countryCode: components.countryCode });
+            logger.debug('🏙️ State code from autocomplete:', { state: components.state });
+            logger.debug('🌆 City from autocomplete:', { city: components.city });
 
             // Set flag BEFORE calling onUpdate to prevent resets
             isAutocompleteUpdate.current = true;
@@ -158,7 +159,7 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
             // Reset flag after sufficient time for all effects to run
             setTimeout(() => {
                 isAutocompleteUpdate.current = false;
-                console.log('🏁 Autocomplete update flag reset');
+                logger.debug('🏁 Autocomplete update flag reset');
             }, 1000);
 
             // Prepare update object
@@ -171,13 +172,13 @@ export function useAddressAutocomplete({ country, state, city, onUpdate }: UseAd
                 country: components.countryCode || components.country
             };
 
-            console.log('📤 Sending update to form:', updateData);
+            logger.debug('📤 Sending update to form:', updateData);
 
             // Update all fields at once
             onUpdate(updateData);
         } else {
             // Manual typing - just update address1
-            console.log('⌨️ Manual typing - updating address1 only:', value);
+            logger.debug('⌨️ Manual typing - updating address1 only:', { value });
             onUpdate({ address1: value });
         }
     };

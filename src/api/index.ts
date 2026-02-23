@@ -1,11 +1,11 @@
 import { IAuthService, IDataService } from './types';
 
 // Real services only - no mock services in production
-import { RealAuthService } from './services/auth';
-import { RealDataService } from './services/data';
+import { RealAuthService } from './auth';
+import { RealDataService } from './data';
 
-export const authService: IAuthService = RealAuthService;
-export const dataService: IDataService = RealDataService;
+export const authService = RealAuthService;
+export const dataService = RealDataService;
 
 // Placeholder services - these will show warnings when used until implemented
 export const notificationService = {
@@ -38,11 +38,11 @@ export const chatService = {
   },
   subscribeToMessages(...args: any[]) {
     console.warn('Chat service not implemented yet - subscribeToMessages');
-    return () => {};
+    return () => { };
   },
   subscribeToChatRooms(...args: any[]) {
     console.warn('Chat service not implemented yet - subscribeToChatRooms');
-    return () => {};
+    return () => { };
   }
 };
 
@@ -69,7 +69,7 @@ export const callService = {
   },
   subscribeToCallInvitations(...args: any[]) {
     console.warn('Call service not implemented yet - subscribeToCallInvitations');
-    return () => {};
+    return () => { };
   }
 };
 

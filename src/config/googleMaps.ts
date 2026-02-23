@@ -4,7 +4,7 @@
  */
 
 import { dataService } from '../api';
-import { logger } from '../services/secureLogger';
+import { logger } from '../utils/secureLogger';
 
 
 // Default config as fallback

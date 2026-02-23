@@ -61,8 +61,8 @@ export interface AuthUser {
 export interface IAuthService {
     login(email: string, password?: string): Promise<AuthResponse>;
     loginWithFirebase(idToken: string, firstName?: string, lastName?: string, email?: string, linkAccount?: boolean): Promise<AuthResponse>;
-    loginWithPhone(phoneNumber: string, otp: string): Promise<AuthResponse>;
-    sendOTP(phoneNumber: string): Promise<void>;
+    loginWithPhone?(phoneNumber: string, otp: string): Promise<AuthResponse>;
+    sendOTP?(phoneNumber: string): Promise<void>;
     logout(): Promise<void>;
     getCurrentUser(): Promise<User | null>;
 
@@ -76,6 +76,12 @@ export interface IAuthService {
 
     // Duplicate check method
     checkEmailPhoneExists(email?: string, phoneNumber?: string): Promise<{ emailExists: boolean; phoneExists: boolean }>;
+
+    // OTP / phone verification (backend-driven)
+    verifyPhoneOtp(sessionId: string, otp: string): Promise<AuthResponse>;
+
+    // Google OAuth (backend-driven, returns redirect URL)
+    getGoogleOAuthUrl(): Promise<{ url: string }>;
 }
 
 export interface IDataService {

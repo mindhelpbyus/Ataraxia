@@ -100,7 +100,7 @@ export async function executeVideoCommand(
 export async function getRecordingStatus(
   sessionId: string
 ): Promise<RecordingStatus> {
-  return get<RecordingStatus>(`/video/recording/${sessionId}`, false);
+  return get<RecordingStatus>(`/video/recording/${sessionId}`);
 }
 
 /**
@@ -121,7 +121,7 @@ export async function stopRecording(sessionId: string): Promise<RecordingStatus>
  * Check video service health
  */
 export async function checkVideoHealth(): Promise<VideoHealthStatus> {
-  return get<VideoHealthStatus>('/video/health', false);
+  return get<VideoHealthStatus>('/video/health');
 }
 
 /**
@@ -144,5 +144,5 @@ export async function updateVideoConfig(
  * Validate JWT token
  */
 export async function validateJWT(token: string): Promise<ValidateJWTResponse> {
-  return post<ValidateJWTResponse>('/video/validate-jwt', { token }, false);
+  return post<ValidateJWTResponse>('/video/validate-jwt', { token });
 }
