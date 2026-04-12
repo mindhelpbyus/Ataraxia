@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dataService } from '../api';
+import { get } from '../api/client';
 import { Search, Filter, Plus, MoreVertical, Phone, Mail, Calendar, User, MapPin, AlertCircle, TrendingUp, AlertTriangle, Shield, Brain, CheckCircle2, Stethoscope, Clock, FileText, ChevronRight, Eye, Send, Sparkles, ShieldAlert, Files, MessageSquare, Activity, Target, Upload, XCircle, Download, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -224,38 +224,26 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
 
   const loadClients = async () => {
     try {
-      // Call the real client service backend
+      // Use the secure API client with HTTP-only cookies
       const baseUrl = import.meta.env.VITE_CLIENT_SERVICE_URL || 'http://localhost:3003/api';
-      const response = await fetch(`${baseUrl}/clients`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Transform backend data to frontend format
-        const transformedClients: Client[] = data.map((client: any) => ({
-          id: client.id,
-          name: `${client.first_name || ''} ${client.last_name || ''}`.trim() || client.email,
-          email: client.email,
-          phone: client.phone_number || 'N/A',
-          status: client.account_status === 'active' ? 'active' : 'inactive',
-          lastVisit: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : 'N/A',
-          nextAppointment: null, // TODO: Get from appointment service
-          therapist: client.assigned_therapist_name || 'Unassigned',
-          totalSessions: 0, // TODO: Get from appointment service
-          condition: 'General Therapy', // TODO: Get from client profile
-          safetyRisk: client.safety_risk_level || 'low',
-          safetyFlags: [] // TODO: Get from client profile
-        }));
-        setClients(transformedClients);
-      } else {
-        console.warn('Failed to fetch clients from backend, using empty list');
-        setClients([]);
-      }
+      const data = await get<any[]>(`${baseUrl}/clients`);
+      
+      // Transform backend data to frontend format
+      const transformedClients: Client[] = data.map((client: any) => ({
+        id: client.id,
+        name: `${client.first_name || ''} ${client.last_name || ''}`.trim() || client.email,
+        email: client.email,
+        phone: client.phone_number || 'N/A',
+        status: client.account_status === 'active' ? 'active' : 'inactive',
+        lastVisit: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : 'N/A',
+        nextAppointment: null, // TODO: Get from appointment service
+        therapist: client.assigned_therapist_name || 'Unassigned',
+        totalSessions: 0, // TODO: Get from appointment service
+        condition: 'General Therapy', // TODO: Get from client profile
+        safetyRisk: client.safety_risk_level || 'low',
+        safetyFlags: [] // TODO: Get from client profile
+      }));
+      setClients(transformedClients);
     } catch (error) {
       console.error('Failed to load clients:', error);
       // Gracefully handle error by showing empty list
