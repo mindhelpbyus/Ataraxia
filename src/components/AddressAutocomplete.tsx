@@ -69,7 +69,7 @@ export function AddressAutocomplete({
     if (success) {
       return 'outline-[color:var(--interaction-green-base,#10b981)] focus-within:outline-[color:var(--interaction-green-base,#10b981)] focus-within:outline-2';
     }
-    return 'outline-[color:var(--border-primary,#e5e7eb)] focus-within:outline-[color:var(--brand-orange-base,#f97316)] focus-within:outline-2';
+    return 'outline-[color:var(--border-primary,#e5e7eb)] focus-within:outline-[color:var(--brand-orange-base,#1E7048)] focus-within:outline-2';
   };
 
   // Get text color based on state

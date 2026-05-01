@@ -215,7 +215,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                             w-full text-left px-3 py-2 rounded-md text-sm
                             transition-all border
                             ${available
-                              ? 'border-[#dddbda] hover:border-[#ea580c] hover:bg-orange-50 cursor-pointer'
+                              ? 'border-[#dddbda] hover:border-[#145C34] hover:bg-action-light cursor-pointer'
                               : 'border-[#f3f4f6] bg-[#f9fafb] text-muted-foreground cursor-not-allowed opacity-50'
                             }
                           `}
@@ -226,7 +226,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                               <span className="font-medium">{time}</span>
                             </div>
                             {available ? (
-                              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-200">
+                              <Badge className="bg-action-light text-action-dark hover:bg-action-light border-action-light">
                                 Available
                               </Badge>
                             ) : (
@@ -274,7 +274,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                 w-full text-left px-3 py-2 rounded-md text-sm
                 transition-all border
                 ${available
-                  ? 'border-[#dddbda] hover:border-[#ea580c] hover:bg-orange-50 cursor-pointer'
+                  ? 'border-[#dddbda] hover:border-[#145C34] hover:bg-action-light cursor-pointer'
                   : 'border-[#f3f4f6] bg-[#f9fafb] text-muted-foreground cursor-not-allowed opacity-50'
                 }
               `}
@@ -285,7 +285,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                   <span className="font-medium">{time}</span>
                 </div>
                 {available ? (
-                  <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-200">
+                  <Badge className="bg-action-light text-action-dark hover:bg-action-light border-action-light">
                     Available
                   </Badge>
                 ) : (
@@ -349,9 +349,9 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                       key={date.toISOString()}
                       onClick={() => handleDateClick(date)}
                       className={`
-                        w-full p-3 rounded-lg border border-[#dddbda] hover:border-[#ea580c]
-                        hover:bg-orange-50 transition-all cursor-pointer text-left
-                        ${isToday(date) ? 'ring-2 ring-[#ea580c]' : ''}
+                        w-full p-3 rounded-lg border border-[#dddbda] hover:border-[#145C34]
+                        hover:bg-action-light transition-all cursor-pointer text-left
+                        ${isToday(date) ? 'ring-2 ring-[#145C34]' : ''}
                       `}
                     >
                       <div className="space-y-2">
@@ -361,7 +361,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                             <div className="font-semibold">{date.getDate()}</div>
                           </div>
                           <div className="text-right text-xs">
-                            <div className="text-orange-600 font-medium">{total} slots</div>
+                            <div className="text-action font-medium">{total} slots</div>
                             <div className="text-muted-foreground">{totalPossibleSlots - total} booked</div>
                           </div>
                         </div>
@@ -405,7 +405,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowDaySlots(false)}
-                    className="text-xs text-orange-600 hover:text-orange-700"
+                    className="text-xs text-action hover:text-action-dark"
                   >
                     ← Back to week
                   </Button>
@@ -443,11 +443,11 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                                   ${!isCurrentMonth ? 'text-sidebar-foreground/40' : 'text-sidebar-foreground'}
                                   ${isToday(date) ? 'shadow-sm font-bold' : 'hover:bg-sidebar-accent'}
                                 `}
-                                style={isToday(date) ? { backgroundColor: '#ea580c', color: 'white' } : {}}
+                                style={isToday(date) ? { backgroundColor: '#1E7048', color: 'white' } : {}}
                               >
                                 {date.getDate()}
                                 {isCurrentMonth && total > 0 && !isToday(date) && (
-                                  <span className="absolute bottom-0 text-[8px] text-orange-600 font-medium leading-none">
+                                  <span className="absolute bottom-0 text-[8px] text-action font-medium leading-none">
                                     {total}
                                   </span>
                                 )}

@@ -214,25 +214,25 @@ export function AvatarShowcase() {
               <div className="flex items-center gap-8">
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="size-24" status="dnd">
-                    <AvatarFallback className="bg-orange-100 text-orange-600">IJ</AvatarFallback>
+                    <AvatarFallback className="bg-action-light text-action">IJ</AvatarFallback>
                   </Avatar>
                   <span className="text-xs text-gray-500">96px</span>
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="size-10" status="dnd">
-                    <AvatarFallback className="bg-orange-100 text-orange-600">IJ</AvatarFallback>
+                    <AvatarFallback className="bg-action-light text-action">IJ</AvatarFallback>
                   </Avatar>
                   <span className="text-xs text-gray-500">40px</span>
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="size-8" status="dnd">
-                    <AvatarFallback className="bg-orange-100 text-orange-600">IJ</AvatarFallback>
+                    <AvatarFallback className="bg-action-light text-action">IJ</AvatarFallback>
                   </Avatar>
                   <span className="text-xs text-gray-500">32px</span>
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="size-6" status="dnd">
-                    <AvatarFallback className="bg-orange-100 text-orange-600">IJ</AvatarFallback>
+                    <AvatarFallback className="bg-action-light text-action">IJ</AvatarFallback>
                   </Avatar>
                   <span className="text-xs text-gray-500">24px</span>
                 </div>
@@ -366,7 +366,7 @@ export function AvatarShowcase() {
               <h3 className="text-lg font-medium text-gray-800">User Profile</h3>
               <div className="flex items-center gap-4 p-4 border rounded-lg">
                 <Avatar className="size-16" status="online">
-                  <AvatarFallback className="bg-[#F97316] text-white text-xl">
+                  <AvatarFallback className="bg-[#1E7048] text-white text-xl">
                     JD
                   </AvatarFallback>
                 </Avatar>

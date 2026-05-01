@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OrganizationSetupForm } from './organization';
 import { Button } from './ui/button';
@@ -36,6 +36,8 @@ import {
 import { Card, CardContent } from './ui/card';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { toast } from 'sonner';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localDb } from '../lib/db/localDb';
 
 interface Organization {
   id: string;
@@ -60,58 +62,48 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
   const [showSetupForm, setShowSetupForm] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
 
-  // Mock organizations data
-  const [organizations, setOrganizations] = useState<Organization[]>([
-    {
-      id: 'ORG-001',
-      organizationName: 'Wellness Center LA',
-      organizationType: 'mid-size',
-      numberOfClinicians: 25,
-      numberOfClients: 150,
-      subscriptionPlan: 'per-provider',
-      status: 'active',
-      createdAt: new Date('2024-01-15'),
-      primaryContactEmail: 'admin@wellnessla.com',
-      hipaaCompliant: true
-    },
-    {
-      id: 'ORG-002',
-      organizationName: 'Mind & Body Therapy Group',
-      organizationType: 'small-group',
-      numberOfClinicians: 8,
-      numberOfClients: 65,
-      subscriptionPlan: 'per-provider',
-      status: 'active',
-      createdAt: new Date('2024-02-20'),
-      primaryContactEmail: 'contact@mindbody.com',
-      hipaaCompliant: true
-    },
-    {
-      id: 'ORG-003',
-      organizationName: 'Enterprise Health Systems',
-      organizationType: 'large-enterprise',
-      numberOfClinicians: 120,
-      numberOfClients: 1200,
-      subscriptionPlan: 'enterprise',
-      status: 'active',
-      createdAt: new Date('2023-11-10'),
-      primaryContactEmail: 'it@enterprisehealth.com',
-      hipaaCompliant: true
-    },
-    {
-      id: 'ORG-004',
-      organizationName: 'TeleTherapy Connect',
-      organizationType: 'telehealth-only',
-      numberOfClinicians: 45,
-      numberOfClients: 380,
-      subscriptionPlan: 'per-provider',
-      status: 'active',
-      createdAt: new Date('2024-03-05'),
-      primaryContactEmail: 'admin@teletherapy.com',
-      hipaaCompliant: true
+  const loadOrganizations = async () => {
+    try {
+      if (USE_LOCAL_DB) {
+        const orgs = await localDb.organizations.findMany();
+        setOrganizations(orgs.map(o => ({
+          id: o.id,
+          organizationName: o.name,
+          organizationType: o.plan === 'enterprise' ? 'large-enterprise' : o.plan === 'professional' ? 'mid-size' : 'small-group',
+          numberOfClinicians: o.therapistCount || 0,
+          numberOfClients: o.clientCount || 0,
+          subscriptionPlan: o.plan || 'starter',
+          status: o.status || 'active',
+          createdAt: new Date(o.createdAt || new Date()),
+          primaryContactEmail: o.email || '',
+          hipaaCompliant: true
+        })));
+      } else {
+        const res = await fetch('/api/v1/organizations');
+        if (res.ok) {
+          const data = await res.json();
+          setOrganizations(data);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load organizations', e);
+      toast.error('Failed to load organizations');
     }
-  ]);
+  };
+
+  useEffect(() => {
+    loadOrganizations();
+  }, []);
+
+  const handleResetDb = async () => {
+    if (confirm('Are you sure you want to reset the demo database? This will revert all changes to the original mock data.')) {
+      localDb.reset();
+      await loadOrganizations();
+      toast.success('Database Reset', { description: 'The demo data has been restored.' });
+    }
+  };
 
   const handleCreateOrganization = () => {
     setEditingOrg(null);
@@ -142,13 +134,13 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
         id: `ORG-${String(organizations.length + 1).padStart(3, '0')}`,
         organizationName: data.organizationName,
         organizationType: data.organizationType,
-        numberOfClinicians: data.numberOfClinicians,
+        numberOfClinicians: data.numberOfClinicians || 0,
         numberOfClients: 0,
-        subscriptionPlan: data.subscriptionPlan,
+        subscriptionPlan: data.subscriptionPlan || 'starter',
         status: 'active',
         createdAt: new Date(),
-        primaryContactEmail: data.primaryContactEmail,
-        hipaaCompliant: data.hipaaBAASigned
+        primaryContactEmail: data.primaryContactEmail || '',
+        hipaaCompliant: data.hipaaBAASigned || false
       };
       setOrganizations([...organizations, newOrg]);
     }
@@ -255,7 +247,11 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="mb-8"
       >
-        <div className="flex items-end justify-end gap-6 mb-6">
+        <div className="flex items-center justify-end gap-3 mb-6">
+          <Button variant="outline" onClick={handleResetDb} className="border-border hover:bg-muted text-muted-foreground">
+            <Activity className="h-4 w-4 mr-2" />
+            Reset Demo Data
+          </Button>
           <Button onClick={handleCreateOrganization} className="bg-primary hover:bg-primary/90 shadow-sm transition-colors font-medium">
             <Plus className="h-4 w-4 mr-2" />
             Add Organization
@@ -351,17 +347,17 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
         </motion.div>
 
         <motion.div variants={statsVariants}>
-          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-orange-500/20 transition-all duration-300 group">
+          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-action/20 transition-all duration-300 group">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Avg. Revenue</p>
-                  <p className="text-3xl font-bold tracking-tight text-orange-600">
+                  <p className="text-3xl font-bold tracking-tight text-action">
                     ${((organizations.reduce((sum, org) => sum + org.numberOfClinicians, 0) * 99) / (organizations.length || 1)).toLocaleString()}
                   </p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors duration-300">
-                  <DollarSign className="h-6 w-6 text-orange-600" />
+                <div className="h-12 w-12 rounded-xl bg-action/10 flex items-center justify-center group-hover:bg-action/20 transition-colors duration-300">
+                  <DollarSign className="h-6 w-6 text-action" />
                 </div>
               </div>
             </CardContent>

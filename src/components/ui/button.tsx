@@ -5,33 +5,33 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 font-['Inter']",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        // Primary - Orange brand color with white text
+        // Primary - Green brand color with white text
         default: 
-          "bg-[var(--action-primary-base)] text-[var(--content-light-primary)] hover:bg-[var(--action-primary-hover)] active:bg-[var(--action-primary-active)] disabled:bg-[var(--action-primary-disabled)] disabled:text-[var(--content-light-disable)]",
+          "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/90 disabled:opacity-50 shadow-sm",
         
-        // Secondary - Gray background with dark text
+        // Secondary - Sage background with action text
         secondary:
-          "bg-[var(--action-secondary-base-2)] text-[var(--content-dark-primary)] hover:bg-[var(--action-secondary-hover)] active:bg-[var(--action-secondary-active)] disabled:bg-[var(--action-secondary-disabled)] disabled:text-[var(--content-dark-disable)]",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/90 disabled:opacity-50",
         
-        // Outline - White background with border
+        // Outline - Surface background with border
         outline:
-          "bg-[var(--action-secondary-base)] border border-[var(--action-outline-base)] text-[var(--content-dark-primary)] hover:bg-[var(--action-secondary-hover)] hover:border-[var(--action-outline-hover)] active:bg-[var(--action-secondary-active)] active:border-[var(--action-outline-active)] disabled:border-[var(--action-outline-disabled)] disabled:text-[var(--content-dark-disable)]",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground active:bg-accent/80 disabled:opacity-50 shadow-sm",
         
         // Destructive - Red outline with red text
         destructive:
-          "border border-[var(--action-destructive-base)] text-[var(--action-destructive-base)] hover:bg-[var(--background-red)] hover:border-[var(--action-destructive-hover)] hover:text-[var(--action-destructive-hover)] active:bg-[var(--background-red)] active:border-[var(--action-destructive-active)] active:text-[var(--action-destructive-active)] disabled:border-[var(--background-red)] disabled:text-[var(--action-destructive-disabled)]",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/100 disabled:opacity-50 shadow-sm",
         
         // Ghost - Transparent background
         ghost:
-          "text-[var(--content-dark-primary)] hover:bg-[var(--action-secondary-hover)] active:bg-[var(--action-secondary-active)] disabled:text-[var(--content-dark-disable)]",
+          "hover:bg-accent hover:text-accent-foreground active:bg-accent/80 disabled:opacity-50",
         
         // Link - Underlined text
         link: 
-          "text-[var(--action-primary-base)] underline-offset-4 underline hover:text-[var(--action-primary-hover)] disabled:text-[var(--content-dark-disable)]",
+          "text-primary underline-offset-4 hover:underline disabled:opacity-50",
       },
       size: {
         // Large - 18px text, py-3 px-4

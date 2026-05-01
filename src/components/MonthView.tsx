@@ -85,7 +85,7 @@ export function MonthView({
                 border-r border-b border-border last:border-r-0 p-2 cursor-pointer transition-colors
                 hover:bg-muted/50 min-h-24
                 ${!isCurrentMonthDay ? 'bg-muted/20 text-muted-foreground' : 'bg-background'}
-                ${isTodayDay ? 'bg-orange-50' : ''}
+                ${isTodayDay ? 'bg-action-light' : ''}
               `}
               onClick={() => onDayClick(day)}
             >
@@ -97,7 +97,7 @@ export function MonthView({
                     ${isTodayDay ? 'rounded-full w-8 h-8 flex items-center justify-center shadow-sm font-bold' : ''}
                     ${!isCurrentMonthDay && !isTodayDay ? 'text-muted-foreground' : ''}
                   `}
-                  style={isTodayDay ? { backgroundColor: '#ea580c', color: 'white' } : {}}
+                  style={isTodayDay ? { backgroundColor: '#1E7048', color: 'white' } : {}}
                 >
                   {day.getDate()}
                 </span>

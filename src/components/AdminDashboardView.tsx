@@ -75,7 +75,7 @@ const performanceComparison = therapistMetrics.map(t => ({
 }));
 
 const clientJourneyData = [
-  { stage: 'New Intake', count: 24, color: '#F97316' },
+  { stage: 'New Intake', count: 24, color: '#1E7048' },
   { stage: 'Assigned', count: 18, color: '#F59E0B' },
   { stage: 'First Session', count: 15, color: '#10B981' },
   { stage: 'Active', count: 86, color: '#3B82F6' },
@@ -193,7 +193,7 @@ export function AdminDashboardView({ userId, userEmail, onNavigate }: AdminDashb
             trend="down"
             trendValue="-1.2 days"
             icon={Clock}
-            colorClass="from-orange-400 to-amber-500"
+            colorClass="from-action to-amber-500"
             index={3}
           />
         </div>

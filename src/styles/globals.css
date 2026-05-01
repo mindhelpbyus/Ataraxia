@@ -1,327 +1,395 @@
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* ═══════════════════════════════════════════════════════════════
+   "INK ON PARCHMENT" DESIGN SYSTEM — ATARAXIA WEB
+   A premium, web-optimised typography and color system.
 
+   Display:  Lora          — editorial serif, warm & refined
+   Body:     Plus Jakarta  — humanist sans, excellent web legibility
+   Mono:     JetBrains     — premium monospaced for code/timestamps
+   Fallback: Geist (self-hosted from therapist app assets)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Google Fonts ──────────────────────────────────────────── */
+/* Inter: highly legible, modern, and premium neo-grotesque sans */
+/* Lora: editorial serif for headings if needed */
+/* JetBrains Mono: premium mono for code/data */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ─── Geist — self-hosted fallback (therapist app assets) ───── */
+@font-face {
+  font-family: 'Geist';
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-Light.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-SemiBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/Geist-Bold.ttf') format('truetype');
+}
+
+/* ─── Fraunces — self-hosted variable (decorative accents only) */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/Fraunces-Variable.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/Fraunces-VariableItalic.ttf') format('truetype');
+}
 
 
 :root {
   --font-size: 16px;
 
   /* ===================================
+     FONT FAMILIES — PREMIUM WEB STACK
+     =================================== */
+  /* Primary: Inter — premium modern neo-grotesque for all UI text */
+  --font-display: 'Inter', 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body:    'Inter', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', 'Geist Mono', 'Fira Mono', 'Courier New', monospace;
+  /* Decorative accent — only for pull-quotes or hero taglines */
+  --font-accent:  'Lora', Georgia, serif;
+
+  /* ===================================
      TYPOGRAPHY SCALE - DESIGN SYSTEM
      =================================== */
 
   /* Headings */
-  --heading-1: 3rem;
-  /* 48px */
-  --heading-2: 2rem;
-  /* 32px */
-  --heading-3: 1.75rem;
-  /* 28px */
-  --heading-4: 1.5rem;
-  /* 24px */
-  --heading-5: 1.25rem;
-  /* 20px */
+  --heading-1: 2.875rem;  /* ~46px — Fraunces light */
+  --heading-2: 2rem;      /* 32px */
+  --heading-3: 1.75rem;   /* 28px */
+  --heading-4: 1.5rem;    /* 24px */
+  --heading-5: 1.25rem;   /* 20px */
 
   /* Body Text */
-  --body-xl: 1.25rem;
-  /* 20px */
-  --body-lg: 1.125rem;
-  /* 18px */
-  --body-md: 1rem;
-  /* 16px */
-  --body-sm: 0.875rem;
-  /* 14px */
-  --body-xs: 0.75rem;
-  /* 12px */
+  --body-xl: 1.25rem;   /* 20px */
+  --body-lg: 1.125rem;  /* 18px */
+  --body-md: 1rem;      /* 16px */
+  --body-sm: 0.875rem;  /* 14px */
+  --body-xs: 0.75rem;   /* 12px */
 
   /* Legacy Text Sizes (for compatibility) */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
   --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.25rem;
-  --text-5xl: 3rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
 
   /* Line Heights */
-  --leading-heading-1: 3.6rem;
-  /* 57.6px - 1.2 */
-  --leading-heading-2: 2.5rem;
-  /* 40px - 1.25 */
-  --leading-heading-3: 2rem;
-  /* 32px - 1.14 */
-  --leading-heading-4: 1.75rem;
-  /* 28px - 1.17 */
-  --leading-heading-5: 1.5rem;
-  /* 24px - 1.2 */
-  --leading-body-xl: 1.75rem;
-  /* 28px - 1.4 */
-  --leading-body-lg: 1.75rem;
-  /* 28px - 1.56 */
-  --leading-body-md: 1.5rem;
-  /* 24px - 1.5 */
-  --leading-body-sm: 1.25rem;
-  /* 20px - 1.43 */
-  --leading-body-xs: 1rem;
-  /* 16px - 1.33 */
+  --leading-heading-1: 1.08;
+  --leading-heading-2: 1.1;
+  --leading-heading-3: 1.1;
+  --leading-heading-4: 1.17;
+  --leading-heading-5: 1.2;
+  --leading-body-xl:   1.75rem;
+  --leading-body-lg:   1.75rem;
+  --leading-body-md:   1.55;
+  --leading-body-sm:   1.5;
+  --leading-body-xs:   1.3;
 
   /* Font Weights */
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
+  --font-weight-light:    300;
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
   --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+  --font-weight-bold:     700;
 
   /* ===================================
-     GLOBAL COLORS - BASE PALETTE
+     INK ON PARCHMENT — CORE PALETTE
      =================================== */
 
-  /* Neutral Scale */
-  --neutral-0: #FFFFFF;
-  --neutral-10: #FAFAFA;
-  --neutral-20: #F5F5F5;
-  --neutral-30: #EEEEEE;
-  --neutral-40: #E0E0E0;
-  --neutral-50: #BDBDBD;
-  --neutral-60: #9E9E9E;
-  --neutral-70: #757575;
-  --neutral-80: #616161;
-  --neutral-90: #424242;
-  --neutral-100: #212121;
+  /* Surfaces — warm cream tones */
+  --canvas:       #F8F5F0;   /* scaffold background */
+  --surface:      #FDFCF9;   /* card / panel background */
+  --surface-warm: #F2EAE0;   /* elevated surface */
+  --surface-sage: #EDF2EA;   /* sage-tinted surface */
+  --surface-terra:#F5EDE8;   /* terracotta-tinted surface */
 
-  /* Blue Scale */
-  --blue-10: #E3F2FD;
-  --blue-20: #BBDEFB;
-  --blue-30: #90CAF9;
-  --blue-40: #64B5F6;
-  --blue-50: #42A5F5;
-  --blue-60: #2196F3;
-  --blue-70: #1E88E5;
-  --blue-80: #1976D2;
+  /* Text — warm ink scale */
+  --ink:          #1C1812;   /* primary text — deepest */
+  --body-text:    #48382E;   /* body text */
+  --muted-text:   #6B5545;   /* secondary / metadata */
+  --dim:          #C4B0A4;   /* placeholders / very muted */
+  --rule:         #E8E0D4;   /* dividers / borders */
+  --rule-hi:      #D8CEC4;   /* stronger border */
 
-  /* Green Scale */
-  --green-10: #E8F5E9;
-  --green-20: #C8E6C9;
-  --green-30: #A5D6A7;
-  --green-40: #81C784;
-  --green-50: #66BB6A;
-  --green-60: #4CAF50;
-  --green-70: #43A047;
-  --green-80: #388E3C;
+  /* Ink opacity variants */
+  --ink-60: rgba(28, 24, 18, 0.60);
+  --ink-40: rgba(28, 24, 18, 0.40);
+  --ink-12: rgba(28, 24, 18, 0.12);
+  --ink-06: rgba(28, 24, 18, 0.06);
 
-  /* Red Scale */
-  --red-10: #FFEBEE;
-  --red-20: #FFCDD2;
-  --red-30: #EF9A9A;
-  --red-40: #E57373;
-  --red-50: #EF5350;
-  --red-60: #F44336;
-  --red-70: #E53935;
-  --red-80: #D32F2F;
+  /* ─── Action / Primary — Forest Green ───────────── */
+  --action:        #1E7048;  /* primary CTA */
+  --action-dark:   #145C34;  /* hover / pressed */
+  --action-light:  #E4F2EC;  /* tinted background */
+  --action-border: #A8D4BC;  /* focus ring / outline */
 
-  /* Orange Scale */
-  --orange-10: #FFF3E0;
-  --orange-20: #FFE0B2;
-  --orange-30: #FFCC80;
-  --orange-40: #FFB74D;
-  --orange-50: #FFA726;
-  --orange-60: #FF9800;
-  --orange-70: #FB8C00;
-  --orange-80: #F57C00;
+  /* ─── Sage — Secondary Accent ─────────────────── */
+  --sage:        #7A9E88;
+  --sage-dark:   #567060;
+  --sage-light:  #EAF2EC;
+  --sage-border: #C4D8C8;
 
-  /* Purple Scale */
-  --purple-10: #F3E5F5;
-  --purple-20: #E1BEE7;
-  --purple-30: #CE93D8;
-  --purple-40: #BA68C8;
-  --purple-50: #AB47BC;
-  --purple-60: #9C27B0;
-  --purple-70: #8E24AA;
-  --purple-80: #7B1FA2;
+  /* ─── Lavender — Info / EMDR ──────────────────── */
+  --lavender:        #9A90B8;
+  --lavender-light:  #EEE8F5;
+  --lavender-border: #D4C8E8;
 
-  /* Yellow Scale */
-  --yellow-10: #FFFDE7;
-  --yellow-20: #FFF9C4;
-  --yellow-30: #FFF59D;
-  --yellow-40: #FFF176;
-  --yellow-50: #FFEE58;
-  --yellow-60: #FFEB3B;
-  --yellow-70: #FDD835;
-  --yellow-80: #FBC02D;
+  /* ─── Ochre — Warnings ────────────────────────── */
+  --ochre:        #C49840;
+  --ochre-light:  #F8F0D8;
+  --ochre-border: #E0D098;
+
+  /* ─── Status colors ───────────────────────────── */
+  --success:        #1E7048;
+  --success-light:  #E4F2EC;
+  --success-border: #A8D4BC;
+  --danger:         #B06060;
+  --danger-light:   #F5E8E8;
+  --danger-border:  #E0B8B8;
+
+  /* ─── Legacy / Semantic aliases (keep compatibility) ── */
+  --neutral-0:   #FFFFFF;
+  --neutral-10:  var(--surface);
+  --neutral-20:  var(--surface-warm);
+  --neutral-30:  var(--rule);
+  --neutral-40:  var(--rule-hi);
+  --neutral-50:  var(--dim);
+  --neutral-60:  var(--muted-text);
+  --neutral-70:  var(--muted-text);
+  --neutral-80:  var(--body-text);
+  --neutral-90:  var(--body-text);
+  --neutral-100: var(--ink);
+
+  /* Blue/Green/Red/Orange/Purple/Yellow — keep for badge/chart use */
+  --blue-10: #E3F2FD; --blue-20: #BBDEFB; --blue-30: #90CAF9;
+  --blue-40: #64B5F6; --blue-50: #42A5F5; --blue-60: #2196F3;
+  --blue-70: #1E88E5; --blue-80: #1976D2;
+  --green-10: var(--action-light); --green-20: #C8E6C9; --green-30: var(--action-border);
+  --green-40: #81C784; --green-50: #66BB6A; --green-60: var(--action);
+  --green-70: var(--action-dark); --green-80: #388E3C;
+  --red-10: var(--danger-light); --red-20: #FFCDD2; --red-30: var(--danger-border);
+  --red-40: #E57373; --red-50: var(--danger); --red-60: #B06060;
+  --red-70: #9B4B4B; --red-80: #832E2E;
+  --orange-10: var(--ochre-light); --orange-20: var(--surface-sage); --orange-30: var(--action-light);
+  --orange-40: var(--ochre); --orange-50: var(--action-light); --orange-60: var(--ochre);
+  --orange-70: #A37830; --orange-80: #7A5820;
+  --purple-10: var(--lavender-light); --purple-20: #E1BEE7; --purple-30: var(--lavender-border);
+  --purple-40: var(--lavender); --purple-50: #9A90B8; --purple-60: var(--lavender);
+  --purple-70: #7A6E9A; --purple-80: #5A4E7A;
+  --yellow-10: var(--ochre-light); --yellow-20: var(--ochre-light); --yellow-30: #FFF59D;
+  --yellow-40: #FFF176; --yellow-50: var(--ochre); --yellow-60: var(--ochre);
+  --yellow-70: #A37830; --yellow-80: var(--ochre-border);
 
   /* ===================================
-     SEMANTIC COLOR TOKENS - LIGHT MODE
+     SEMANTIC COLOR TOKENS
      =================================== */
 
-  /* CONTENT - for Typography and Icons */
-  /* Dark Content */
-  --content-dark-primary: var(--neutral-100);
-  --content-dark-secondary: var(--neutral-80);
-  --content-dark-tertiary: var(--neutral-70);
-  --content-dark-disable: var(--neutral-60);
-  --content-dark-informative: var(--blue-60);
-  --content-dark-positive: var(--green-60);
-  --content-dark-error: var(--red-60);
+  /* CONTENT */
+  --content-dark-primary:     var(--ink);
+  --content-dark-secondary:   var(--body-text);
+  --content-dark-tertiary:    var(--muted-text);
+  --content-dark-disable:     var(--dim);
+  --content-dark-informative: var(--lavender);
+  --content-dark-positive:    var(--action);
+  --content-dark-error:       var(--danger);
 
-  /* Light Content */
-  --content-light-primary: var(--neutral-0);
-  --content-light-secondary: var(--neutral-20);
-  --content-light-tertiary: var(--neutral-30);
-  --content-light-disable: var(--neutral-60);
-  --content-light-informative: var(--blue-60);
-  --content-light-positive: var(--green-60);
-  --content-light-error: var(--red-60);
+  --content-light-primary:     #FFFFFF;
+  --content-light-secondary:   var(--surface);
+  --content-light-tertiary:    var(--rule);
+  --content-light-disable:     var(--dim);
+  --content-light-informative: var(--lavender);
+  --content-light-positive:    var(--sage);
+  --content-light-error:       var(--danger);
 
-  /* BORDER - for static borders */
-  --border-primary: var(--neutral-40);
-  --border-secondary: var(--neutral-60);
-  --border-tertiary: var(--neutral-100);
-  --border-informative: var(--blue-30);
-  --border-positive: var(--green-30);
-  --border-error: var(--red-30);
-  --border-warning: var(--blue-30);
+  /* BORDER */
+  --border-primary:     var(--rule);
+  --border-secondary:   var(--rule-hi);
+  --border-tertiary:    var(--ink);
+  --border-informative: var(--lavender-border);
+  --border-positive:    var(--action-border);
+  --border-error:       var(--danger-border);
+  --border-warning:     var(--ochre-border);
 
-  /* BACKGROUND - for static backgrounds */
-  --background-primary: var(--neutral-0);
-  --background-secondary: var(--neutral-20);
-  --background-tertiary: var(--neutral-30);
-  --background-blue: var(--blue-10);
-  --background-green: var(--green-10);
-  --background-red: var(--red-10);
-  --background-orange: var(--orange-10);
-  --background-purple: var(--purple-10);
-  --background-yellow: var(--yellow-10);
+  /* BACKGROUND */
+  --background-primary:   var(--surface);
+  --background-secondary: var(--surface-warm);
+  --background-tertiary:  var(--canvas);
+  --background-blue:      var(--lavender-light);
+  --background-green:     var(--action-light);
+  --background-red:       var(--danger-light);
+  --background-orange:    var(--ochre-light);
+  --background-purple:    var(--lavender-light);
+  --background-yellow:    var(--ochre-light);
 
-  /* ACTION - for action components (buttons, etc) */
-  /* Primary Action - ORANGE BRAND COLOR */
-  --action-primary-base: #F97316;
-  --action-primary-hover: #ea6a0f;
-  --action-primary-active: #dc5f08;
-  --action-primary-selected: #F97316;
-  --action-primary-disabled: #fcd9bf;
+  /* ACTION */
+  --action-primary-base:     var(--action);
+  --action-primary-hover:    var(--action-dark);
+  --action-primary-active:   #0F4D30;
+  --action-primary-selected: var(--action);
+  --action-primary-disabled: var(--action-light);
 
-  /* Secondary Action */
-  --action-secondary-base: var(--neutral-0);
-  --action-secondary-base-2: var(--neutral-30);
-  --action-secondary-hover: var(--neutral-40);
-  --action-secondary-active: var(--neutral-50);
-  --action-secondary-selected: var(--neutral-30);
-  --action-secondary-disabled: var(--neutral-20);
+  --action-secondary-base:     var(--surface);
+  --action-secondary-base-2:   var(--surface-warm);
+  --action-secondary-hover:    var(--rule);
+  --action-secondary-active:   var(--rule-hi);
+  --action-secondary-selected: var(--surface-warm);
+  --action-secondary-disabled: var(--canvas);
 
-  /* Outline Action */
-  --action-outline-base: var(--neutral-50);
-  --action-outline-hover: var(--neutral-60);
-  --action-outline-active: var(--neutral-70);
-  --action-outline-selected: var(--neutral-70);
-  --action-outline-disabled: var(--neutral-30);
+  --action-outline-base:     var(--dim);
+  --action-outline-hover:    var(--muted-text);
+  --action-outline-active:   var(--body-text);
+  --action-outline-selected: var(--body-text);
+  --action-outline-disabled: var(--rule);
 
-  /* Destructive Action */
-  --action-destructive-base: var(--red-50);
-  --action-destructive-hover: var(--red-60);
-  --action-destructive-active: var(--red-70);
-  --action-destructive-selected: var(--red-60);
-  --action-destructive-disabled: var(--red-20);
+  --action-destructive-base:     var(--danger);
+  --action-destructive-hover:    #9B4B4B;
+  --action-destructive-active:   #832E2E;
+  --action-destructive-selected: #9B4B4B;
+  --action-destructive-disabled: var(--danger-light);
 
-  /* INTERACTION - for form components */
-  /* Outline Interaction */
-  --interaction-outline-base: #D9DFEB;
-  --interaction-outline-hover: #A3A7B0;
-  --interaction-outline-active: #6D7076;
-  --interaction-outline-selected: var(--neutral-70);
-  --interaction-outline-disabled: #E8ECF3;
+  /* INTERACTION */
+  --interaction-outline-base:     var(--rule-hi);
+  --interaction-outline-hover:    var(--muted-text);
+  --interaction-outline-active:   var(--body-text);
+  --interaction-outline-selected: var(--body-text);
+  --interaction-outline-disabled: var(--rule);
 
-  /* Primary Interaction (for checkboxes, radio buttons when checked) */
-  --interaction-primary-base: #F97316;
-  --interaction-primary-hover: #ea580c;
-  --interaction-primary-active: #c2410c;
+  --interaction-primary-base:   var(--action);
+  --interaction-primary-hover:  var(--action-dark);
+  --interaction-primary-active: #0F4D30;
 
-  /* Secondary Interaction (for unchecked state backgrounds) */
-  --interaction-secondary-base: #FFFFFF;
-  --interaction-secondary-disabled: #F7F9FB;
-  --interaction-secondary-hover: var(--neutral-30);
+  --interaction-secondary-base:     var(--surface);
+  --interaction-secondary-disabled: var(--canvas);
+  --interaction-secondary-hover:    var(--surface-warm);
 
-  /* Validation States for Inputs */
-  --interaction-red-base: #AF4B4B;
-  /* Error state border */
-  --interaction-red-hover: #C85858;
-  /* Error state hover */
-  --interaction-red-text: #AF4B4B;
-  /* Error helper text */
+  --interaction-red-base:  var(--danger);
+  --interaction-red-hover: #9B4B4B;
+  --interaction-red-text:  var(--danger);
 
-  --interaction-green-base: #589E67;
-  /* Success state border */
-  --interaction-green-hover: #6BB57A;
-  /* Success state hover */
-  --interaction-green-text: #589E67;
-  /* Success helper text */
+  --interaction-green-base:  var(--action);
+  --interaction-green-hover: var(--action-dark);
+  --interaction-green-text:  var(--action);
 
   /* ===================================
-     LEGACY COLORS - Bedrock Brand
+     LEGACY / SHADCN-COMPATIBLE ALIASES
      =================================== */
-  --background: #ffffff;
-  --background-gradient: linear-gradient(180deg, #ffffff 0%, #ffffff 50%, #ffffff 100%);
-  --foreground: #1a1a2e;
-  --card: #ffffff;
-  --card-foreground: #1a1a2e;
-  --popover: #ffffff;
-  --popover-foreground: #1a1a2e;
-  --primary: #F97316;
-  --primary-foreground: #ffffff;
-  --secondary: #ffffff;
-  --secondary-foreground: #1a1a2e;
-  --muted: #ffffff;
-  --muted-foreground: #6b7280;
-  --accent: #F59E0B;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  --background:          var(--canvas);
+  --background-gradient: linear-gradient(180deg, #F8F5F0 0%, #F2EAE0 100%);
+  --foreground:          var(--ink);
+  --card:                var(--surface);
+  --card-foreground:     var(--ink);
+  --popover:             var(--surface);
+  --popover-foreground:  var(--ink);
+  --primary:             var(--action);
+  --primary-foreground:  #ffffff;
+  --secondary:           var(--surface-warm);
+  --secondary-foreground:var(--ink);
+  --muted:               var(--surface-warm);
+  --muted-foreground:    var(--muted-text);
+  --accent:              var(--ochre);
+  --accent-foreground:   #ffffff;
+  --destructive:         var(--danger);
   --destructive-foreground: #ffffff;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --input-background: #ffffff;
-  --switch-background: #d1d5db;
-  --ring: #F97316;
-  --success: #4ade80;
-  --success-foreground: #ffffff;
-  --warning: #F59E0B;
-  --warning-foreground: #ffffff;
-  --info: #8b5cf6;
-  --info-foreground: #ffffff;
-  --teal: #14b8a6;
-  --teal-foreground: #ffffff;
-  --purple: #8b5cf6;
-  --purple-foreground: #ffffff;
-  --pink: #ec4899;
-  --pink-foreground: #ffffff;
-  --orange: #F97316;
-  --orange-foreground: #ffffff;
+  --border:              var(--rule);
+  --input:               var(--rule);
+  --input-background:    var(--surface);
+  --switch-background:   var(--rule-hi);
+  --ring:                var(--action-border);
+  --success:             var(--action);
+  --success-foreground:  #ffffff;
+  --warning:             var(--ochre);
+  --warning-foreground:  #ffffff;
+  --info:                var(--lavender);
+  --info-foreground:     #ffffff;
+  --teal:                var(--sage);
+  --teal-foreground:     #ffffff;
+  --purple:              var(--lavender);
+  --purple-foreground:   #ffffff;
+  --pink:                #B06080;
+  --pink-foreground:     #ffffff;
+  --orange:              var(--ochre);
+  --orange-foreground:   #ffffff;
 
   /* Meeting Type Colors */
-  --meeting-internal: #8b5cf6;
-  --meeting-internal-light: #f3f0ff;
-  --meeting-external: #F97316;
-  --meeting-external-light: #fff7ed;
+  --meeting-internal:       var(--lavender);
+  --meeting-internal-light: var(--lavender-light);
+  --meeting-external:       var(--sage);
+  --meeting-external-light: var(--sage-light);
 
-  /* Chart Colors */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  /* Chart Colors — warm palette */
+  --chart-1: var(--action);      /* Forest green */
+  --chart-2: var(--sage);        /* Sage */
+  --chart-3: var(--lavender);    /* Lavender */
+  --chart-4: var(--ochre);       /* Ochre */
+  --chart-5: var(--danger);      /* Rose */
 
-  /* Border Radius */
-  --radius: 0.625rem;
+  /* ===================================
+     BORDER RADIUS — matches therapist app
+     =================================== */
+  --radius:    0.875rem;  /* 14px — card radius */
+  --radius-sm: 0.5rem;    /* 8px */
+  --radius-md: 0.75rem;   /* 12px */
+  --radius-lg: 0.875rem;  /* 14px */
+  --radius-xl: 1.25rem;   /* 20px */
+  --radius-2xl:1.375rem;  /* 22px — sheet/modal */
+  --radius-full: 2.75rem; /* 44px — pill/chip */
 
-  /* Sidebar Colors */
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #ea580c;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #fff7ed;
-  --sidebar-accent-foreground: #ea580c;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #ea580c;
-  --sidebar-hover: #fff7ed;
+  /* ===================================
+     SHADOWS — warm ink-tinted
+     =================================== */
+  --shadow-card:   0 3px 10px rgba(28, 24, 18, 0.06);
+  --shadow-sheet:  0 -8px 36px rgba(28, 24, 18, 0.22);
+  --shadow-fab:    0 4px 16px rgba(28, 24, 18, 0.30);
+  --shadow-action: 0 2px 10px rgba(30, 112, 72, 0.28);
+  --shadow-sage:   0 2px 10px rgba(122, 158, 136, 0.25);
+
+  /* Sidebar Colors — warm variant */
+  --sidebar:                   var(--surface);
+  --sidebar-foreground:        var(--ink);
+  --sidebar-primary:           var(--action);
+  --sidebar-primary-foreground:#ffffff;
+  --sidebar-accent:            var(--action-light);
+  --sidebar-accent-foreground: var(--action);
+  --sidebar-border:            var(--rule);
+  --sidebar-ring:              var(--action-border);
+  --sidebar-hover:             var(--action-light);
 }
 
 
@@ -439,30 +507,68 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  /* New Ink on Parchment tokens exposed as Tailwind colors */
+  --color-canvas:        var(--canvas);
+  --color-surface:       var(--surface);
+  --color-surface-warm:  var(--surface-warm);
+  --color-surface-sage:  var(--surface-sage);
+  --color-ink:           var(--ink);
+  --color-body-text:     var(--body-text);
+  --color-muted-text:    var(--muted-text);
+  --color-dim:           var(--dim);
+  --color-rule:          var(--rule);
+  --color-action:        var(--action);
+  --color-action-dark:   var(--action-dark);
+  --color-action-light:  var(--action-light);
+  --color-sage:          var(--sage);
+  --color-sage-dark:     var(--sage-dark);
+  --color-sage-light:    var(--sage-light);
+  --color-lavender:      var(--lavender);
+  --color-lavender-light:var(--lavender-light);
+  --color-ochre:         var(--ochre);
+  --color-ochre-light:   var(--ochre-light);
+  --color-danger:        var(--danger);
+  --color-danger-light:  var(--danger-light);
+
+  /* Additional action tokens — enables bg-action-dark, border-action-border, etc. */
+  --color-action-border:  var(--action-border);
+  --color-rule:           var(--rule);
+  --color-rule-hi:        var(--rule-hi);
+  --color-dim:            var(--dim);
+  --color-surface-sage:   var(--surface-sage);
+  --color-surface-terra:  var(--surface-terra);
+
+  /* Sidebar */
+  --color-sidebar:                    var(--sidebar);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-ring:               var(--sidebar-ring);
+
+  /* Fonts */
+  --font-sans:  var(--font-body);
+  --font-serif: var(--font-display);
+  --font-mono:  var(--font-mono);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    color: var(--foreground);
+    /* Do not force color here — let individual elements inherit correctly */
   }
 
   body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
@@ -517,13 +623,13 @@
     color: inherit !important;
   }
 
-  /* Custom selection color for content areas - Bedrock Orange */
+  /* Custom selection color — sage green (Ink on Parchment) */
   ::selection {
-    background-color: rgba(249, 115, 22, 0.2);
+    background-color: rgba(30, 112, 72, 0.15);
   }
 
   ::-moz-selection {
-    background-color: rgba(249, 115, 22, 0.2);
+    background-color: rgba(30, 112, 72, 0.15);
   }
 
   /* Protect logo/favicon from any selection or interaction effects */
@@ -665,66 +771,105 @@
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
 @layer base {
+  /* ─── Headings — Lora editorial serif ─────────────────────────
+     Warm, literary feel. Weight 500 gives ink-press authority
+     without the heaviness of bold. Tight tracking for editorial look.
+  ── */
   h1:not([class*="text-"]) {
+    font-family: var(--font-display);
     font-size: var(--heading-1);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--leading-heading-1);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--ink);
   }
 
   h2:not([class*="text-"]) {
+    font-family: var(--font-display);
     font-size: var(--heading-2);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--leading-heading-2);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: var(--ink);
   }
 
   h3:not([class*="text-"]) {
+    font-family: var(--font-display);
     font-size: var(--heading-3);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--leading-heading-3);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--ink);
   }
 
   h4:not([class*="text-"]) {
+    font-family: var(--font-display);
     font-size: var(--heading-4);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--leading-heading-4);
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--ink);
   }
 
   h5:not([class*="text-"]) {
+    font-family: var(--font-body);
     font-size: var(--heading-5);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--leading-heading-5);
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+    color: var(--ink);
   }
 
+  /* ─── Body text — Plus Jakarta Sans ───────────────────────────
+     Humanist proportions, open apertures = excellent legibility
+     at 14–18px on screen. Line height 1.65 for comfortable reading.
+  ── */
   p:not([class*="text-"]) {
+    font-family: var(--font-body);
     font-size: var(--body-md);
-    font-weight: var(--font-weight-normal);
-    line-height: var(--leading-body-md);
+    font-weight: 400;
+    line-height: 1.65;
+    color: var(--body-text);
   }
 
   label:not([class*="text-"]) {
+    font-family: var(--font-body);
     font-size: var(--body-sm);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--leading-body-sm);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--muted-text);
+    letter-spacing: 0.01em;
   }
 
   button:not([class*="text-"]) {
+    font-family: var(--font-body);
     font-size: var(--body-sm);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--leading-body-sm);
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
   }
 
   input:not([class*="text-"]),
   textarea:not([class*="text-"]),
   select:not([class*="text-"]) {
+    font-family: var(--font-body);
     font-size: var(--body-md);
-    font-weight: var(--font-weight-normal);
-    line-height: var(--leading-body-md);
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--ink);
   }
 
   small:not([class*="text-"]) {
+    font-family: var(--font-body);
     font-size: var(--body-xs);
-    font-weight: var(--font-weight-normal);
-    line-height: var(--leading-body-xs);
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--muted-text);
+  }
+
+  code, pre, kbd, samp {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
   }
 }
 
@@ -766,12 +911,14 @@ html {
   /* Chrome, Safari and Opera */
 }
 
-/* Notification Badge - Force white text on orange background */
+/* Notification Badge - Forest green (Ink on Parchment) */
 .notification-badge {
-  background-color: #ea580c !important;
+  background-color: var(--action, #1E7048) !important;
   color: #ffffff !important;
   font-weight: 700 !important;
   font-size: 11px !important;
+  font-family: var(--font-body) !important;
+  letter-spacing: 0.4px !important;
 }
 
 .notification-badge * {

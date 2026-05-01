@@ -44,7 +44,7 @@ const revenueByProviderData = [
 ];
 
 const revenueByServiceData = [
-  { name: 'Individual Therapy', value: 28500, color: '#F97316' },
+  { name: 'Individual Therapy', value: 28500, color: '#1E7048' },
   { name: 'Family Therapy', value: 8200, color: '#F59E0B' },
   { name: 'Group Therapy', value: 4100, color: '#10b981' },
   { name: 'Psychiatric Eval', value: 5800, color: '#3b82f6' },
@@ -137,7 +137,7 @@ export function AdminReports({ dateRange }: AdminReportsProps) {
           icon={Calendar}
           trend="up"
           trendValue="+15%"
-          colorClass="bg-orange-500"
+          colorClass="bg-action"
         />
         <MetricCard
           title="Active Therapists"
@@ -186,7 +186,7 @@ export function AdminReports({ dateRange }: AdminReportsProps) {
                     cursor={{ fill: '#f1f5f9' }}
                   />
                   <Legend />
-                  <Bar dataKey="sessions" fill="#F97316" name="Sessions" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="sessions" fill="#1E7048" name="Sessions" radius={[0, 4, 4, 0]} />
                   <Bar dataKey="hours" fill="#F59E0B" name="Hours" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>

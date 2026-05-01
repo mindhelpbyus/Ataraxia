@@ -23,7 +23,7 @@ const StatusDot = React.forwardRef<HTMLDivElement, StatusDotProps>(
           // Colors
           variant === "blue" && "bg-[var(--interaction-blue-base,#2E90FA)]",
           variant === "green" && "bg-[var(--interaction-green-base,#589E67)]",
-          variant === "orange" && "bg-[var(--interaction-orange-base,#F97316)]",
+          variant === "orange" && "bg-[var(--interaction-orange-base,#1E7048)]",
           variant === "yellow" && "bg-[var(--interaction-yellow-base,#DC6803)]",
           variant === "red" && "bg-[var(--interaction-red-base,#AF4B4B)]",
           variant === "neutral" && "bg-[var(--global-colors-neutral-80,#6D7076)]",

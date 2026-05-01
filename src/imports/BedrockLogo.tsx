@@ -29,7 +29,7 @@ export function BedrockLogo({ className = '', variant = 'full', size = 40 }: Bed
             <stop offset="100%" stopColor="#EF4444" />
           </linearGradient>
           <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#F97316" />
+            <stop offset="0%" stopColor="#1E7048" />
             <stop offset="100%" stopColor="#FB923C" />
           </linearGradient>
           <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -41,8 +41,8 @@ export function BedrockLogo({ className = '', variant = 'full', size = 40 }: Bed
             <stop offset="100%" stopColor="#DC2626" />
           </linearGradient>
           <linearGradient id="grad6" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#EA580C" />
-            <stop offset="100%" stopColor="#F97316" />
+            <stop offset="0%" stopColor="#145C34" />
+            <stop offset="100%" stopColor="#1E7048" />
           </linearGradient>
         </defs>
         
@@ -163,7 +163,7 @@ export function BedrockLogo({ className = '', variant = 'full', size = 40 }: Bed
           <stop offset="100%" stopColor="#EF4444" />
         </linearGradient>
         <linearGradient id="gradFull3" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#F97316" />
+          <stop offset="0%" stopColor="#1E7048" />
           <stop offset="100%" stopColor="#FB923C" />
         </linearGradient>
         <linearGradient id="gradFull4" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -175,8 +175,8 @@ export function BedrockLogo({ className = '', variant = 'full', size = 40 }: Bed
           <stop offset="100%" stopColor="#DC2626" />
         </linearGradient>
         <linearGradient id="gradFull6" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#EA580C" />
-          <stop offset="100%" stopColor="#F97316" />
+          <stop offset="0%" stopColor="#145C34" />
+          <stop offset="100%" stopColor="#1E7048" />
         </linearGradient>
       </defs>
       

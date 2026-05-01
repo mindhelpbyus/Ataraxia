@@ -118,7 +118,7 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
                                     <Button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="bg-[#F97316] hover:bg-[#ea6b0f] text-white"
+                                        className="bg-[#1E7048] hover:bg-[#ea6b0f] text-white"
                                         size="sm"
                                     >
                                         <Upload className="h-4 w-4 mr-2" />

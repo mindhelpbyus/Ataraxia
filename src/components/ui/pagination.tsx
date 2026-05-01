@@ -62,7 +62,7 @@ function PaginationLink({
         
         // Active state - Orange background
         isActive && [
-          "bg-[var(--interaction-primary-base,#F97316)]",
+          "bg-[var(--interaction-primary-base,#1E7048)]",
           "text-[var(--content-light-primary,#FFFFFF)]",
         ],
         

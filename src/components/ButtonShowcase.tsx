@@ -14,7 +14,7 @@ export function ButtonShowcase() {
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-semibold text-gray-900">Button Design System</h1>
           <p className="text-lg text-gray-600">
-            Using CSS variables from design tokens • Orange (#F97316) primary color
+            Using CSS variables from design tokens • Orange (#1E7048) primary color
           </p>
         </div>
 
@@ -322,7 +322,7 @@ export function ButtonShowcase() {
             <div className="space-y-2">
               <h3 className="text-lg font-medium text-gray-900">✅ Design Spec Compliance</h3>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Orange (#F97316) primary color</li>
+                <li>• Orange (#1E7048) primary color</li>
                 <li>• 5 variants: default, secondary, outline, destructive, ghost, link</li>
                 <li>• 4 sizes: lg (18px), default (16px), sm (14px), xs (12px)</li>
                 <li>• Icon button support (icon-lg, icon, icon-sm, icon-xs)</li>

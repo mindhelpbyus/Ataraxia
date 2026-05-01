@@ -26,7 +26,7 @@ const CONCERN_OPTIONS = [
   { id: 'trauma', label: 'Trauma / PTSD', icon: Shield, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
   { id: 'adhd', label: 'ADHD', icon: Brain, color: 'text-purple-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-200' },
   { id: 'relationship', label: 'Relationship Issues', icon: Heart, color: 'text-pink-600', bgColor: 'bg-pink-50', borderColor: 'border-pink-200' },
-  { id: 'family', label: 'Family Conflict', icon: Users, color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' },
+  { id: 'family', label: 'Family Conflict', icon: Users, color: 'text-action', bgColor: 'bg-action-light', borderColor: 'border-action-light' },
   { id: 'parenting', label: 'Parenting Support', icon: Baby, color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-200' },
   { id: 'transitions', label: 'Life Transitions', icon: Home, color: 'text-indigo-600', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-200' },
   { id: 'stress', label: 'Stress / Burnout', icon: Activity, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
@@ -35,7 +35,7 @@ const CONCERN_OPTIONS = [
   { id: 'grief', label: 'Grief or Loss', icon: Heart, color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' },
   { id: 'anger', label: 'Anger / Emotional Regulation', icon: Zap, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
   { id: 'lgbtq', label: 'LGBTQ+ Identity Support', icon: Palette, color: 'text-rainbow-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-200' },
-  { id: 'pain', label: 'Chronic Pain', icon: Activity, color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' },
+  { id: 'pain', label: 'Chronic Pain', icon: Activity, color: 'text-action', bgColor: 'bg-action-light', borderColor: 'border-action-light' },
   { id: 'sleep', label: 'Sleep Issues', icon: Moon, color: 'text-indigo-600', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-200' },
   { id: 'work', label: 'Work-Related Concerns', icon: Briefcase, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' },
   { id: 'other', label: 'Other', icon: Plus, color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' },
@@ -66,7 +66,7 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <MessageCircle className="h-6 w-6 text-[#F97316]" />
+          <MessageCircle className="h-6 w-6 text-[#1E7048]" />
           <h2 className="text-2xl font-semibold">What Brings You Here?</h2>
         </div>
         <p className="text-muted-foreground">
@@ -255,10 +255,10 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
 
       {/* Summary */}
       {selectedCount > 0 && data.severityLevel && (
-        <Card className="border-2 border-[#F97316] bg-orange-50">
+        <Card className="border-2 border-[#1E7048] bg-action-light">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-[#F97316]" />
+              <MessageCircle className="h-5 w-5 text-[#1E7048]" />
               Summary
             </CardTitle>
           </CardHeader>

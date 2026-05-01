@@ -250,7 +250,7 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
                     value={formData.address1}
                     onChange={(e) => updateFormData('address1', e.target.value)}
                     placeholder="123 Main Street, Building Name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
                 />
             </div>
 
@@ -264,7 +264,7 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
                     value={formData.address2 || ''}
                     onChange={(e) => updateFormData('address2', e.target.value)}
                     placeholder="Apartment, Suite, Floor, Locality (e.g., T. Nagar, Adyar)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
                 />
             </div>
 

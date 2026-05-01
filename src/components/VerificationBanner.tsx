@@ -26,10 +26,10 @@ export function VerificationBanner({ accountStatus, userRole, className = '', on
       case 'registered':
         return {
           icon: AlertCircle,
-          bgColor: 'bg-orange-50', // Warm/Urgent
-          borderColor: 'border-orange-200',
-          iconColor: 'text-orange-600',
-          textColor: 'text-orange-900',
+          bgColor: 'bg-action-light', // Warm/Urgent
+          borderColor: 'border-action-light',
+          iconColor: 'text-action',
+          textColor: 'text-action-dark',
           title: 'Complete Your Profile to Get Started',
           message: `Your profile is only ${profileCompletion}% complete. Complete your profile to get verified and start accepting clients.`,
           action: true
@@ -116,7 +116,7 @@ export function VerificationBanner({ accountStatus, userRole, className = '', on
                 </div>
                 <div className="h-2 w-full bg-black/5 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-orange-500 rounded-full transition-all duration-1000 ease-out"
+                    className="h-full bg-action rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${profileCompletion}%` }}
                   />
                 </div>
@@ -128,7 +128,7 @@ export function VerificationBanner({ accountStatus, userRole, className = '', on
         {config.action && onCompleteProfile && (
           <Button
             onClick={onCompleteProfile}
-            className="bg-orange-500 hover:bg-orange-600 text-white shadow-md hover:shadow-lg transition-all active:scale-95 font-semibold"
+            className="bg-action hover:bg-action-dark text-white shadow-md hover:shadow-lg transition-all active:scale-95 font-semibold"
           >
             <Settings className="w-4 h-4 mr-2" />
             Complete Profile

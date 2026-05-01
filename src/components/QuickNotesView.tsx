@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Rnd } from 'react-rnd';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import {
@@ -9,6 +8,8 @@ import {
   Palette,
   HelpCircle
 } from 'lucide-react';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localDb } from '../lib/db/localDb';
 
 // Types
 type NoteColor = 'yellow' | 'blue' | 'green' | 'pink' | 'purple' | 'orange';
@@ -30,7 +31,7 @@ const noteColors: { [key in NoteColor]: { bg: string; border: string; text: stri
   green: { bg: 'bg-green-100', border: 'border-l-green-400', text: 'text-gray-700' },
   pink: { bg: 'bg-pink-100', border: 'border-l-pink-400', text: 'text-gray-700' },
   purple: { bg: 'bg-purple-100', border: 'border-l-purple-400', text: 'text-gray-700' },
-  orange: { bg: 'bg-orange-100', border: 'border-l-orange-400', text: 'text-gray-700' }
+  orange: { bg: 'bg-action-light', border: 'border-l-orange-400', text: 'text-gray-700' }
 };
 
 const STORAGE_KEY = 'medicalAppStickyNotes';
@@ -41,42 +42,70 @@ export function QuickNotesView() {
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Load notes from localStorage
+  // Load notes from localDb or localStorage
   useEffect(() => {
-    const savedNotes = localStorage.getItem(STORAGE_KEY);
-    if (savedNotes) {
-      try {
-        const parsed = JSON.parse(savedNotes);
-        setNotes(parsed.map((note: any) => ({
-          ...note,
-          createdAt: new Date(note.createdAt)
-        })));
-      } catch (e) {
-        console.error("Failed to parse notes", e);
+    const load = async () => {
+      if (USE_LOCAL_DB) {
+        const dbNotes = await localDb.notes.findMany();
+        const mapped = dbNotes.slice(0, 15).map((n, i) => {
+          // Map DB color to NoteColor
+          let c: NoteColor = 'yellow';
+          if (n.color?.includes('BLUE')) c = 'blue';
+          if (n.color?.includes('GREEN')) c = 'green';
+          if (n.color?.includes('PINK') || n.color?.includes('FCE7F3')) c = 'pink';
+          if (n.color?.includes('PURPLE') || n.color?.includes('EDE9FE')) c = 'purple';
+          if (n.color?.includes('ORANGE')) c = 'orange';
+
+          return {
+            id: n.id,
+            content: `${n.title ? n.title + '\n\n' : ''}${n.content || ''}`,
+            color: c,
+            isPinned: n.isPinned,
+            position: { x: 50 + (i * 40) % 600, y: 100 + (i * 40) % 400 },
+            size: { width: 280, height: 200 },
+            createdAt: new Date(n.createdAt),
+          };
+        });
+        setNotes(mapped);
+        return;
       }
-    } else {
-      // Default Notes matching the design
-      setNotes([
-        {
-          id: 'note-1',
-          content: '',
-          color: 'yellow',
-          isPinned: false,
-          position: { x: 100, y: 100 },
-          size: { width: 280, height: 200 },
-          createdAt: new Date()
-        },
-        {
-          id: 'note-2',
-          content: '',
-          color: 'purple',
-          isPinned: false,
-          position: { x: 500, y: 100 },
-          size: { width: 280, height: 200 },
-          createdAt: new Date()
+
+      const savedNotes = localStorage.getItem(STORAGE_KEY);
+      if (savedNotes) {
+        try {
+          const parsed = JSON.parse(savedNotes);
+          setNotes(parsed.map((note: any) => ({
+            ...note,
+            createdAt: new Date(note.createdAt)
+          })));
+        } catch (e) {
+          console.error("Failed to parse notes", e);
         }
-      ]);
-    }
+      } else {
+        // Default Notes matching the design
+        setNotes([
+          {
+            id: 'note-1',
+            content: '',
+            color: 'yellow',
+            isPinned: false,
+            position: { x: 100, y: 100 },
+            size: { width: 280, height: 200 },
+            createdAt: new Date()
+          },
+          {
+            id: 'note-2',
+            content: '',
+            color: 'purple',
+            isPinned: false,
+            position: { x: 500, y: 100 },
+            size: { width: 280, height: 200 },
+            createdAt: new Date()
+          }
+        ]);
+      }
+    };
+    load();
   }, []);
 
   // Save notes to localStorage
@@ -192,7 +221,7 @@ export function QuickNotesView() {
           </Button>
           <Button
             onClick={handleCreateNote}
-            className="bg-[#F97316] hover:bg-[#ea6b0f] text-white shadow-sm"
+            className="bg-[#1E7048] hover:bg-[#ea6b0f] text-white shadow-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Note
@@ -200,25 +229,14 @@ export function QuickNotesView() {
         </div>
       </div>
 
-      {/* Notes Board */}
-      <div
-        className="relative w-full bg-gray-50"
-        style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}
-        onClick={() => {
-          setEditingNoteId(null);
-          setShowColorPicker(null);
-        }}
-      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-8 h-full overflow-y-auto pb-32">
         {notes.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-300 pointer-events-none select-none">
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-300 select-none">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 rounded-lg shadow-md p-8 w-80 mb-6 flex flex-col items-center">
               <p className="text-gray-700 text-center font-medium">
                 Click "New Note" to create your first sticky note!
               </p>
             </div>
-            <p className="text-gray-400 text-sm">
-              You can drag notes around and resize them
-            </p>
           </div>
         )}
 
@@ -227,30 +245,9 @@ export function QuickNotesView() {
           const isEditing = editingNoteId === note.id;
 
           return (
-            <Rnd
+            <div
               key={note.id}
-              position={note.position}
-              size={note.size}
-              onDragStart={() => bringToFront(note.id)}
-              onDragStop={(e, d) => {
-                handleUpdatePosition(note.id, d.x, d.y);
-              }}
-              onResizeStart={() => bringToFront(note.id)}
-              onResizeStop={(e, direction, ref, delta, position) => {
-                handleUpdateSize(
-                  note.id,
-                  parseInt(ref.style.width),
-                  parseInt(ref.style.height)
-                );
-                handleUpdatePosition(note.id, position.x, position.y);
-              }}
-              minWidth={200}
-              minHeight={150}
-              bounds="parent"
-              enableResizing={!note.isPinned}
-              disableDragging={note.isPinned || isEditing}
-              className={`${note.isPinned ? 'cursor-default' : 'cursor-move'}`}
-              dragHandleClassName="note-drag-handle"
+              className={`min-h-[200px] h-full`}
             >
               <div
                 className={`h-full w-full ${colors.bg} ${colors.border} border-l-[6px] rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col relative group overflow-hidden note-drag-handle`}
@@ -265,7 +262,7 @@ export function QuickNotesView() {
                   {/* Pin button */}
                   <div
                     onClick={(e) => { e.stopPropagation(); handleTogglePin(note.id); }}
-                    className={`p-1.5 rounded-full hover:bg-white/60 transition-colors cursor-pointer ${note.isPinned ? 'text-[#F97316] bg-white/50' : 'text-gray-500'
+                    className={`p-1.5 rounded-full hover:bg-white/60 transition-colors cursor-pointer ${note.isPinned ? 'text-[#1E7048] bg-white/50' : 'text-gray-500'
                       }`}
                     title={note.isPinned ? 'Unpin note' : 'Pin note'}
                   >
@@ -289,7 +286,7 @@ export function QuickNotesView() {
                           <div
                             key={color}
                             onClick={(e) => { e.stopPropagation(); handleChangeColor(note.id, color); }}
-                            className={`w-6 h-6 rounded-md ${noteColors[color].bg} border ${note.color === color ? 'border-[#F97316] ring-1 ring-[#F97316]' : 'border-gray-300'
+                            className={`w-6 h-6 rounded-md ${noteColors[color].bg} border ${note.color === color ? 'border-[#1E7048] ring-1 ring-[#1E7048]' : 'border-gray-300'
                               } hover:scale-110 transition-transform cursor-pointer shadow-sm`}
                             title={color}
                           />
@@ -331,15 +328,15 @@ export function QuickNotesView() {
                   )}
                 </div>
               </div>
-            </Rnd>
+            </div>
           );
         })}
-      </div>
+        </div>
 
       {/* Footer */}
       <div className="bg-white border-t border-gray-200 px-6 py-2 flex items-center justify-between z-10 sticky bottom-0">
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span className="text-[#F97316]">●</span>
+          <span className="text-[#1E7048]">●</span>
           <span>© 2026 Ataraxia Health. All rights reserved.</span>
         </div>
         <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">

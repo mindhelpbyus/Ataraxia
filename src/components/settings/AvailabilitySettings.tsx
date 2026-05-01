@@ -133,7 +133,7 @@ export const AvailabilitySettings: React.FC<AvailabilitySettingsProps> = ({ user
                     {/* SECTION G: SESSION FORMAT */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2">
-                            <Clock className="w-5 h-5 text-orange-600" />
+                            <Clock className="w-5 h-5 text-action" />
                             <h3 className="text-lg font-medium">Session Formats <span className="text-red-500">*</span></h3>
                         </div>
 
@@ -146,7 +146,7 @@ export const AvailabilitySettings: React.FC<AvailabilitySettingsProps> = ({ user
                             ].map((format) => (
                                 <div
                                     key={format.id}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer ${availabilityData[format.id as keyof typeof availabilityData] ? 'border-orange-500 bg-orange-50' : 'border-border/50 bg-card'}`}
+                                    className={`p-4 border-2 rounded-lg cursor-pointer ${availabilityData[format.id as keyof typeof availabilityData] ? 'border-action bg-action-light' : 'border-border/50 bg-card'}`}
                                     onClick={() => setAvailabilityData(prev => ({ ...prev, [format.id]: !prev[format.id as keyof typeof availabilityData] }))}
                                 >
                                     <div className="flex items-center gap-2">
@@ -163,7 +163,7 @@ export const AvailabilitySettings: React.FC<AvailabilitySettingsProps> = ({ user
 
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
-                                <Hourglass className="w-5 h-5 text-orange-600" />
+                                <Hourglass className="w-5 h-5 text-action" />
                                 <h3 className="text-lg font-medium">Session Length <span className="text-red-500">*</span></h3>
                             </div>
                             <div className="grid grid-cols-4 gap-3">
@@ -171,7 +171,7 @@ export const AvailabilitySettings: React.FC<AvailabilitySettingsProps> = ({ user
                                     <div
                                         key={duration}
                                         className={`p-4 border-2 rounded-lg cursor-pointer flex flex-row items-center justify-center gap-3 ${availabilityData.sessionLengthsOffered.includes(duration)
-                                            ? 'border-orange-500 bg-orange-50'
+                                            ? 'border-action bg-action-light'
                                             : 'border-border/50 bg-card'
                                             }`}
                                         onClick={() => toggleSessionLength(duration)}
@@ -231,7 +231,7 @@ export const AvailabilitySettings: React.FC<AvailabilitySettingsProps> = ({ user
                     {/* SECTION H: WEEKLY SCHEDULE */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2">
-                            <CalendarIcon className="w-5 h-5 text-orange-600" />
+                            <CalendarIcon className="w-5 h-5 text-action" />
                             <h3 className="text-lg font-medium">Weekly Schedule <span className="text-red-500">*</span></h3>
                         </div>
 

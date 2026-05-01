@@ -16,8 +16,8 @@ const badgeVariants = cva(
         yellow: "px-2 py-1 rounded-[36px] bg-[var(--background-yellow,#FFFAEB)] text-[var(--interaction-yellow-base,#DC6803)]",
         purple: "px-2 py-1 rounded-[36px] bg-[var(--background-purple,#F4F3FF)] text-[var(--interaction-purple-base,#7F56D9)]",
         red: "px-2 py-1 rounded-[36px] bg-[var(--background-red,#FEF3F2)] text-[var(--interaction-red-base,#AF4B4B)]",
-        orange: "px-2 py-1 rounded-[36px] bg-[var(--background-orange,#FFF6ED)] text-[var(--interaction-orange-base,#F97316)]",
-        neutral: "px-2 py-1 rounded-[36px] bg-[var(--background-secondary,#F7F9FB)] text-[var(--interaction-primary-base,#F97316)]",
+        orange: "px-2 py-1 rounded-[36px] bg-[var(--background-orange,var(--surface-sage))] text-[var(--interaction-orange-base,#1E7048)]",
+        neutral: "px-2 py-1 rounded-[36px] bg-[var(--background-secondary,#F7F9FB)] text-[var(--interaction-primary-base,#1E7048)]",
 
         // Square variants (rounded normal)
         "green-square": "px-1.5 py-1 rounded bg-[var(--background-green,#ECFDF3)] text-[var(--interaction-green-base,#589E67)]",
@@ -25,12 +25,12 @@ const badgeVariants = cva(
         "yellow-square": "px-1.5 py-1 rounded bg-[var(--background-yellow,#FFFAEB)] text-[var(--interaction-yellow-base,#DC6803)]",
         "purple-square": "px-1.5 py-1 rounded bg-[var(--background-purple,#F4F3FF)] text-[var(--interaction-purple-base,#7F56D9)]",
         "red-square": "px-1.5 py-1 rounded bg-[var(--background-red,#FEF3F2)] text-[var(--interaction-red-base,#AF4B4B)]",
-        "orange-square": "px-1.5 py-1 rounded bg-[var(--background-orange,#FFF6ED)] text-[var(--interaction-orange-base,#F97316)]",
-        "neutral-square": "px-1.5 py-1 rounded bg-[var(--background-secondary,#F7F9FB)] text-[var(--interaction-primary-base,#F97316)]",
+        "orange-square": "px-1.5 py-1 rounded bg-[var(--background-orange,var(--surface-sage))] text-[var(--interaction-orange-base,#1E7048)]",
+        "neutral-square": "px-1.5 py-1 rounded bg-[var(--background-secondary,#F7F9FB)] text-[var(--interaction-primary-base,#1E7048)]",
 
         // Legacy variants for backward compatibility
-        default: "px-2 py-1 rounded-[36px] bg-[var(--background-orange,#FFF6ED)] text-[var(--interaction-orange-base,#F97316)]",
-        secondary: "px-2 py-1 rounded-[36px] bg-[var(--background-secondary,#F7F9FB)] text-[var(--interaction-primary-base,#F97316)]",
+        default: "px-2 py-1 rounded-[36px] bg-[var(--background-orange,var(--surface-sage))] text-[var(--interaction-orange-base,#1E7048)]",
+        secondary: "px-2 py-1 rounded-[36px] bg-[var(--background-secondary,#F7F9FB)] text-[var(--interaction-primary-base,#1E7048)]",
         destructive: "px-2 py-1 rounded-[36px] bg-[var(--background-red,#FEF3F2)] text-[var(--interaction-red-base,#AF4B4B)]",
         outline: "px-2 py-1 rounded-[36px] border border-[var(--border-primary,#E8ECF3)] text-[var(--content-dark-primary,#000000)]",
       },

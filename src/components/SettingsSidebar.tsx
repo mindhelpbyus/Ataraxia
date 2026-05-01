@@ -226,7 +226,7 @@ export function SettingsSidebar({
                           w-full flex items-center ${collapsed ? 'justify-center' : 'justify-start gap-3'} 
                           px-2 h-9 rounded-lg transition-all duration-200 group relative select-none
                           ${isActive
-                            ? 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400'
+                            ? 'bg-primary/10 text-primary'
                             : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                           }
                         `}
@@ -235,7 +235,7 @@ export function SettingsSidebar({
                           className={`
                             h-5 w-5 shrink-0
                             ${isActive
-                              ? 'text-orange-600 dark:text-orange-400'
+                              ? 'text-primary'
                               : 'text-muted-foreground group-hover:text-foreground'
                             }
                           `}

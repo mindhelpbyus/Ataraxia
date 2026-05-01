@@ -10,6 +10,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFo
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localDb } from '../lib/db/localDb';
 
 interface Task {
   id: string;
@@ -31,16 +33,34 @@ interface TasksViewProps {
 }
 
 export function TasksView({ userRole }: TasksViewProps) {
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: '1', title: 'Complete session notes for Sarah Johnson', priority: 'high', dueDate: '2025-10-10', completed: false, type: 'documentation', notes: 'Include details about the anxiety assessment.' },
-    { id: '2', title: 'Follow up with Michael Chen via email', priority: 'medium', dueDate: '2025-10-11', completed: false, type: 'follow-up', notes: 'Check if he received the referral.' },
-    { id: '3', title: 'Review treatment plan for Emily Rodriguez', priority: 'medium', dueDate: '2025-10-12', completed: false, type: 'review' },
-    { id: '4', title: 'Submit insurance claim for Robert Taylor', priority: 'low', dueDate: '2025-10-15', completed: false, type: 'admin' },
-    { id: '5', title: 'Prepare intake paperwork for new client', priority: 'high', dueDate: '2025-10-10', completed: false, type: 'admin' },
-    { id: '6', title: 'Review and sign supervision notes', priority: 'medium', dueDate: '2025-10-13', completed: true, type: 'documentation' },
-    { id: '7', title: 'Call pharmacy for Jessica Martinez prescription', priority: 'high', dueDate: '2025-10-10', completed: false, type: 'follow-up' },
-    { id: '8', title: 'Update treatment goals for Christopher Lee', priority: 'low', dueDate: '2025-10-14', completed: false, type: 'review' },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  React.useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        if (USE_LOCAL_DB) {
+          const dbTasks = await localDb.tasks.findMany();
+          setTasks(dbTasks.map(t => ({
+            id: t.id,
+            title: t.title,
+            priority: t.priority,
+            dueDate: t.dueDate,
+            completed: t.status === 'completed',
+            type: 'admin', // Default mapping
+            notes: t.description || ''
+          })));
+        } else {
+          const res = await fetch('/api/v1/tasks');
+          if (res.ok) {
+            setTasks(await res.json());
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load tasks', err);
+      }
+    };
+    loadTasks();
+  }, []);
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task>({
@@ -137,7 +157,7 @@ export function TasksView({ userRole }: TasksViewProps) {
       case 'follow-up':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'admin':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-action-light text-action-dark border-action-light';
       case 'review':
         return 'bg-cyan-100 text-cyan-800 border-cyan-200';
     }

@@ -202,7 +202,7 @@ export function WeekView({
                               <div
                                 className={`
                                   flex-1 p-2 text-center border-r border-border bg-card text-xs cursor-help
-                                  ${dayInfo.isToday ? 'bg-orange-50 text-orange-700 font-semibold' : ''}
+                                  ${dayInfo.isToday ? 'bg-action-light text-action-dark font-semibold' : ''}
                                   ${!isWorking ? 'bg-gray-50/30 opacity-60' : ''}
                                 `}
                                 style={{ width: '120px' }}
@@ -324,7 +324,7 @@ export function WeekView({
                   key={date.toISOString()}
                   className={`
                     flex-1 min-w-32 p-3 text-center border-r border-border bg-card
-                    ${dayInfo.isToday ? 'bg-orange-50 text-orange-700 font-semibold' : ''}
+                    ${dayInfo.isToday ? 'bg-action-light text-action-dark font-semibold' : ''}
                     ${!isWorking ? 'bg-gray-50/30' : ''}
                   `}
                 >
@@ -429,7 +429,7 @@ function WeekSlot({
         flex-1 h-20 border-r border-border p-1 transition-colors cursor-pointer
         ${!isWorkingHour ? '' : ''}
         ${isOver ? 'bg-primary/10' : isClickable ? 'hover:bg-muted/50' : ''}
-        ${isCurrentHour ? 'bg-orange-50/40' : ''}
+        ${isCurrentHour ? 'bg-action-light/30' : ''}
         ${isPastHour && isWorkingHour ? '' : ''}
       `}
       style={{ minWidth: '28px' }}

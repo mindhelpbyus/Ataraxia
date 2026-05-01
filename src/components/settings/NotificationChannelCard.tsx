@@ -13,28 +13,28 @@ interface NotificationChannelCardProps {
 
 const colorClasses = {
     blue: {
-        bg: 'bg-blue-50',
-        icon: 'text-blue-600',
-        border: 'border-blue-200',
-        activeBorder: 'border-blue-400',
+        bg: 'bg-primary/10',
+        icon: 'text-primary',
+        border: 'border-primary/20',
+        activeBorder: 'border-primary',
     },
     green: {
-        bg: 'bg-green-50',
-        icon: 'text-green-600',
-        border: 'border-green-200',
-        activeBorder: 'border-green-400',
+        bg: 'bg-primary/10',
+        icon: 'text-primary',
+        border: 'border-primary/20',
+        activeBorder: 'border-primary',
     },
     purple: {
-        bg: 'bg-purple-50',
-        icon: 'text-purple-600',
-        border: 'border-purple-200',
-        activeBorder: 'border-purple-400',
+        bg: 'bg-primary/10',
+        icon: 'text-primary',
+        border: 'border-primary/20',
+        activeBorder: 'border-primary',
     },
     orange: {
-        bg: 'bg-orange-50',
-        icon: 'text-orange-600',
-        border: 'border-orange-200',
-        activeBorder: 'border-orange-400',
+        bg: 'bg-primary/10',
+        icon: 'text-primary',
+        border: 'border-primary/20',
+        activeBorder: 'border-primary',
     },
 };
 

@@ -15,10 +15,10 @@ export function SignatureStep({ formData, updateFormData }: StepProps) {
       </div>
 
       {/* Summary of what they're signing */}
-      <Card className="border-2 border-orange-500">
+      <Card className="border-2 border-action">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-orange-500" />
+            <FileText className="h-5 w-5 text-action" />
             What You're Agreeing To
           </CardTitle>
         </CardHeader>

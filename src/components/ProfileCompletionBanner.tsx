@@ -32,7 +32,7 @@ export function ProfileCompletionBanner({
     >
       <div className={`relative overflow-hidden rounded-[1.5rem] border shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)] ${
         isLowCompletion 
-          ? 'bg-orange-50 border-orange-200' 
+          ? 'bg-action-light border-action-light' 
           : isMediumCompletion 
           ? 'bg-blue-50 border-blue-200' 
           : 'bg-green-50 border-green-200'
@@ -42,7 +42,7 @@ export function ProfileCompletionBanner({
             <div className="flex items-start gap-4 flex-1">
               <div className={`p-3 rounded-2xl ${
                 isLowCompletion 
-                  ? 'bg-orange-100' 
+                  ? 'bg-action-light' 
                   : isMediumCompletion 
                   ? 'bg-blue-100' 
                   : 'bg-green-100'
@@ -53,7 +53,7 @@ export function ProfileCompletionBanner({
                   }`} />
                 ) : (
                   <AlertCircle className={`w-6 h-6 ${
-                    isLowCompletion ? 'text-orange-600' : 'text-blue-600'
+                    isLowCompletion ? 'text-action' : 'text-blue-600'
                   }`} />
                 )}
               </div>
@@ -84,7 +84,7 @@ export function ProfileCompletionBanner({
                     className="h-2 bg-white/50"
                     indicatorClassName={
                       isLowCompletion 
-                        ? 'bg-orange-500' 
+                        ? 'bg-action' 
                         : isMediumCompletion 
                         ? 'bg-blue-500' 
                         : 'bg-green-500'

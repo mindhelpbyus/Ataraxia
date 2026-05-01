@@ -153,31 +153,31 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                         <TabsList className="w-full justify-start h-12 bg-transparent p-0 space-x-6">
                             <TabsTrigger
                                 value="context"
-                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
+                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-action rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
                             >
                                 Identity & Context
                             </TabsTrigger>
                             <TabsTrigger
                                 value="background"
-                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
+                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-action rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
                             >
                                 Background History
                             </TabsTrigger>
                             <TabsTrigger
                                 value="treatment"
-                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
+                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-action rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
                             >
                                 Treatment Plan
                             </TabsTrigger>
                             <TabsTrigger
                                 value="clinical"
-                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
+                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-action rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
                             >
                                 Clinical Notes
                             </TabsTrigger>
                             <TabsTrigger
                                 value="metadata"
-                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-orange-500 rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
+                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-action rounded-none px-0 pb-2 text-zinc-500 data-[state=active]:text-zinc-900 font-medium"
                             >
                                 Metadata & Settings
                             </TabsTrigger>
@@ -191,7 +191,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                             <TabsContent value="context" className="mt-0 space-y-6">
                                 <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <User className="h-5 w-5 text-orange-500" />
+                                        <User className="h-5 w-5 text-action" />
                                         <h3 className="text-lg font-semibold text-zinc-900">Identity Information</h3>
                                     </div>
 
@@ -245,7 +245,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                             <TabsContent value="background" className="mt-0 space-y-6">
                                 <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <FileText className="h-5 w-5 text-orange-500" />
+                                        <FileText className="h-5 w-5 text-action" />
                                         <h3 className="text-lg font-semibold text-zinc-900">Client History (Append Only)</h3>
                                     </div>
 
@@ -317,7 +317,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                             <TabsContent value="treatment" className="mt-0 space-y-6">
                                 <div className="bg-white p-5 rounded-xl border border-zinc-200 shadow-sm space-y-4">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Target className="h-5 w-5 text-orange-500" />
+                                        <Target className="h-5 w-5 text-action" />
                                         <h3 className="text-lg font-semibold text-zinc-900">Treatment Plan</h3>
                                     </div>
 
@@ -415,7 +415,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                             <TabsContent value="clinical" className="mt-0 space-y-6">
                                 <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <FileText className="h-5 w-5 text-orange-500" />
+                                        <FileText className="h-5 w-5 text-action" />
                                         <h3 className="text-lg font-semibold text-zinc-900">Last Session Notes</h3>
                                     </div>
 
@@ -537,7 +537,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                         <p className="text-sm text-zinc-500">Changes will be saved to the client's profile</p>
                         <div className="flex gap-3">
                             <Button variant="outline" onClick={onCancel}>Cancel</Button>
-                            <Button onClick={handleSave} className="bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20">Save Changes</Button>
+                            <Button onClick={handleSave} className="bg-action hover:bg-action-dark text-white shadow-md shadow-action/20">Save Changes</Button>
                         </div>
                     </div>
                 </Tabs>

@@ -236,7 +236,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                       size="sm"
                       variant={filterRole === 'all' ? 'default' : 'outline'}
                       onClick={() => setFilterRole('all')}
-                      className={filterRole === 'all' ? 'bg-[#F97316] hover:bg-[#ea6b0f]' : ''}
+                      className={filterRole === 'all' ? 'bg-[#1E7048] hover:bg-[#ea6b0f]' : ''}
                     >
                       All
                     </Button>
@@ -244,7 +244,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                       size="sm"
                       variant={filterRole === 'client' ? 'default' : 'outline'}
                       onClick={() => setFilterRole('client')}
-                      className={filterRole === 'client' ? 'bg-[#F97316] hover:bg-[#ea6b0f]' : ''}
+                      className={filterRole === 'client' ? 'bg-[#1E7048] hover:bg-[#ea6b0f]' : ''}
                     >
                       <UserCircle2 className="w-3 h-3 mr-1" />
                       Clients
@@ -253,7 +253,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                       size="sm"
                       variant={filterRole === 'therapist' ? 'default' : 'outline'}
                       onClick={() => setFilterRole('therapist')}
-                      className={filterRole === 'therapist' ? 'bg-[#F97316] hover:bg-[#ea6b0f]' : ''}
+                      className={filterRole === 'therapist' ? 'bg-[#1E7048] hover:bg-[#ea6b0f]' : ''}
                     >
                       <Stethoscope className="w-3 h-3 mr-1" />
                       Staff
@@ -282,7 +282,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                         <div
                           key={conv.id}
                           onClick={() => setSelectedConversation(conv)}
-                          className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConversation?.id === conv.id ? 'bg-orange-50 border-l-4 border-[#F97316]' : ''
+                          className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConversation?.id === conv.id ? 'bg-action-light border-l-4 border-[#1E7048]' : ''
                             }`}
                         >
                           <div className="flex items-start gap-3">
@@ -299,7 +299,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                                     {participant.name}
                                   </span>
                                   {conv.isStarred && (
-                                    <Star className="w-3 h-3 text-[#F97316] fill-[#F97316]" />
+                                    <Star className="w-3 h-3 text-[#1E7048] fill-[#1E7048]" />
                                   )}
                                 </div>
                                 <span className="text-xs text-gray-500 flex-shrink-0">
@@ -321,7 +321,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                               </p>
 
                               {conv.unreadCount > 0 && (
-                                <Badge className="bg-[#F97316] text-white text-xs mt-1">
+                                <Badge className="bg-[#1E7048] text-white text-xs mt-1">
                                   {conv.unreadCount} new
                                 </Badge>
                               )}
@@ -367,7 +367,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                         size="sm"
                         onClick={() => toggleStar(selectedConversation.id)}
                       >
-                        <Star className={`w-4 h-4 ${selectedConversation.isStarred ? 'text-[#F97316] fill-[#F97316]' : 'text-gray-400'}`} />
+                        <Star className={`w-4 h-4 ${selectedConversation.isStarred ? 'text-[#1E7048] fill-[#1E7048]' : 'text-gray-400'}`} />
                       </Button>
                       <Button variant="ghost" size="sm">
                         <Phone className="w-4 h-4" />
@@ -417,7 +417,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                           )}
                           <div
                             className={`rounded-lg px-4 py-2 ${isCurrentUser
-                              ? 'bg-[#F97316] text-white'
+                              ? 'bg-[#1E7048] text-white'
                               : 'bg-gray-100 text-gray-900'
                               }`}
                           >
@@ -456,7 +456,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                     <Button
                       onClick={handleSendMessage}
                       disabled={!newMessage.trim()}
-                      className="bg-[#F97316] hover:bg-[#ea6b0f] flex-shrink-0"
+                      className="bg-[#1E7048] hover:bg-[#ea6b0f] flex-shrink-0"
                     >
                       <Send className="w-4 h-4" />
                     </Button>

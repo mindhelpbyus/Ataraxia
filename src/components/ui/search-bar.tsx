@@ -56,7 +56,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       if (disabled) {
         return 'outline-[color:var(--interaction-outline-disabled,#e5e7eb)] bg-[color:var(--interaction-secondary-disabled,#f9fafb)]';
       }
-      return 'outline-[color:var(--interaction-outline-base,#d1d5db)] hover:outline-[color:var(--interaction-outline-hover,#9ca3af)] focus-within:outline-[color:var(--interaction-outline-active,#F97316)] focus-within:outline-2';
+      return 'outline-[color:var(--interaction-outline-base,#d1d5db)] hover:outline-[color:var(--interaction-outline-hover,#9ca3af)] focus-within:outline-[color:var(--interaction-outline-active,#1E7048)] focus-within:outline-2';
     };
 
     // Text color: filled = primary, empty = tertiary

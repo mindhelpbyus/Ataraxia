@@ -59,7 +59,7 @@ const Avatar = React.forwardRef<
         case "online":
           return "bg-emerald-500";  // Green for active/online
         case "busy":
-          return "bg-orange-700";  // Orange for busy
+          return "bg-action-dark";  // Orange for busy
         case "away":
           return "bg-zinc-200";  // Gray for away
         case "dnd":

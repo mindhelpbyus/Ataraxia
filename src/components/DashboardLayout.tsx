@@ -9,6 +9,8 @@ import { AdminDashboardView } from './AdminDashboardView';
 import { SuperAdminDashboardView } from './SuperAdminDashboardView';
 import { OrganizationManagementView } from './OrganizationManagementView';
 import { ProfessionalClientsView } from './ProfessionalClientsView';
+import { LiveKitGuideView } from './LiveKitGuideView';
+import { TherapyVideoRoom } from './TherapyVideoRoom';
 
 import { EnhancedTherapistsTable } from './EnhancedTherapistsTable';
 import { VideoRoomsView } from './VideoRoomsView';
@@ -18,6 +20,8 @@ import { MessagesView } from './MessagesView';
 import { SettingsView } from './SettingsView';
 import { SettingsSidebar } from './SettingsSidebar';
 import { ReportsView } from './ReportsView';
+import { InvoicesView } from './InvoicesView';
+import { BillingView } from './BillingView';
 import { ClientDashboardView } from './ClientDashboardView';
 import TherapistVerificationView from './TherapistVerificationView';
 import { VerificationBanner } from './VerificationBanner';
@@ -57,7 +61,8 @@ import {
   CheckSquare,
   FileText,
   BarChart3,
-  Shield // Explicitly import Shield from lucide-react
+  Shield,
+  Video
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -78,8 +83,8 @@ interface DashboardLayoutProps {
   userRole: UserRole;
   currentUserId: string;
   userEmail: string;
-  userName?: string; // User's display name (from Firebase or extracted from email)
-  accountStatus?: string; // Account status for verification banner
+  userName?: string;
+  accountStatus?: string;
   onLogout: () => void;
   notifications: Notification[];
   onMarkNotificationAsRead: (notificationId: string) => void;
@@ -89,18 +94,18 @@ interface DashboardLayoutProps {
   onNavigateToSessions?: () => void;
 }
 
-type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'therapist-verification' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance';
+type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'therapist-verification' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance' | 'livekit';
 
 export function DashboardLayout({ userRole, currentUserId, userEmail, userName, accountStatus, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead, onNavigateToSecurity, onNavigateToMFA, onNavigateToSessions }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [activeSettingsTab, setActiveSettingsTab] = useState<string>('account'); // Default to account, not apps
-  const [showSettingsNav, setShowSettingsNav] = useState(false); // Track if settings navigation is visible
+  const [activeSettingsTab, setActiveSettingsTab] = useState<string>('account');
+  const [showSettingsNav, setShowSettingsNav] = useState(false);
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [triggerNewAppointment, setTriggerNewAppointment] = useState(0); // Counter to trigger appointment form
+  const [triggerNewAppointment, setTriggerNewAppointment] = useState(0);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     'Overview': true,
     'Core Management': true,
@@ -110,15 +115,11 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   });
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
-  // Initialize theme
   useEffect(() => {
-    // Check local storage or system preference
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-
     const initialTheme = savedTheme || systemTheme;
     setTheme(initialTheme);
-
     if (initialTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -130,14 +131,13 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
-
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
   };
-  // Subscription state
+
   const [subscriptionInfo, setSubscriptionInfo] = useState<{
     status: string;
     trialDaysRemaining: number | null;
@@ -149,14 +149,9 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     canAccessFeatures?: boolean;
   } | null>(null);
 
-  // Fetch subscription info on mount - only for therapists
   useEffect(() => {
     const fetchSubscription = async () => {
-      // Only fetch subscription for therapists
-      // Super admins are product owners and don't need subscriptions
-      // Clients will have separate product page
       if (userRole !== 'therapist') {
-        // Set unlimited access for super admins and org admins
         if (userRole === 'super_admin' || userRole === 'org_admin') {
           setSubscriptionInfo({
             status: 'active',
@@ -168,22 +163,15 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
             organizationName: 'Ataraxia Platform'
           });
         }
-        // For clients, don't set subscription info (they'll have separate product page)
         return;
       }
-
       try {
         const { SubscriptionService } = await import('../api/subscription');
         const info = await SubscriptionService.getUserSubscription(currentUserId);
         setSubscriptionInfo(info as any);
       } catch (error: any) {
-        if (error.message === 'CLIENT_NO_SUBSCRIPTION') {
-          // Clients don't need subscription info
-          console.info('Client role detected, skipping subscription');
-          return;
-        }
+        if (error.message === 'CLIENT_NO_SUBSCRIPTION') return;
         console.error('Failed to fetch subscription:', error);
-        // Only set fallback for therapists
         if (userRole === 'therapist') {
           setSubscriptionInfo({
             status: 'trial',
@@ -197,32 +185,20 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         }
       }
     };
-
-    if (currentUserId) {
-      fetchSubscription();
-    }
+    if (currentUserId) fetchSubscription();
   }, [currentUserId, userRole]);
 
-  // Clear search when switching tabs
   const handleTabChange = (tab: TabType, subTab?: string) => {
     setActiveTab(tab);
-
-    // Show settings navigation if switching to settings
     if (tab === 'settings') {
       setShowSettingsNav(true);
-      if (subTab) {
-        setActiveSettingsTab(subTab);
-      }
+      if (subTab) setActiveSettingsTab(subTab);
     } else {
       setShowSettingsNav(false);
     }
-
-    if (tab !== 'calendar') {
-      setSearchQuery('');
-    }
+    if (tab !== 'calendar') setSearchQuery('');
   };
 
-  // Handle back from settings navigation
   const handleBackFromSettings = () => {
     setShowSettingsNav(false);
     setActiveTab('dashboard');
@@ -238,13 +214,10 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     }
   };
 
-  // Handle global search result click for Admin and Super Admin
   const handleGlobalSearchResult = (result: any) => {
     switch (result.category) {
       case 'organizations':
-        if (userRole === 'superadmin' || userRole === 'super_admin') {
-          handleTabChange('organizations');
-        }
+        if (userRole === 'superadmin' || userRole === 'super_admin') handleTabChange('organizations');
         break;
       case 'therapists':
         handleTabChange('therapists');
@@ -253,12 +226,9 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         handleTabChange('clients');
         break;
       case 'users':
-        if (userRole === 'superadmin' || userRole === 'super_admin') {
-          handleTabChange('user-management');
-        }
+        if (userRole === 'superadmin' || userRole === 'super_admin') handleTabChange('user-management');
         break;
       default:
-        // Default handling
         if (result.category === 'messages') handleTabChange('messages');
         if (result.category === 'tasks') handleTabChange('tasks');
         if (result.category === 'appointments') handleTabChange('calendar');
@@ -274,7 +244,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
@@ -291,7 +260,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     return name.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
   };
 
-  // Get time-based greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning';
@@ -299,7 +267,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     return 'Good Evening';
   };
 
-  // Navigation structure - conditional based on user role
   type NavigationItem = {
     id: TabType;
     label: string;
@@ -326,7 +293,8 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         { id: 'therapists' as TabType, label: 'Providers / Therapists', icon: UserCog },
         { id: 'therapist-verification' as TabType, label: 'Therapist Verification', icon: ShieldCheck },
         { id: 'clients' as TabType, label: 'Clients', icon: Users },
-        { id: 'video-rooms' as TabType, label: 'Video Rooms', icon: Calendar, badge: 'BETA' },
+        { id: 'video-rooms' as TabType, label: 'Video Sessions', icon: Video, badge: 'LIVE' },
+        { id: 'livekit' as TabType, label: 'LiveKit SDK', icon: Video },
       ]
     },
     {
@@ -337,7 +305,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         { id: 'support-tickets' as TabType, label: 'Support Tickets', icon: Ticket },
       ]
     },
-    // Super admins are product owners - no billing section needed
     {
       section: 'Data & Intelligence',
       items: [
@@ -347,7 +314,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   ];
 
   const getStandardNavigation = (): NavigationSection[] => {
-    // Restricted access for newly registered therapists
     if (userRole === 'therapist' && accountStatus === 'registered') {
       return [
         {
@@ -359,7 +325,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         }
       ];
     }
-
     return [
       {
         section: '',
@@ -367,14 +332,16 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
           { id: 'dashboard' as TabType, label: 'Home', icon: LayoutDashboard },
           { id: 'calendar' as TabType, label: 'Appointments', icon: Calendar },
           { id: 'clients' as TabType, label: 'Clients', icon: Users },
-          ...(userRole === 'admin' || userRole === 'org_admin' ? [{ id: 'therapists' as TabType, label: 'Therapists', icon: UserCog }] : []),
+          ...(userRole === 'admin' || userRole === 'org_admin' ? [
+            { id: 'therapists' as TabType, label: 'Therapists', icon: UserCog },
+            { id: 'organizations' as TabType, label: 'Organizations', icon: Building2 }
+          ] : []),
           { id: 'messages' as TabType, label: 'Messages', icon: MessageSquare, badge: unreadCount > 0 ? unreadCount : undefined },
           { id: 'tasks' as TabType, label: 'Tasks', icon: CheckSquare },
           { id: 'notes' as TabType, label: 'Notes', icon: FileText },
           { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
         ]
       },
-      // Add billing section for therapists and org admins (not super admins or clients)
       ...(userRole === 'therapist' || userRole === 'org_admin' || userRole === 'admin' ? [{
         section: 'Billing',
         items: [
@@ -407,47 +374,38 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
       : getStandardNavigation();
 
   const toggleSection = (sectionName: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [sectionName]: !prev[sectionName]
-    }));
+    setExpandedSections(prev => ({ ...prev, [sectionName]: !prev[sectionName] }));
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
-    switch (type) {
-      case 'message': return <MessageSquare className="h-4 w-4" />;
-      case 'appointment': return <Calendar className="h-4 w-4" />;
-      case 'reminder': return <Bell className="h-4 w-4" />;
-      default: return <Bell className="h-4 w-4" />;
-    }
-  };
-
-  const getNotificationColor = (type: Notification['type']) => {
-    switch (type) {
-      case 'message': return 'bg-blue-500';
-      case 'appointment': return 'bg-emerald-500';
-      case 'reminder': return 'bg-amber-500';
-      case 'cancellation': return 'bg-rose-500';
-      default: return 'bg-slate-500';
-    }
+  // Shared mock search function to avoid duplication
+  const mockSearch = async (query: string) => {
+    if (!query || query.length < 2) return [];
+    const allResults = [
+      { id: 'org-1', title: 'Wellness Care Center', subtitle: 'wellnesscare.ataraxia.com', category: 'organizations' as const, status: 'Active' },
+      { id: 'therapist-1', title: 'Dr. Sarah Mitchell', subtitle: 'CBT Specialist', category: 'therapists' as const, status: 'Active' },
+      { id: 'user-1', title: 'John Davis', subtitle: 'Client', category: 'users' as const, status: 'Active' },
+      { id: 'ticket-1', title: 'Login Issues', subtitle: 'Ticket #2451', category: 'support' as const, status: 'Open' },
+      { id: 'payment-1', title: 'Payment received', subtitle: 'PMT-2024-11', category: 'payments' as const, status: 'Completed' },
+      { id: 'invoice-1', title: 'Invoice #INV-2024', subtitle: '$1,250.00', category: 'invoices' as const, status: 'Paid' },
+      { id: 'billing-1', title: 'Subscription Renewal', subtitle: 'Pro Plan', category: 'billing' as const, status: 'Active' }
+    ];
+    return allResults.filter(r => r.title.toLowerCase().includes(query.toLowerCase()));
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
       <TooltipProvider delayDuration={300}>
         <div className="flex h-screen bg-background overflow-hidden font-sans">
-          {/* Left Sidebar - Premium Glass/Hybrid Design */}
+          {/* Left Sidebar */}
           <aside className={`${sidebarCollapsed ? 'w-20' : 'w-72'} bg-sidebar flex flex-col shrink-0 transition-all duration-300 z-20`}>
-            {/* Sidebar Header with Logo + Utility Icons */}
+            {/* Sidebar Header */}
             <div className={`h-16 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between px-4 gap-2'} relative group transition-all duration-300`}>
-              {/* Logo */}
               <div className={`${sidebarCollapsed ? 'group-hover:opacity-0 transition-opacity duration-200' : ''}`}>
                 <BedrockLogo variant="icon" className="w-9 h-9 shrink-0" />
               </div>
 
               {!sidebarCollapsed && (
                 <div className="flex items-center gap-2">
-                  {/* Search Icon */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -462,7 +420,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                     <TooltipContent side="bottom">Search</TooltipContent>
                   </Tooltip>
 
-                  {/* Notifications Icon */}
                   <Popover open={notificationPopoverOpen} onOpenChange={setNotificationPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Tooltip>
@@ -483,12 +440,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                       <div className="flex items-center justify-between p-4 border-b border-border">
                         <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
                         {unreadCount > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={onMarkAllNotificationsAsRead}
-                            className="text-xs text-muted-foreground hover:text-foreground"
-                          >
+                          <Button variant="ghost" size="sm" onClick={onMarkAllNotificationsAsRead} className="text-xs text-muted-foreground hover:text-foreground">
                             Mark all as read
                           </Button>
                         )}
@@ -496,20 +448,16 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                       <ScrollArea className="h-96">
                         <div className="p-2 space-y-1">
                           {notifications.length === 0 ? (
-                            <div className="p-8 text-center text-sm text-muted-foreground">
-                              No notifications
-                            </div>
+                            <div className="p-8 text-center text-sm text-muted-foreground">No notifications</div>
                           ) : (
                             notifications.map((notification) => (
                               <button
                                 key={notification.id}
                                 onClick={() => onMarkNotificationAsRead(notification.id)}
-                                className={`w-full text-left p-3 rounded-lg hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''
-                                  }`}
+                                className={`w-full text-left p-3 rounded-lg hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
                               >
                                 <div className="flex items-start gap-3">
-                                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!notification.read ? 'bg-blue-500' : 'bg-transparent'
-                                    }`} />
+                                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!notification.read ? 'bg-blue-500' : 'bg-transparent'}`} />
                                   <div className="flex-1 min-w-0">
                                     <p className="text-xs font-medium text-foreground">{notification.title}</p>
                                     <p className="text-xs text-muted-foreground mt-0.5">{notification.message}</p>
@@ -524,7 +472,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                     </PopoverContent>
                   </Popover>
 
-                  {/* Settings Icon */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -541,7 +488,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                 </div>
               )}
 
-              {/* Sidebar Toggle - Collapsed State (Expand) - Overlay on Hover */}
               {sidebarCollapsed && (
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                   <Tooltip>
@@ -555,14 +501,11 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                         <PanelLeft className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p>Expand Sidebar</p>
-                    </TooltipContent>
+                    <TooltipContent side="right"><p>Expand Sidebar</p></TooltipContent>
                   </Tooltip>
                 </div>
               )}
 
-              {/* Sidebar Toggle - Expanded State (Collapse) */}
               {!sidebarCollapsed && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -575,9 +518,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                       <PanelLeftClose className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Collapse Sidebar</p>
-                  </TooltipContent>
+                  <TooltipContent side="right"><p>Collapse Sidebar</p></TooltipContent>
                 </Tooltip>
               )}
             </div>
@@ -601,7 +542,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                           {!sidebarCollapsed && section.section && (
                             <button
                               onClick={() => toggleSection(section.section)}
-                              className="w-full flex items-center justify-between text-[10px] uppercase font-bold text-foreground px-3 mb-3 tracking-widest hover:text-orange-600 transition-colors"
+                              className="w-full flex items-center justify-between text-[10px] uppercase font-bold text-foreground px-3 mb-3 tracking-widest hover:text-action transition-colors"
                             >
                               <span>{section.section}</span>
                               <ChevronRight className={`h-3 w-3 transition-transform duration-300 ${expandedSections[section.section] ? 'rotate-90' : ''}`} />
@@ -612,46 +553,26 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                               {section.items.map((item) => {
                                 const Icon = item.icon;
                                 const isActive = activeTab === item.id;
-
                                 return (
                                   <Tooltip key={item.id}>
                                     <TooltipTrigger asChild>
                                       <button
                                         onClick={() => handleTabChange(item.id)}
-                                        className={`
-                                            w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-start gap-3'} 
-                                            px-3 h-10 rounded-lg transition-all duration-200 group relative select-none
-                                            ${isActive
-                                            ? 'bg-sidebar-accent text-sidebar-primary'
-                                            : 'text-foreground hover:bg-sidebar-accent/80'
-                                          }
-                                          `}
+                                        className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-start gap-3'} px-3 h-10 rounded-lg transition-all duration-200 group relative select-none ${isActive ? 'bg-sidebar-accent text-sidebar-primary' : 'text-foreground hover:bg-sidebar-accent/80'}`}
                                       >
-                                        <Icon
-                                          className={`h-5 w-5 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-foreground'} transition-colors`}
-                                          strokeWidth={isActive ? 2.5 : 2}
-                                        />
-
+                                        <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-action' : 'text-foreground'} transition-colors`} strokeWidth={isActive ? 2.5 : 2} />
                                         {!sidebarCollapsed && (
                                           <span className={`flex-1 text-left text-xs ${isActive ? 'font-semibold tracking-tight' : 'font-medium'}`}>
                                             {item.label}
                                           </span>
                                         )}
-
-                                        {/* Badges */}
                                         {item.badge && !sidebarCollapsed && (
-                                          <Badge className={`h-5 px-1.5 min-w-[20px] justify-center text-[10px] font-bold ${typeof item.badge === 'string' && item.badge === 'BETA'
-                                            ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
-                                            : isActive ? 'bg-white text-black' : 'bg-rose-500 text-white'
-                                            }`}>
+                                          <Badge className={`h-5 px-1.5 min-w-[20px] justify-center text-[10px] font-bold ${typeof item.badge === 'string' && item.badge === 'BETA' ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200' : isActive ? 'bg-white text-black' : 'bg-rose-500 text-white'}`}>
                                             {item.badge}
                                           </Badge>
                                         )}
                                         {item.badge && sidebarCollapsed && (
-                                          <div className={`absolute top-2 right-2 h-2.5 w-2.5 rounded-full border-2 border-white ${typeof item.badge === 'string' && item.badge === 'BETA'
-                                            ? 'bg-slate-500'
-                                            : 'bg-rose-500'
-                                            }`} />
+                                          <div className={`absolute top-2 right-2 h-2.5 w-2.5 rounded-full border-2 border-white ${typeof item.badge === 'string' && item.badge === 'BETA' ? 'bg-slate-500' : 'bg-rose-500'}`} />
                                         )}
                                       </button>
                                     </TooltipTrigger>
@@ -667,10 +588,9 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   </div>
                 </div>
 
-                {/* Sidebar Footer - Premium Design */}
+                {/* Sidebar Footer */}
                 {!sidebarCollapsed && (
                   <div className="p-4 space-y-3">
-                    {/* Trial Info */}
                     {userRole !== 'superadmin' && userRole !== 'super_admin' && (subscriptionInfo?.status === 'trial' || subscriptionInfo?.isOrgOwner) && (
                       <div className="bg-card rounded-lg px-3 py-2 shadow-sm border border-border/50">
                         <div className={`flex ${((subscriptionInfo?.trialDaysRemaining ?? 0) > 365 && subscriptionInfo?.status === 'trial') ? 'justify-center' : 'justify-between'} items-center ${(subscriptionInfo?.status === 'trial' && (subscriptionInfo?.trialDaysRemaining ?? 0) <= 365) ? 'mb-2' : ''}`}>
@@ -679,49 +599,36 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                           </span>
                           {((subscriptionInfo?.trialDaysRemaining ?? 0) <= 365 || subscriptionInfo?.status !== 'trial') && (
                             <span className="text-xs text-muted-foreground">
-                              {subscriptionInfo?.status === 'trial'
-                                ? `${subscriptionInfo?.trialDaysRemaining ?? 30} days left`
-                                : subscriptionInfo?.organizationName || 'My Practice'}
+                              {subscriptionInfo?.status === 'trial' ? `${subscriptionInfo?.trialDaysRemaining ?? 30} days left` : subscriptionInfo?.organizationName || 'My Practice'}
                             </span>
                           )}
                         </div>
                         {subscriptionInfo?.status === 'trial' && (subscriptionInfo?.trialDaysRemaining ?? 0) <= 365 && (
                           <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-gradient-to-r from-orange-500 to-orange-600 h-full"
-                              style={{
-                                width: `${Math.max(0, Math.min(100, ((subscriptionInfo?.trialDaysRemaining ?? 30) / 30) * 100))}%`
-                              }}
-                            />
+                            <div className="bg-gradient-to-r from-action to-orange-600 h-full" style={{ width: `${Math.max(0, Math.min(100, ((subscriptionInfo?.trialDaysRemaining ?? 30) / 30) * 100))}%` }} />
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* AI Assistant */}
                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
-                      <Sparkles className="h-5 w-5 text-orange-600" />
-                      <span className="text-xs font-semibold text-orange-600">AI Assistant</span>
+                      <Sparkles className="h-5 w-5 text-action" />
+                      <span className="text-xs font-semibold text-action">AI Assistant</span>
                     </button>
-
-                    {/* Help & Support */}
                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
                       <HelpCircle className="h-5 w-5 text-foreground" />
                       <span className="text-xs font-medium text-foreground">Help & Support</span>
                     </button>
-
-                    {/* Promotional Banner */}
                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
                       <Gift className="h-5 w-5 text-foreground" />
                       <span className="text-xs font-medium text-foreground">Refer & Earn $30</span>
                     </button>
 
-                    {/* User Profile Dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors">
                           <Avatar className="h-8 w-8">
-                            <AvatarFallback style={{ backgroundColor: '#ea580c' }} className="text-white text-xs font-bold">
+                            <AvatarFallback style={{ backgroundColor: '#1E7048' }} className="text-white text-xs font-bold">
                               {getInitials(userEmail)}
                             </AvatarFallback>
                           </Avatar>
@@ -731,20 +638,11 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border p-2">
                         <DropdownMenuItem onClick={toggleTheme} className="rounded-lg text-xs">
-                          {theme === 'light' ? (
-                            <>
-                              <Moon className="w-4 h-4 mr-2" /> Dark mode
-                            </>
-                          ) : (
-                            <>
-                              <Sun className="w-4 h-4 mr-2" /> Light mode
-                            </>
-                          )}
+                          {theme === 'light' ? <><Moon className="w-4 h-4 mr-2" /> Dark mode</> : <><Sun className="w-4 h-4 mr-2" /> Light mode</>}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="rounded-lg text-xs">
                           <Zap className="w-4 h-4 mr-2" /> What's new
                         </DropdownMenuItem>
-
                         <DropdownMenuSeparator className="my-1" />
                         <DropdownMenuItem onClick={onLogout} className="text-rose-600 focus:text-rose-600 rounded-lg text-xs">
                           <LogOut className="w-4 h-4 mr-2" /> Sign out
@@ -754,51 +652,38 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   </div>
                 )}
 
-                {/* Collapsed Sidebar Footer - Icon Only */}
+                {/* Collapsed Footer */}
                 {sidebarCollapsed && (
                   <div className="p-2 space-y-2 flex flex-col items-center">
-                    {/* AI Assistant Icon */}
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
-                          <Sparkles className="h-5 w-5 text-orange-600" />
+                          <Sparkles className="h-5 w-5 text-action" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="right">
-                        <p>AI Assistant</p>
-                      </TooltipContent>
+                      <TooltipContent side="right"><p>AI Assistant</p></TooltipContent>
                     </Tooltip>
-
-                    {/* Help & Support Icon */}
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
                           <HelpCircle className="h-5 w-5 text-foreground" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="right">
-                        <p>Help & Support</p>
-                      </TooltipContent>
+                      <TooltipContent side="right"><p>Help & Support</p></TooltipContent>
                     </Tooltip>
-
-                    {/* Promotional Banner Icon */}
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
                           <Gift className="h-5 w-5 text-foreground" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="right">
-                        <p>Refer & Earn $30</p>
-                      </TooltipContent>
+                      <TooltipContent side="right"><p>Refer & Earn $30</p></TooltipContent>
                     </Tooltip>
-
-                    {/* User Profile Icon */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
                           <Avatar className="h-8 w-8">
-                            <AvatarFallback style={{ backgroundColor: '#ea580c' }} className="text-white text-xs font-bold">
+                            <AvatarFallback style={{ backgroundColor: '#1E7048' }} className="text-white text-xs font-bold">
                               {getInitials(userEmail)}
                             </AvatarFallback>
                           </Avatar>
@@ -806,20 +691,11 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-border p-2">
                         <DropdownMenuItem onClick={toggleTheme} className="rounded-lg text-xs">
-                          {theme === 'light' ? (
-                            <>
-                              <Moon className="w-4 h-4 mr-2" /> Dark mode
-                            </>
-                          ) : (
-                            <>
-                              <Sun className="w-4 h-4 mr-2" /> Light mode
-                            </>
-                          )}
+                          {theme === 'light' ? <><Moon className="w-4 h-4 mr-2" /> Dark mode</> : <><Sun className="w-4 h-4 mr-2" /> Light mode</>}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="rounded-lg text-xs">
                           <Zap className="w-4 h-4 mr-2" /> What's new
                         </DropdownMenuItem>
-
                         <DropdownMenuSeparator className="my-1" />
                         <DropdownMenuItem onClick={onLogout} className="text-rose-600 focus:text-rose-600 rounded-lg text-xs">
                           <LogOut className="w-4 h-4 mr-2" /> Sign out
@@ -832,12 +708,10 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
             )}
           </aside>
 
-          {/* Main Content Area */}
+          {/* Main Content */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {/* Top Header */}
             {activeTab !== 'messages' && (
-              <header className="h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6 sticky top-0 z-10 transition-all duration-300">
-                {/* Left Side: Page Title */}
+              <header className="h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-6 sticky top-0 z-50 transition-all duration-300 relative">
                 <div className="flex items-center">
                   <h1 className="text-3xl font-bold text-foreground tracking-tight">
                     {activeTab === 'dashboard' ? '' :
@@ -851,21 +725,29 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   </h1>
                 </div>
 
-
+                {/* Absolute Center: Global Search (Only visible on Dashboard) */}
+                {activeTab === 'dashboard' && (
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[360px]">
+                    <GlobalSearchBar
+                      value={searchQuery}
+                      onValueChange={setSearchQuery}
+                      onSearch={mockSearch}
+                      onResultClick={(result) => handleGlobalSearchResult(result)}
+                      className="w-full"
+                    />
+                  </div>
+                )}
               </header>
             )}
 
-            {/* Content Render Area */}
-            <main className="flex-1 overflow-auto bg-white p-6 relative z-0">
+            <main className="flex-1 overflow-auto bg-canvas p-6 relative z-0">
               <div className="max-w-[1600px] mx-auto space-y-6">
-
-                {/* Verification/Status Banner (Unified) - Hide for therapists as they have stepper */}
                 {userRole !== 'therapist' && (
                   <VerificationBanner
                     accountStatus={accountStatus || 'registered'}
                     userRole={userRole}
                     className="mb-6 shadow-sm bg-white"
-                    profileCompletion={10} // Default 10% for newly registered
+                    profileCompletion={10}
                     onCompleteProfile={() => handleTabChange('settings')}
                   />
                 )}
@@ -878,7 +760,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   className="h-full"
                 >
                   <ErrorBoundary key={`eb-${activeTab}`}>
-                    {/* Dashboard / Home */}
                     {activeTab === 'dashboard' && (
                       <>
                         {userRole === 'therapist' ? (
@@ -894,21 +775,18 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                         )}
                       </>
                     )}
-                    {/* Core Apps */}
                     {activeTab === 'calendar' && <CalendarContainer userRole={userRole} currentUserId={currentUserId} searchQuery={searchQuery} triggerNewAppointment={triggerNewAppointment} />}
-                    {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} />}
-                    {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} />}
+                    {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} currentUserId={currentUserId} />}
+                    {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} currentUserId={currentUserId} />}
                     {activeTab === 'therapist-verification' && <TherapistVerificationView />}
                     {activeTab === 'video-rooms' && <VideoRoomsView />}
                     {activeTab === 'organizations' && <OrganizationManagementView userId={currentUserId} userEmail={userEmail} onNavigate={() => setActiveTab('dashboard')} />}
-
-                    {/* Tools */}
                     {activeTab === 'messages' && <MessagesView currentUserId={currentUserId} currentUserName={userName || getUserName(userEmail)} currentUserEmail={userEmail} userRole={userRole} />}
                     {activeTab === 'tasks' && <TasksView userRole={userRole} />}
                     {activeTab === 'notes' && <QuickNotesView />}
-
-                    {/* Onboarding Flow */}
-
+                    { activeTab === 'invoices' && <InvoicesView userRole={userRole} currentUserId={currentUserId} />}
+                    { activeTab === 'livekit' && <LiveKitGuideView />}
+                    {['billing', 'payments', 'plans'].includes(activeTab) && <BillingView userRole={userRole} currentUserId={currentUserId} tab={activeTab as 'billing' | 'payments' | 'plans'} />}
                     {activeTab === 'analytics' && <ReportsView userRole={userRole} currentUserId={currentUserId} userEmail={userEmail} />}
                     {activeTab === 'settings' && (
                       <SettingsView
@@ -930,20 +808,21 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         </div>
       </TooltipProvider>
 
+      {/* Global Search Dialog */}
       <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-        <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-2xl sm:max-w-3xl">
+        <DialogContent className="p-0 !bg-transparent !border-none !shadow-none max-w-2xl sm:max-w-3xl [&>button]:hidden">
           <GlobalSearchBar
             value={searchQuery}
             onValueChange={setSearchQuery}
+            onSearch={mockSearch}
             onResultClick={(result) => {
               handleGlobalSearchResult(result);
               setIsSearchOpen(false);
             }}
-            className="w-full shadow-2xl"
+            className="w-full"
           />
         </DialogContent>
       </Dialog>
     </DndProvider>
-
   );
 }

@@ -45,7 +45,7 @@ export function NavigationButtons({
                     onClick={onNext}
                     disabled={!isStepValid}
                     size="lg"
-                    className="w-40 bg-[#F97316] hover:bg-[#ea6b0f] text-white disabled:bg-gray-300 disabled:text-gray-500"
+                    className="w-40 bg-[#1E7048] hover:bg-[#ea6b0f] text-white disabled:bg-gray-300 disabled:text-gray-500"
                 >
                     {isLastStep ? (
                         <>

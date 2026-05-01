@@ -71,7 +71,7 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
     fetch('/api/v1/appointments?upcoming=true&limit=4', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
-        const colors = ['bg-[#FED7AA] text-[#F97316]', 'bg-[#BFDBFE] text-[#3B82F6]', 'bg-[#DDD6FE] text-[#8B5CF6]', 'bg-[#FECACA] text-[#EF4444]'];
+        const colors = ['bg-[#FED7AA] text-[#1E7048]', 'bg-[#BFDBFE] text-[#3B82F6]', 'bg-[#DDD6FE] text-[#8B5CF6]', 'bg-[#FECACA] text-[#EF4444]'];
         setUpcomingAgenda((data ?? []).map((a: any, i: number) => ({
           id: a.id,
           time: `${new Date(a.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${new Date(a.endTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} ${new Date(a.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
@@ -89,7 +89,7 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
         const catColors: Record<string, string> = {
           therapist: 'bg-[#DDD6FE] text-[#8B5CF6]',
           client: 'bg-[#BFDBFE] text-[#3B82F6]',
-          admin: 'bg-[#FED7AA] text-[#F97316]',
+          admin: 'bg-[#FED7AA] text-[#1E7048]',
         };
         setPeopleData((data ?? []).map((u: any) => ({
           id: u.id,
@@ -114,7 +114,7 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
           industry: o.specialty || o.type || 'Healthcare',
           location: o.location || '—',
           status: o.status || 'Active',
-          statusColor: o.status === 'Active' ? 'bg-[#BFDBFE] text-[#3B82F6]' : 'bg-[#FED7AA] text-[#F97316]',
+          statusColor: o.status === 'Active' ? 'bg-[#BFDBFE] text-[#3B82F6]' : 'bg-[#FED7AA] text-[#1E7048]',
           logo: '🏥',
         })));
       })
@@ -431,7 +431,7 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
                         <Checkbox />
                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                           <Avatar className="w-6 h-6 flex-shrink-0">
-                            <AvatarFallback className="text-xs bg-[#F97316] text-white">
+                            <AvatarFallback className="text-xs bg-[#1E7048] text-white">
                               {person.name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
@@ -446,7 +446,7 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                           <Mail className="h-5 w-5 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
                           <div className="flex-1 inline-flex flex-col justify-center items-start overflow-hidden">
-                            <div className="text-[#0c0a09] text-sm font-medium underline truncate w-full hover:text-[#F97316] cursor-pointer">
+                            <div className="text-[#0c0a09] text-sm font-medium underline truncate w-full hover:text-[#1E7048] cursor-pointer">
                               {person.email}
                             </div>
                           </div>
@@ -595,7 +595,7 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
                       </div>
                       <div className="min-w-[200px] flex-[2] flex-shrink-0 px-6 py-2.5 flex items-center overflow-hidden">
                         <div className={`px-2 py-1 ${company.statusColor} rounded-[36px] inline-flex items-center gap-2 text-xs`}>
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${company.status === 'Active' ? 'bg-[#3B82F6]' : 'bg-[#F97316]'}`}></div>
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${company.status === 'Active' ? 'bg-[#3B82F6]' : 'bg-[#1E7048]'}`}></div>
                           <span className="whitespace-nowrap">{company.status}</span>
                         </div>
                       </div>

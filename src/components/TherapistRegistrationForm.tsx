@@ -116,7 +116,7 @@ export function TherapistRegistrationForm({ onRegisterComplete, onBackToLogin }:
         <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
           {/* Keep Spotlight for ambient center glow */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <Spotlight className="w-full h-full opacity-40 mix-blend-soft-light" fill="#ea580c" />
+            <Spotlight className="w-full h-full opacity-40 mix-blend-soft-light" fill="#1E7048" />
           </div>
 
           {/* Registration Form Container */}
@@ -293,8 +293,8 @@ export function TherapistRegistrationForm({ onRegisterComplete, onBackToLogin }:
                   <motion.div whileTap={{ scale: 0.98 }}>
                     <Button
                       type="submit"
-                      className="w-full text-base font-bold h-12 rounded-2xl shadow-xl shadow-orange-500/20 active:scale-[0.98]"
-                      style={{ backgroundColor: '#ea580c', color: '#ffffff' }}
+                      className="w-full text-base font-bold h-12 rounded-2xl shadow-xl shadow-action/20 active:scale-[0.98]"
+                      style={{ backgroundColor: '#1E7048', color: '#ffffff' }}
                       disabled={isLoading}
                     >
                       {isLoading ? 'Creating Account...' : 'Create Account'}

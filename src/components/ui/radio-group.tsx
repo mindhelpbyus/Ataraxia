@@ -51,7 +51,7 @@ function RadioGroupItem({
         data-slot="radio-group-indicator"
         className="relative flex items-center justify-center"
       >
-        <CircleIcon className="fill-[var(--interaction-primary-base,#F97316)] absolute top-1/2 left-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2" />
+        <CircleIcon className="fill-[var(--interaction-primary-base,#1E7048)] absolute top-1/2 left-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2" />
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   );

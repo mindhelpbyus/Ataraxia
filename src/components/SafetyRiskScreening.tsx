@@ -110,7 +110,7 @@ export function SafetyRiskScreening({ data, onChange, countryCode = 'US' }: Safe
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Shield className="h-6 w-6 text-[#F97316]" />
+          <Shield className="h-6 w-6 text-[#1E7048]" />
           <h2 className="text-2xl font-semibold">Safety & Wellness Screening</h2>
         </div>
         <p className="text-muted-foreground">
@@ -330,10 +330,10 @@ export function SafetyRiskScreening({ data, onChange, countryCode = 'US' }: Safe
       </Card>
 
       {/* Safety Plan Option */}
-      <Card className="border-2 border-[#F97316]">
+      <Card className="border-2 border-[#1E7048]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-[#F97316]" />
+            <Heart className="h-5 w-5 text-[#1E7048]" />
             Safety Plan
           </CardTitle>
         </CardHeader>

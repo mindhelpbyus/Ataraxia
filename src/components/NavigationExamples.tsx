@@ -215,7 +215,7 @@ export function NavigationExamples() {
                 {/* Avatar with Status */}
                 <Avatar className="size-12" status={getAvatarStatus(client.status)}>
                   <AvatarImage src={client.avatar} />
-                  <AvatarFallback className="bg-[var(--action-primary-base,#F97316)] text-white">
+                  <AvatarFallback className="bg-[var(--action-primary-base,#1E7048)] text-white">
                     {client.name
                       .split(" ")
                       .map((n) => n[0])

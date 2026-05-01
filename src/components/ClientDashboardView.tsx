@@ -23,6 +23,8 @@ import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localDb } from '../lib/db/localDb';
 
 interface ClientDashboardViewProps {
     userId: string;
@@ -31,15 +33,7 @@ interface ClientDashboardViewProps {
     onNavigate: (tab: string) => void;
 }
 
-// Mock data - replace with real API calls
-const upcomingSession = {
-    therapist: 'Dr. Sarah Johnson',
-    therapistImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    date: 'Tomorrow',
-    time: '2:00 PM',
-    type: 'Video Session',
-    duration: '50 min'
-};
+
 
 const moodHistory = [
     { date: 'Mon', mood: 'happy', energy: 8, stress: 3 },
@@ -59,18 +53,71 @@ const journalPrompts = [
 
 export function ClientDashboardView({ userId, userEmail, userName, onNavigate }: ClientDashboardViewProps) {
     const [selectedMood, setSelectedMood] = useState<string | null>(null);
+    const [upcomingSession, setUpcomingSession] = useState<any>({
+        therapist: 'Dr. Sarah Johnson',
+        therapistImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+        date: 'Tomorrow',
+        time: '2:00 PM',
+        type: 'Video Session',
+        duration: '50 min'
+    });
+
+    React.useEffect(() => {
+        const load = async () => {
+            if (USE_LOCAL_DB) {
+                const appts = await localDb.appointments.findMany(a => a.clientId === userId && new Date(a.startTime) >= new Date());
+                const sorted = appts.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+                if (sorted.length > 0) {
+                    const next = sorted[0];
+                    const therapists = await localDb.therapists.findMany();
+                    const therapist = therapists.find(t => t.id === next.therapistId);
+                    setUpcomingSession({
+                        therapist: therapist ? therapist.name : 'Your Therapist',
+                        therapistImage: `https://api.dicebear.com/7.x/avataaars/svg?seed=${therapist?.name || 'therapist'}`,
+                        date: new Date(next.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                        time: new Date(next.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                        type: next.type === 'video' ? 'Video Session' : 'In-person Session',
+                        duration: '50 min'
+                    });
+                }
+            } else {
+                try {
+                    const res = await fetch('/api/v1/appointments?upcoming=true&limit=1');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            const next = data[0];
+                            setUpcomingSession({
+                                therapist: next.therapistName || 'Your Therapist',
+                                therapistImage: `https://api.dicebear.com/7.x/avataaars/svg?seed=${next.therapistName || 'therapist'}`,
+                                date: new Date(next.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                                time: new Date(next.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                                type: next.type === 'video' ? 'Video Session' : 'In-person Session',
+                                duration: '50 min'
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to load upcoming session', e);
+                }
+            }
+        };
+        if (userId) {
+            load();
+        }
+    }, [userId]);
 
     const getMoodIcon = (mood: string) => {
         switch (mood) {
             case 'happy': return <Smile className="w-6 h-6 text-green-500" />;
             case 'neutral': return <Meh className="w-6 h-6 text-yellow-500" />;
-            case 'sad': return <Frown className="w-6 h-6 text-orange-500" />;
+            case 'sad': return <Frown className="w-6 h-6 text-action" />;
             default: return <Meh className="w-6 h-6 text-gray-400" />;
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50/30 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-action-light via-white to-action-light/30 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
 
                 {/* Header */}
@@ -80,7 +127,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                     className="flex items-center justify-between"
                 >
                     <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-action bg-clip-text text-transparent">
                             Welcome back, {userName?.split(' ')[0] || 'there'}
                         </h1>
                         <p className="text-muted-foreground mt-1">How are you feeling today?</p>
@@ -88,7 +135,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" size="icon" className="relative">
                             <Bell className="w-5 h-5" />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-action rounded-full"></span>
                         </Button>
                         <Button variant="ghost" size="icon">
                             <Settings className="w-5 h-5" />
@@ -102,10 +149,10 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <Card className="border-2 border-orange-100 bg-gradient-to-br from-white to-orange-50/30 shadow-xl">
+                    <Card className="border-2 border-action-light bg-gradient-to-br from-white to-action-light/30 shadow-xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-xl">
-                                <Heart className="w-5 h-5 text-orange-500" />
+                                <Heart className="w-5 h-5 text-action" />
                                 How are you feeling right now?
                             </CardTitle>
                         </CardHeader>
@@ -114,8 +161,8 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                 {[
                                     { mood: 'Amazing', icon: <Sparkles className="w-8 h-8" />, color: 'from-green-400 to-emerald-500', value: 5 },
                                     { mood: 'Good', icon: <Smile className="w-8 h-8" />, color: 'from-blue-400 to-cyan-500', value: 4 },
-                                    { mood: 'Okay', icon: <Meh className="w-8 h-8" />, color: 'from-yellow-400 to-orange-400', value: 3 },
-                                    { mood: 'Low', icon: <Cloud className="w-8 h-8" />, color: 'from-orange-400 to-red-400', value: 2 },
+                                    { mood: 'Okay', icon: <Meh className="w-8 h-8" />, color: 'from-yellow-400 to-action', value: 3 },
+                                    { mood: 'Low', icon: <Cloud className="w-8 h-8" />, color: 'from-action to-red-400', value: 2 },
                                     { mood: 'Struggling', icon: <Frown className="w-8 h-8" />, color: 'from-red-400 to-rose-500', value: 1 },
                                 ].map((item) => (
                                     <motion.button
@@ -127,7 +174,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                             flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all
                                             ${selectedMood === item.mood
                                                 ? `bg-gradient-to-br ${item.color} text-white border-transparent shadow-lg`
-                                                : 'bg-white border-gray-200 hover:border-orange-300 text-gray-600'
+                                                : 'bg-white border-gray-200 hover:border-action-border text-gray-600'
                                             }
                                         `}
                                     >
@@ -140,9 +187,9 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
-                                    className="mt-6 p-4 bg-orange-50 rounded-xl border border-orange-200"
+                                    className="mt-6 p-4 bg-action-light rounded-xl border border-action-light"
                                 >
-                                    <p className="text-sm text-orange-900">
+                                    <p className="text-sm text-action-dark">
                                         ✨ Thank you for sharing. Your mood has been logged.
                                     </p>
                                 </motion.div>
@@ -162,7 +209,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-2xl">
+                            <Card className="border-2 border-action-light bg-gradient-to-br from-action to-orange-600 text-white shadow-2xl">
                                 <CardContent className="p-8">
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-4 flex-1">
@@ -174,7 +221,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                             </div>
                                             <div>
                                                 <h3 className="text-2xl font-bold mb-2">Your Next Session</h3>
-                                                <p className="text-orange-100 text-lg">{upcomingSession.date} at {upcomingSession.time}</p>
+                                                <p className="text-action-light text-lg">{upcomingSession.date} at {upcomingSession.time}</p>
                                             </div>
                                             <div className="flex items-center gap-4 pt-4">
                                                 <Avatar className="w-16 h-16 border-4 border-white/30">
@@ -183,13 +230,13 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                                 </Avatar>
                                                 <div>
                                                     <p className="font-semibold text-lg">{upcomingSession.therapist}</p>
-                                                    <p className="text-orange-100 text-sm">{upcomingSession.duration} session</p>
+                                                    <p className="text-action-light text-sm">{upcomingSession.duration} session</p>
                                                 </div>
                                             </div>
                                         </div>
                                         <Button
                                             size="lg"
-                                            className="bg-white text-orange-600 hover:bg-orange-50 shadow-xl"
+                                            className="bg-white text-action hover:bg-action-light shadow-xl"
                                         >
                                             Join Session
                                             <ChevronRight className="w-5 h-5 ml-2" />
@@ -208,7 +255,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                             <Card className="shadow-lg border-gray-200">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
-                                        <MessageSquare className="w-5 h-5 text-orange-500" />
+                                        <MessageSquare className="w-5 h-5 text-action" />
                                         Today's Reflection
                                     </CardTitle>
                                 </CardHeader>
@@ -217,16 +264,16 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                         <motion.button
                                             key={index}
                                             whileHover={{ x: 4 }}
-                                            className="w-full text-left p-4 rounded-xl bg-gradient-to-r from-gray-50 to-orange-50/30 border border-gray-200 hover:border-orange-300 transition-all group"
+                                            className="w-full text-left p-4 rounded-xl bg-gradient-to-r from-gray-50 to-action-light/30 border border-gray-200 hover:border-action-border transition-all group"
                                         >
                                             <div className="flex items-center justify-between">
                                                 <p className="text-gray-700 font-medium">{prompt}</p>
-                                                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                                                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-action transition-colors" />
                                             </div>
                                         </motion.button>
                                     ))}
                                     <Button
-                                        className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
+                                        className="w-full bg-gradient-to-r from-action to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
                                         size="lg"
                                     >
                                         <MessageSquare className="w-4 h-4 mr-2" />
@@ -245,7 +292,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                             <Card className="shadow-lg border-gray-200">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
-                                        <TrendingUp className="w-5 h-5 text-orange-500" />
+                                        <TrendingUp className="w-5 h-5 text-action" />
                                         Your Week at a Glance
                                     </CardTitle>
                                 </CardHeader>
@@ -254,7 +301,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                         {moodHistory.map((day, index) => (
                                             <div key={index} className="flex flex-col items-center gap-2">
                                                 <div className="text-xs text-gray-500 font-medium">{day.date}</div>
-                                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center border-2 border-orange-200">
+                                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-action-light to-action-light flex items-center justify-center border-2 border-action-light">
                                                     {getMoodIcon(day.mood)}
                                                 </div>
                                                 <div className="space-y-1 w-full">
@@ -287,9 +334,9 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                 <CardContent className="space-y-3">
                                     <Button
                                         variant="outline"
-                                        className="w-full justify-start h-auto py-4 border-2 hover:border-orange-300 hover:bg-orange-50"
+                                        className="w-full justify-start h-auto py-4 border-2 hover:border-action-border hover:bg-action-light"
                                     >
-                                        <Calendar className="w-5 h-5 mr-3 text-orange-500" />
+                                        <Calendar className="w-5 h-5 mr-3 text-action" />
                                         <div className="text-left">
                                             <div className="font-semibold">Book Session</div>
                                             <div className="text-xs text-muted-foreground">Schedule with your therapist</div>
@@ -298,9 +345,9 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
 
                                     <Button
                                         variant="outline"
-                                        className="w-full justify-start h-auto py-4 border-2 hover:border-orange-300 hover:bg-orange-50"
+                                        className="w-full justify-start h-auto py-4 border-2 hover:border-action-border hover:bg-action-light"
                                     >
-                                        <MessageSquare className="w-5 h-5 mr-3 text-orange-500" />
+                                        <MessageSquare className="w-5 h-5 mr-3 text-action" />
                                         <div className="text-left">
                                             <div className="font-semibold">Message Therapist</div>
                                             <div className="text-xs text-muted-foreground">Secure messaging</div>
@@ -309,9 +356,9 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
 
                                     <Button
                                         variant="outline"
-                                        className="w-full justify-start h-auto py-4 border-2 hover:border-orange-300 hover:bg-orange-50"
+                                        className="w-full justify-start h-auto py-4 border-2 hover:border-action-border hover:bg-action-light"
                                     >
-                                        <Heart className="w-5 h-5 mr-3 text-orange-500" />
+                                        <Heart className="w-5 h-5 mr-3 text-action" />
                                         <div className="text-left">
                                             <div className="font-semibold">Wellness Resources</div>
                                             <div className="text-xs text-muted-foreground">Guided exercises</div>

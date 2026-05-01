@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Input } from './ui/input';
-import { Badge } from './ui/badge';
+import { useState, useEffect, useRef } from 'react';
 import {
   Search,
   Building2,
@@ -10,18 +8,21 @@ import {
   DollarSign,
   FileText,
   CreditCard,
-  Command,
-  TrendingUp,
-  Clock,
-  Mail,
 } from 'lucide-react';
 import { cn } from './ui/utils';
 
-interface SearchResult {
+export interface SearchResult {
   id: string;
   title: string;
   subtitle: string;
-  category: 'organizations' | 'therapists' | 'users' | 'support' | 'payments' | 'invoices' | 'billing';
+  category:
+  | 'organizations'
+  | 'therapists'
+  | 'users'
+  | 'support'
+  | 'payments'
+  | 'invoices'
+  | 'billing';
   metadata?: string;
   status?: string;
 }
@@ -30,273 +31,183 @@ interface GlobalSearchBarProps {
   placeholder?: string;
   value: string;
   onValueChange: (value: string) => void;
+  onSearch: (query: string) => Promise<SearchResult[]> | SearchResult[];
   onResultClick?: (result: SearchResult) => void;
   showKeyboardShortcut?: boolean;
-  className?: string; // Added optional className prop
+  className?: string;
+}
+
+const CATEGORY_CONFIG: Record<
+  SearchResult['category'],
+  { label: string; icon: React.ReactNode; color: string }
+> = {
+  organizations: {
+    label: 'Organizations',
+    icon: <Building2 className="h-3.5 w-3.5" />,
+    color: '#1E7048',
+  },
+  therapists: {
+    label: 'Therapists',
+    icon: <UserCog className="h-3.5 w-3.5" />,
+    color: '#3B82F6',
+  },
+  users: {
+    label: 'Users',
+    icon: <Users className="h-3.5 w-3.5" />,
+    color: '#10B981',
+  },
+  support: {
+    label: 'Support tickets',
+    icon: <Headphones className="h-3.5 w-3.5" />,
+    color: '#EF4444',
+  },
+  payments: {
+    label: 'Payments',
+    icon: <DollarSign className="h-3.5 w-3.5" />,
+    color: '#10B981',
+  },
+  invoices: {
+    label: 'Invoices',
+    icon: <FileText className="h-3.5 w-3.5" />,
+    color: '#8B5CF6',
+  },
+  billing: {
+    label: 'Billing',
+    icon: <CreditCard className="h-3.5 w-3.5" />,
+    color: '#F59E0B',
+  },
+};
+
+const CATEGORY_ORDER: SearchResult['category'][] = [
+  'organizations',
+  'therapists',
+  'users',
+  'support',
+  'payments',
+  'invoices',
+  'billing',
+];
+
+function StatusBadge({ status }: { status?: string }) {
+  if (!status) return null;
+
+  const variants: Record<string, string> = {
+    Active: 'bg-green-100 text-green-800 border-green-200',
+    Completed: 'bg-green-100 text-green-800 border-green-200',
+    Paid: 'bg-green-100 text-green-800 border-green-200',
+    Resolved: 'bg-green-100 text-green-800 border-green-200',
+    Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    Open: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    'In Progress': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    Unpaid: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    Failed: 'bg-red-100 text-red-800 border-red-200',
+    Overdue: 'bg-red-100 text-red-800 border-red-200',
+    'Action Required': 'bg-red-100 text-red-800 border-red-200',
+  };
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border whitespace-nowrap flex-shrink-0',
+        variants[status] ?? 'bg-gray-100 text-gray-700 border-gray-200'
+      )}
+    >
+      {status}
+    </span>
+  );
 }
 
 export function GlobalSearchBar({
-  placeholder = "Global search across organizations, therapists, users, tickets...",
+  placeholder = 'Search organizations, therapists, users, tickets...',
   value,
   onValueChange,
+  onSearch,
   onResultClick,
   showKeyboardShortcut = true,
   className,
 }: GlobalSearchBarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
+
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Mock search function - replace with actual API call
-  const searchGlobal = (query: string): SearchResult[] => {
-    if (!query || query.length < 2) return [];
-
-    const allResults: SearchResult[] = [
-      // Organizations
-      {
-        id: 'org-1',
-        title: 'Wellness Care Center',
-        subtitle: 'wellnesscare.ataraxia.com',
-        category: 'organizations',
-        metadata: '12 providers • 245 clients',
-        status: 'Active',
-      },
-      {
-        id: 'org-2',
-        title: 'Mindful Therapy Group',
-        subtitle: 'mindfultherapy.ataraxia.com',
-        category: 'organizations',
-        metadata: '45 providers • 892 clients',
-        status: 'Active',
-      },
-      {
-        id: 'org-3',
-        title: 'Hope Counseling Services',
-        subtitle: 'hopecounseling.ataraxia.com',
-        category: 'organizations',
-        metadata: '5 providers • 78 clients',
-        status: 'Active',
-      },
-      // Therapists
-      {
-        id: 'therapist-1',
-        title: 'Dr. Sarah Mitchell',
-        subtitle: 'sarah.mitchell@wellnesscare.com',
-        category: 'therapists',
-        metadata: 'Wellness Care Center • CBT Specialist',
-        status: 'Active',
-      },
-      {
-        id: 'therapist-2',
-        title: 'Dr. Michael Chen',
-        subtitle: 'michael.chen@mindfultherapy.com',
-        category: 'therapists',
-        metadata: 'Mindful Therapy Group • EMDR Certified',
-        status: 'Active',
-      },
-      {
-        id: 'therapist-3',
-        title: 'Emily Rodriguez, LMFT',
-        subtitle: 'emily.r@hopecounseling.com',
-        category: 'therapists',
-        metadata: 'Hope Counseling Services • Family Therapy',
-        status: 'Active',
-      },
-      // Users/Clients
-      {
-        id: 'user-1',
-        title: 'John Davis',
-        subtitle: 'john.davis@email.com',
-        category: 'users',
-        metadata: 'Client • Wellness Care Center',
-        status: 'Active',
-      },
-      {
-        id: 'user-2',
-        title: 'Lisa Anderson',
-        subtitle: 'lisa.anderson@email.com',
-        category: 'users',
-        metadata: 'Admin • Serenity Wellness',
-        status: 'Active',
-      },
-      // Support Tickets
-      {
-        id: 'ticket-1',
-        title: 'Login Issues - Unable to access calendar',
-        subtitle: 'Ticket #2451',
-        category: 'support',
-        metadata: 'Wellness Care Center • Opened 2 hours ago',
-        status: 'Open',
-      },
-      {
-        id: 'ticket-2',
-        title: 'Video call not connecting',
-        subtitle: 'Ticket #2448',
-        category: 'support',
-        metadata: 'Mindful Therapy Group • Opened yesterday',
-        status: 'In Progress',
-      },
-      {
-        id: 'ticket-3',
-        title: 'Billing discrepancy report',
-        subtitle: 'Ticket #2445',
-        category: 'support',
-        metadata: 'Hope Counseling Services • Opened 3 days ago',
-        status: 'Resolved',
-      },
-      // Payments
-      {
-        id: 'payment-1',
-        title: 'Payment received - $1,250.00',
-        subtitle: 'PMT-2024-11-001',
-        category: 'payments',
-        metadata: 'Wellness Care Center • Nov 24, 2025',
-        status: 'Completed',
-      },
-      {
-        id: 'payment-2',
-        title: 'Payment pending - $3,450.00',
-        subtitle: 'PMT-2024-11-002',
-        category: 'payments',
-        metadata: 'Mindful Therapy Group • Nov 23, 2025',
-        status: 'Pending',
-      },
-      {
-        id: 'payment-3',
-        title: 'Payment failed - $875.00',
-        subtitle: 'PMT-2024-11-003',
-        category: 'payments',
-        metadata: 'Hope Counseling Services • Nov 22, 2025',
-        status: 'Failed',
-      },
-      // Invoices
-      {
-        id: 'invoice-1',
-        title: 'Invoice #INV-2024-1145',
-        subtitle: '$1,250.00 - November 2025',
-        category: 'invoices',
-        metadata: 'Wellness Care Center • Due: Dec 1, 2025',
-        status: 'Paid',
-      },
-      {
-        id: 'invoice-2',
-        title: 'Invoice #INV-2024-1146',
-        subtitle: '$3,450.00 - November 2025',
-        category: 'invoices',
-        metadata: 'Mindful Therapy Group • Due: Dec 1, 2025',
-        status: 'Unpaid',
-      },
-      {
-        id: 'invoice-3',
-        title: 'Invoice #INV-2024-1144',
-        subtitle: '$875.00 - November 2025',
-        category: 'invoices',
-        metadata: 'Hope Counseling Services • Due: Nov 30, 2025',
-        status: 'Overdue',
-      },
-      // Billing
-      {
-        id: 'billing-1',
-        title: 'Subscription Renewal - Pro Plan',
-        subtitle: 'Wellness Care Center',
-        category: 'billing',
-        metadata: '$199/month • Next billing: Dec 15, 2025',
-        status: 'Active',
-      },
-      {
-        id: 'billing-2',
-        title: 'Subscription Upgrade - Enterprise Plan',
-        subtitle: 'Mindful Therapy Group',
-        category: 'billing',
-        metadata: '$599/month • Next billing: Dec 20, 2025',
-        status: 'Active',
-      },
-      {
-        id: 'billing-3',
-        title: 'Payment Method Expired',
-        subtitle: 'Serenity Wellness',
-        category: 'billing',
-        metadata: 'Card ending in 4242 • Requires update',
-        status: 'Action Required',
-      },
-    ];
-
-    // Filter results based on query
-    const filtered = allResults.filter(
-      (result) =>
-        result.title.toLowerCase().includes(query.toLowerCase()) ||
-        result.subtitle.toLowerCase().includes(query.toLowerCase()) ||
-        result.metadata?.toLowerCase().includes(query.toLowerCase())
-    );
-
-    return filtered;
-  };
-
+  // Run search whenever value changes
   useEffect(() => {
-    if (value.length >= 2) {
-      const searchResults = searchGlobal(value);
-      setResults(searchResults);
-      setIsOpen(searchResults.length > 0);
-      setSelectedIndex(0);
-    } else {
+    if (value.length < 2) {
       setResults([]);
       setIsOpen(false);
+      return;
     }
-  }, [value]);
 
-  // Keyboard shortcut handler - separate effect for Cmd/Ctrl + K
+    let cancelled = false;
+
+    const run = async () => {
+      setIsLoading(true);
+      try {
+        const res = await onSearch(value);
+        if (!cancelled) {
+          setResults(res);
+          setIsOpen(true);
+          setSelectedIndex(-1);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    const debounce = setTimeout(run, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(debounce);
+    };
+  }, [value, onSearch]);
+
+  // ⌘K / Ctrl+K focus shortcut
   useEffect(() => {
-    const handleGlobalKeyboard = (event: KeyboardEvent) => {
-      // Cmd/Ctrl + K to focus search
-      if ((event.metaKey || event.ctrlKey) && (event.key === 'k' || event.key === 'K')) {
-        event.preventDefault();
-        event.stopPropagation();
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
         inputRef.current?.focus();
       }
     };
-
-    window.addEventListener('keydown', handleGlobalKeyboard, true);
-
-    return () => {
-      window.removeEventListener('keydown', handleGlobalKeyboard, true);
-    };
+    window.addEventListener('keydown', handler, true);
+    return () => window.removeEventListener('keydown', handler, true);
   }, []);
 
-  // Navigation and interaction handlers
+  // Click outside + keyboard navigation
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    const handleKeyboard = (event: KeyboardEvent) => {
-      if (!isOpen || results.length === 0) return;
-
-      if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        setSelectedIndex((prev) => (prev + 1) % results.length);
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        setSelectedIndex((prev) => (prev - 1 + results.length) % results.length);
-      } else if (event.key === 'Enter') {
-        event.preventDefault();
-        if (results[selectedIndex]) {
-          handleResultClick(results[selectedIndex]);
-        }
-      } else if (event.key === 'Escape') {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen || !results.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.min(i + 1, results.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.max(i - 1, 0));
+      } else if (e.key === 'Enter' && selectedIndex >= 0) {
+        e.preventDefault();
+        handleResultClick(results[selectedIndex]);
+      } else if (e.key === 'Escape') {
         setIsOpen(false);
+        inputRef.current?.blur();
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyboard);
-
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyboard);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, results, selectedIndex]);
 
@@ -306,194 +217,143 @@ export function GlobalSearchBar({
     onResultClick?.(result);
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'organizations':
-        return <Building2 className="h-4 w-4 text-[#F97316]" />;
-      case 'therapists':
-        return <UserCog className="h-4 w-4 text-[#3B82F6]" />;
-      case 'users':
-        return <Users className="h-4 w-4 text-[#10B981]" />;
-      case 'support':
-        return <Headphones className="h-4 w-4 text-[#EF4444]" />;
-      case 'payments':
-        return <DollarSign className="h-4 w-4 text-[#10B981]" />;
-      case 'invoices':
-        return <FileText className="h-4 w-4 text-[#8B5CF6]" />;
-      case 'billing':
-        return <CreditCard className="h-4 w-4 text-[#F59E0B]" />;
-      default:
-        return <Search className="h-4 w-4 text-[#727272]" />;
-    }
-  };
+  // Group and order results by category
+  const grouped = results.reduce<Partial<Record<SearchResult['category'], SearchResult[]>>>(
+    (acc, r) => {
+      if (!acc[r.category]) acc[r.category] = [];
+      acc[r.category]!.push(r);
+      return acc;
+    },
+    {}
+  );
 
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'organizations':
-        return 'Organizations';
-      case 'therapists':
-        return 'Therapists';
-      case 'users':
-        return 'Users';
-      case 'support':
-        return 'Support Tickets';
-      case 'payments':
-        return 'Payments';
-      case 'invoices':
-        return 'Invoices';
-      case 'billing':
-        return 'Billing';
-      default:
-        return '';
-    }
-  };
-
-  const getStatusBadge = (category: string, status?: string) => {
-    if (!status) return null;
-
-    let className = 'text-xs';
-    switch (status) {
-      case 'Active':
-        className += ' bg-green-100 text-green-800 border-green-200';
-        break;
-      case 'Pending':
-      case 'Open':
-      case 'In Progress':
-      case 'Unpaid':
-        className += ' bg-yellow-100 text-yellow-800 border-yellow-200';
-        break;
-      case 'Failed':
-      case 'Overdue':
-      case 'Action Required':
-        className += ' bg-red-100 text-red-800 border-red-200';
-        break;
-      case 'Completed':
-      case 'Paid':
-      case 'Resolved':
-        className += ' bg-green-100 text-green-800 border-green-200';
-        break;
-      default:
-        className += ' bg-gray-100 text-gray-800 border-gray-200';
-    }
-
-    return (
-      <Badge variant="outline" className={className}>
-        {status}
-      </Badge>
-    );
-  };
-
-  // Group results by category
-  const groupedResults = results.reduce((acc, result) => {
-    if (!acc[result.category]) {
-      acc[result.category] = [];
-    }
-    acc[result.category].push(result);
-    return acc;
-  }, {} as Record<string, SearchResult[]>);
-
-  const categoryOrder = ['organizations', 'therapists', 'users', 'support', 'payments', 'invoices', 'billing'];
+  const flatResults = CATEGORY_ORDER.flatMap((cat) => grouped[cat] ?? []);
 
   return (
-    <div ref={searchRef} className={cn("relative flex-1 max-w-2xl", className)}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#727272]" />
-        <Input
+    <div ref={searchRef} className={cn('relative w-full', className)}>
+      {/* Input row — filled style */}
+      <div
+        className={cn(
+          'flex items-center gap-2.5 h-11 px-4 rounded-full transition-all duration-150',
+          'bg-black/5 hover:bg-black/8',
+          isFocused && 'bg-white border border-border shadow-sm'
+        )}
+        onClick={() => inputRef.current?.focus()}
+      >
+        <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+
+        <input
           ref={inputRef}
           type="text"
-          placeholder={placeholder}
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
-          className="w-[480px] pl-10 pr-20 h-10 border-[#e4e4e4] rounded-full bg-white focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316]"
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={placeholder}
+          className={cn(
+            'flex-1 h-full bg-transparent border-none outline-none ring-0',
+            'text-sm placeholder:text-muted-foreground/60 text-foreground'
+          )}
         />
-        {showKeyboardShortcut && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-            <kbd className="px-2 py-1 text-xs font-medium text-[#727272] bg-[#F9F9F9] border border-[#e4e4e4] rounded">
-              <Command className="h-3 w-3 inline" />
+
+        {showKeyboardShortcut && !value && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <kbd className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground bg-background border border-border rounded">
+              ⌘
             </kbd>
-            <kbd className="px-2 py-1 text-xs font-medium text-[#727272] bg-[#F9F9F9] border border-[#e4e4e4] rounded">
+            <kbd className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground bg-background border border-border rounded">
               K
             </kbd>
           </div>
         )}
+
+        {isLoading && (
+          <div className="h-4 w-4 rounded-full border-2 border-muted border-t-foreground animate-spin flex-shrink-0" />
+        )}
       </div>
 
-      {/* Search Results Dropdown */}
-      {isOpen && results.length > 0 && (
-        <div className="absolute top-full mt-2 w-full bg-white border border-[#e4e4e4] rounded-lg shadow-lg max-h-[600px] overflow-y-auto z-50">
-          <div className="p-2">
-            <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-xs text-[#727272]">
-                {results.length} result{results.length !== 1 ? 's' : ''} found
-              </span>
-              <span className="text-xs text-[#AFAFAF]">
-                Use ↑↓ to navigate, Enter to select
-              </span>
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute top-full mt-2 w-full z-50 bg-background border border-border rounded-xl shadow-lg overflow-hidden">
+          {results.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+              <Search className="h-8 w-8 text-muted-foreground/30 mb-3" />
+              <p className="text-sm text-muted-foreground">No results for "{value}"</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                Try organizations, therapists, users, or billing
+              </p>
             </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/60">
+                <span className="text-xs text-muted-foreground">
+                  {results.length} result{results.length !== 1 ? 's' : ''}
+                </span>
+                <span className="text-[11px] text-muted-foreground/50">
+                  ↑↓ navigate · Enter select
+                </span>
+              </div>
 
-            {categoryOrder.map((category) => {
-              const categoryResults = groupedResults[category];
-              if (!categoryResults || categoryResults.length === 0) return null;
+              {/* Grouped results */}
+              <div className="max-h-[420px] overflow-y-auto py-1">
+                {CATEGORY_ORDER.map((cat) => {
+                  const items = grouped[cat];
+                  if (!items?.length) return null;
+                  const config = CATEGORY_CONFIG[cat];
 
-              return (
-                <div key={category} className="mt-2">
-                  <div className="flex items-center gap-2 px-3 py-2">
-                    {getCategoryIcon(category)}
-                    <span className="text-xs font-semibold text-[#727272] uppercase">
-                      {getCategoryLabel(category)}
-                    </span>
-                    <span className="text-xs text-[#AFAFAF]">({categoryResults.length})</span>
-                  </div>
-                  <div className="space-y-1">
-                    {categoryResults.map((result, idx) => {
-                      const globalIndex = results.indexOf(result);
-                      return (
-                        <button
-                          key={result.id}
-                          onClick={() => handleResultClick(result)}
-                          className={cn(
-                            'w-full text-left px-3 py-3 rounded-md transition-colors',
-                            'hover:bg-[#FFF7ED] hover:border-[#F97316]/20',
-                            globalIndex === selectedIndex && 'bg-[#FFF7ED] border border-[#F97316]/30'
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-2">
+                  return (
+                    <div key={cat}>
+                      {/* Category header */}
+                      <div className="flex items-center gap-2 px-4 py-2">
+                        <span style={{ color: config.color }}>{config.icon}</span>
+                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                          {config.label}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground/40">
+                          ({items.length})
+                        </span>
+                      </div>
+
+                      {/* Items */}
+                      {items.map((result) => {
+                        const globalIdx = flatResults.indexOf(result);
+                        const isSelected = globalIdx === selectedIndex;
+
+                        return (
+                          <button
+                            key={result.id}
+                            onMouseEnter={() => setSelectedIndex(globalIdx)}
+                            onClick={() => handleResultClick(result)}
+                            className={cn(
+                              'w-full text-left flex items-center justify-between gap-3 px-4 py-2 transition-colors',
+                              isSelected ? 'bg-accent' : 'hover:bg-accent/50'
+                            )}
+                          >
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="text-sm font-medium text-black truncate">
-                                  {result.title}
-                                </p>
-                                {getStatusBadge(result.category, result.status)}
-                              </div>
-                              <p className="text-xs text-[#727272] truncate mb-1">
-                                {result.subtitle}
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {result.title}
                               </p>
-                              {result.metadata && (
-                                <p className="text-xs text-[#AFAFAF] truncate">
-                                  {result.metadata}
-                                </p>
-                              )}
+                              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                {result.subtitle}
+                                {result.metadata && (
+                                  <>
+                                    <span className="mx-1.5 opacity-40">·</span>
+                                    {result.metadata}
+                                  </>
+                                )}
+                              </p>
                             </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {isOpen && value.length >= 2 && results.length === 0 && (
-        <div className="absolute top-full mt-2 w-full bg-white border border-[#e4e4e4] rounded-lg shadow-lg p-8 text-center z-50">
-          <Search className="h-12 w-12 mx-auto mb-3 text-[#AFAFAF] opacity-50" />
-          <p className="text-sm text-[#727272] mb-1">No results found</p>
-          <p className="text-xs text-[#AFAFAF]">
-            Try searching for organizations, therapists, users, tickets, or billing information
-          </p>
+                            <StatusBadge status={result.status} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

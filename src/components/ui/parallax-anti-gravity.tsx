@@ -168,9 +168,9 @@ export function ParallaxAntiGravity({
     // Generate shapes
     useEffect(() => {
         const colors = [
-            'rgba(249, 115, 22, 0.8)',  // Bright orange - high opacity
+            'rgba(30, 112, 72, 0.8)',  // Bright orange - high opacity
             'rgba(245, 158, 11, 0.7)',  // Amber - high opacity
-            'rgba(234, 88, 12, 0.8)',   // Dark orange - high opacity
+            'rgba(20, 92, 52, 0.8)',   // Dark orange - high opacity
             'rgba(251, 146, 60, 0.6)',  // Light orange
         ];
         const shapeTypes: Array<'circle' | 'square' | 'pill'> = ['circle', 'circle', 'circle', 'circle']; // All circles

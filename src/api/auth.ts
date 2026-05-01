@@ -4,9 +4,13 @@
  * ✅ All identity operations go to the Gravity Reunion backend.
  * ✅ No tokens stored on the frontend — HTTP-only cookies only.
  * ✅ No Firebase SDK, no Cognito SDK, no JWT signing.
+ *
+ * 🔧 LOCAL DB: Set VITE_USE_LOCAL_DB=true in .env.local for demo mode.
  */
 
 import { post, get } from './client';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localAuth } from '../lib/db/localDb';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,6 +47,7 @@ export interface RegisterRequest {
 
 /** Email + password login. Backend sets HTTP-only access & refresh cookies. */
 export async function login(email: string, password: string): Promise<AuthUser> {
+  if (USE_LOCAL_DB) return localAuth.login(email, password) as Promise<AuthUser>;
   return post<AuthUser>('/auth/login', { email, password });
 }
 
@@ -51,16 +56,19 @@ export const signInWithEmailAndPassword = login;
 
 /** Register new user. */
 export async function register(data: RegisterRequest): Promise<AuthUser> {
+  if (USE_LOCAL_DB) return localAuth.register(data) as Promise<AuthUser>;
   return post<AuthUser>('/auth/register', data);
 }
 
 /** Logout. Backend revokes refresh token and clears cookies. */
 export async function logout(): Promise<void> {
+  if (USE_LOCAL_DB) return localAuth.logout();
   return post<void>('/auth/logout');
 }
 
 /** Get current authenticated user (validates session cookie). */
 export async function getCurrentUser(): Promise<AuthUser> {
+  if (USE_LOCAL_DB) return localAuth.getCurrentUser() as Promise<AuthUser>;
   return get<AuthUser>('/auth/me');
 }
 

@@ -99,7 +99,7 @@ export const DocumentSettings = () => {
                 );
             case 'active':
                 return (
-                    <span className="px-3 py-1 text-xs rounded-full bg-orange-100 text-orange-700">
+                    <span className="px-3 py-1 text-xs rounded-full bg-action-light text-action-dark">
                         Active
                     </span>
                 );
@@ -123,15 +123,15 @@ export const DocumentSettings = () => {
     const getIcon = (iconType: string) => {
         switch (iconType) {
             case 'file-text':
-                return <FileText className="w-6 h-6 text-orange-500" />;
+                return <FileText className="w-6 h-6 text-action" />;
             case 'shield':
-                return <Shield className="w-6 h-6 text-orange-500" />;
+                return <Shield className="w-6 h-6 text-action" />;
             case 'alert':
-                return <AlertTriangle className="w-6 h-6 text-orange-500" />;
+                return <AlertTriangle className="w-6 h-6 text-action" />;
             case 'scale':
-                return <Scale className="w-6 h-6 text-orange-500" />;
+                return <Scale className="w-6 h-6 text-action" />;
             default:
-                return <FileText className="w-6 h-6 text-orange-500" />;
+                return <FileText className="w-6 h-6 text-action" />;
         }
     };
 

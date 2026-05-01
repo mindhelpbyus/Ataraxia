@@ -105,7 +105,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                         >
                             <Avatar className="h-28 w-28 ring-8 ring-white dark:ring-zinc-950 shadow-2xl bg-white dark:bg-zinc-900">
                                 <AvatarImage src={therapist.profile_image_url} className="object-cover" />
-                                <AvatarFallback className="text-4xl font-bold bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 dark:from-orange-900/30 dark:to-orange-900/10 dark:text-orange-500">
+                                <AvatarFallback className="text-4xl font-bold bg-gradient-to-br from-action-light to-action-light text-action dark:from-orange-900/30 dark:to-orange-900/10 dark:text-action">
                                     {therapist.first_name?.[0]}{therapist.last_name?.[0]}
                                 </AvatarFallback>
                             </Avatar>
@@ -168,7 +168,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                                     <div className={cn("w-14 h-14 rounded-full flex items-center justify-center border-2 shadow-sm z-10 transition-all duration-300",
                                         isDocVerified
                                             ? "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-600"
-                                            : "bg-white dark:bg-zinc-900 border-orange-500 text-orange-500 ring-4 ring-orange-50 dark:ring-orange-900/20"
+                                            : "bg-white dark:bg-zinc-900 border-action text-action ring-4 ring-action dark:ring-action/20"
                                     )}>
                                         {isDocVerified ? <Check className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                                     </div>
@@ -260,7 +260,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                             <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
                                 <FileText className="w-4 h-4" /> Internal Notes
                             </h4>
-                            <div className="bg-white dark:bg-zinc-950 p-1 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-orange-500/20 transition-all">
+                            <div className="bg-white dark:bg-zinc-950 p-1 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-action/20 transition-all">
                                 <Textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}

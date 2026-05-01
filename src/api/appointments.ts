@@ -18,6 +18,8 @@ import {
     type CreateAppointmentRequest,
 } from './appointmentsBackend';
 import { get } from './client';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localDb } from '../lib/db/localDb';
 
 // ─── Types the calendar components expect ─────────────────────────────────────
 
@@ -26,6 +28,7 @@ export interface Therapist {
     name: string;
     email: string;
     color: string;
+    userId?: string;
     avatar?: string;
     availability?: unknown[];
 }
@@ -84,11 +87,21 @@ export const appointmentsApi = {
 
     /** Fetch all therapists for the calendar sidebar */
     getTherapists(): Promise<Therapist[]> {
+        if (USE_LOCAL_DB) {
+            return localDb.therapists.findMany().then(ts =>
+                ts.map(t => ({ id: t.id, name: t.name, email: t.email, color: t.color, userId: t.userId, avatar: t.avatar }))
+            );
+        }
         return get<Therapist[]>('/api/v1/therapists');
     },
 
     /** Fetch all clients (for appointment form dropdowns) */
     getClients(): Promise<Client[]> {
+        if (USE_LOCAL_DB) {
+            return localDb.clients.findMany().then(cs =>
+                cs.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone }))
+            );
+        }
         return get<Client[]>('/api/v1/clients');
     },
 } as const;

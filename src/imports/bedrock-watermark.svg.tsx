@@ -3,10 +3,10 @@
 <g transform="translate(24, 24) scale(0.48)">
 <path d="M 0,-35 L 30.31,-17.5 L 0,0 Z" fill="#F59E0B"/>
 <path d="M 30.31,-17.5 L 30.31,17.5 L 0,0 Z" fill="#DC2626"/>
-<path d="M 30.31,17.5 L 0,35 L 0,0 Z" fill="#F97316"/>
+<path d="M 30.31,17.5 L 0,35 L 0,0 Z" fill="#1E7048"/>
 <path d="M 0,35 L -30.31,17.5 L 0,0 Z" fill="#F59E0B"/>
 <path d="M -30.31,17.5 L -30.31,-17.5 L 0,0 Z" fill="#B91C1C"/>
-<path d="M -30.31,-17.5 L 0,-35 L 0,0 Z" fill="#EA580C"/>
+<path d="M -30.31,-17.5 L 0,-35 L 0,0 Z" fill="#145C34"/>
 <path d="M 0,-12 L 10.39,-6 L 10.39,6 L 0,12 L -10.39,6 L -10.39,-6 Z" fill="#FFFFFF"/>
 </g>
 <text x="56" y="30" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#1a1a1a" letter-spacing="-0.3">BEDROCK</text>

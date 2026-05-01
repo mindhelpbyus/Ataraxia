@@ -80,18 +80,18 @@ export function EnhancedCalendarSidebar({
                           ${isActive
                             ? 'shadow-md font-bold'
                             : isCompleted
-                              ? 'bg-[#fff7ed] border-[#f97316] text-[#ea580c]'
-                              : 'bg-white border-[#dddbda] text-muted-foreground group-hover:border-orange-600'
+                              ? 'bg-[#fff7ed] border-[#1E7048] text-[#145C34]'
+                              : 'bg-white border-[#dddbda] text-muted-foreground group-hover:border-action-dark'
                           }
                         `}
-                        style={isActive ? { backgroundColor: '#ea580c', borderColor: '#ea580c', color: 'white' } : {}}
+                        style={isActive ? { backgroundColor: '#1E7048', borderColor: '#145C34', color: 'white' } : {}}
                       >
                         <Icon className="h-4.5 w-4.5" />
                       </div>
                       <span
                         className={`
                           text-xs font-medium text-center
-                          ${isActive ? 'text-orange-600' : 'text-muted-foreground'}
+                          ${isActive ? 'text-action' : 'text-muted-foreground'}
                         `}
                       >
                         {step.label}

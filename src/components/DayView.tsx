@@ -295,7 +295,7 @@ function DaySlot({
         h-24 border-b border-border p-2 transition-colors cursor-pointer
         ${!isWorkingHour ? '' : ''}
         ${isOver ? 'bg-primary/10' : isClickable ? 'hover:bg-muted/50' : ''}
-        ${isCurrentHour ? 'bg-orange-50' : ''}
+        ${isCurrentHour ? 'bg-action-light' : ''}
         ${isPastHour && isWorkingHour ? '' : ''}
       `}
       onClick={isClickable ? onSlotClick : undefined}

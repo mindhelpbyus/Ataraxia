@@ -463,7 +463,7 @@ export default function FormInputsShowcase() {
                 <button className="px-6 py-2.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">
                   Cancel
                 </button>
-                <button className="px-6 py-2.5 rounded bg-[#F97316] text-white hover:bg-[#ea580c]">
+                <button className="px-6 py-2.5 rounded bg-[#1E7048] text-white hover:bg-[#145C34]">
                   Submit Form
                 </button>
               </div>

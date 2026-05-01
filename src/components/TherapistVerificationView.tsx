@@ -133,7 +133,7 @@ function Stepper({
                         disabled={isFirstStep}
                         className={`px-6 py-2 rounded-lg font-medium transition-colors ${isFirstStep
                             ? 'text-gray-300 cursor-not-allowed'
-                            : 'text-orange-600 hover:bg-orange-50 border border-orange-200'
+                            : 'text-action hover:bg-action-light border border-action-light'
                             }`}
                     >
                         Back
@@ -144,7 +144,7 @@ function Stepper({
                             else onStepChange(Math.min(totalSteps - 1, currentStep + 1));
                         }}
                         disabled={!canProceed}
-                        className="px-6 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-2 bg-action text-white rounded-lg font-medium hover:bg-action-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLastStep ? 'Complete' : 'Next'}
                     </button>
@@ -247,23 +247,23 @@ function VerificationSheet({
     return (
         <SheetContent side="right" className="sm:max-w-4xl w-[90vw] p-0 border-l border-border shadow-2xl bg-background overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="bg-orange-50 border-b border-orange-200 px-8 py-6 flex-shrink-0 z-10 shadow-sm">
+            <div className="bg-action-light border-b border-action-light px-8 py-6 flex-shrink-0 z-10 shadow-sm">
                 <div className="flex items-start justify-between">
                     <div className="flex gap-6">
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="mr-4 -ml-2 hover:bg-orange-100 text-orange-600 hover:text-orange-700"
+                            className="mr-4 -ml-2 hover:bg-action-light text-action hover:text-action-dark"
                             onClick={onClose}
                         >
                             <ChevronRight className="h-6 w-6 rotate-180" />
                         </Button>
-                        <Avatar className="h-20 w-20 ring-4 ring-orange-100 shadow-md rounded-2xl">
+                        <Avatar className="h-20 w-20 ring-4 ring-action shadow-md rounded-2xl">
                             <AvatarImage
                                 src={therapist.profile_image_url || `https://ui-avatars.com/api/?name=${therapist.first_name}+${therapist.last_name}`}
                                 alt={`${therapist.first_name} ${therapist.last_name}`}
                             />
-                            <AvatarFallback className="bg-orange-500 text-white text-2xl font-light">
+                            <AvatarFallback className="bg-action text-white text-2xl font-light">
                                 {therapist.first_name?.[0]}{therapist.last_name?.[0]}
                             </AvatarFallback>
                         </Avatar>
@@ -273,7 +273,7 @@ function VerificationSheet({
                                     {therapist.first_name} {therapist.last_name}
                                 </h2>
                                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${isActive ? 'bg-green-100 text-green-700' :
-                                    therapist.registration_status === 'pending_review' ? 'bg-orange-100 text-orange-700' :
+                                    therapist.registration_status === 'pending_review' ? 'bg-action-light text-action-dark' :
                                         'bg-red-100 text-red-700'
                                     }`}>
                                     {isActive ? 'Active' : therapist.registration_status?.replace('_', ' ')}
@@ -304,7 +304,7 @@ function VerificationSheet({
                         <Button
                             onClick={handleApprove}
                             disabled={isLoading}
-                            className="bg-orange-500 hover:bg-orange-600 text-white"
+                            className="bg-action hover:bg-action-dark text-white"
                         >
                             {isLoading ? (
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -420,95 +420,95 @@ function VerificationSheet({
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* License Document */}
                                     {therapist.license_document_url && (
-                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                        <div className="p-4 border border-action-light rounded-xl bg-action-light/50 hover:bg-action-light transition-colors cursor-pointer"
                                             onClick={() => handleViewDocument(therapist.license_document_url, 'Professional License')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-orange-100 rounded-lg">
-                                                        <FileText className="w-5 h-5 text-orange-600" />
+                                                    <div className="p-2 bg-action-light rounded-lg">
+                                                        <FileText className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
                                                         <p className="font-medium text-gray-900">Professional License</p>
                                                         <p className="text-sm text-gray-500">Click to view document</p>
                                                     </div>
                                                 </div>
-                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                                <ExternalLink className="w-4 h-4 text-action" />
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Degree Certificate */}
                                     {therapist.degree_certificate_url && (
-                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                        <div className="p-4 border border-action-light rounded-xl bg-action-light/50 hover:bg-action-light transition-colors cursor-pointer"
                                             onClick={() => handleViewDocument(therapist.degree_certificate_url, 'Degree Certificate')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-orange-100 rounded-lg">
-                                                        <Award className="w-5 h-5 text-orange-600" />
+                                                    <div className="p-2 bg-action-light rounded-lg">
+                                                        <Award className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
                                                         <p className="font-medium text-gray-900">Degree Certificate</p>
                                                         <p className="text-sm text-gray-500">Click to view document</p>
                                                     </div>
                                                 </div>
-                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                                <ExternalLink className="w-4 h-4 text-action" />
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Malpractice Insurance */}
                                     {therapist.malpractice_document_url && (
-                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                        <div className="p-4 border border-action-light rounded-xl bg-action-light/50 hover:bg-action-light transition-colors cursor-pointer"
                                             onClick={() => handleViewDocument(therapist.malpractice_document_url, 'Malpractice Insurance')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-orange-100 rounded-lg">
-                                                        <Shield className="w-5 h-5 text-orange-600" />
+                                                    <div className="p-2 bg-action-light rounded-lg">
+                                                        <Shield className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
                                                         <p className="font-medium text-gray-900">Malpractice Insurance</p>
                                                         <p className="text-sm text-gray-500">Click to view document</p>
                                                     </div>
                                                 </div>
-                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                                <ExternalLink className="w-4 h-4 text-action" />
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Photo ID */}
                                     {therapist.photo_id_url && (
-                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                        <div className="p-4 border border-action-light rounded-xl bg-action-light/50 hover:bg-action-light transition-colors cursor-pointer"
                                             onClick={() => handleViewDocument(therapist.photo_id_url, 'Photo ID')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-orange-100 rounded-lg">
-                                                        <User className="w-5 h-5 text-orange-600" />
+                                                    <div className="p-2 bg-action-light rounded-lg">
+                                                        <User className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
                                                         <p className="font-medium text-gray-900">Photo ID</p>
                                                         <p className="text-sm text-gray-500">Click to view document</p>
                                                     </div>
                                                 </div>
-                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                                <ExternalLink className="w-4 h-4 text-action" />
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Professional Headshot */}
                                     {therapist.headshot_url && (
-                                        <div className="p-4 border border-orange-200 rounded-xl bg-orange-50/50 hover:bg-orange-50 transition-colors cursor-pointer"
+                                        <div className="p-4 border border-action-light rounded-xl bg-action-light/50 hover:bg-action-light transition-colors cursor-pointer"
                                             onClick={() => handleViewDocument(therapist.headshot_url, 'Professional Headshot')}>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-orange-100 rounded-lg">
-                                                        <User className="w-5 h-5 text-orange-600" />
+                                                    <div className="p-2 bg-action-light rounded-lg">
+                                                        <User className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
                                                         <p className="font-medium text-gray-900">Professional Headshot</p>
                                                         <p className="text-sm text-gray-500">Click to view image</p>
                                                     </div>
                                                 </div>
-                                                <ExternalLink className="w-4 h-4 text-orange-600" />
+                                                <ExternalLink className="w-4 h-4 text-action" />
                                             </div>
                                         </div>
                                     )}
@@ -569,8 +569,8 @@ function VerificationSheet({
                     <Step>
                         <div className="p-8 space-y-6">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2 bg-orange-100 rounded-lg">
-                                    <CheckCircle2 className="w-5 h-5 text-orange-600" />
+                                <div className="p-2 bg-action-light rounded-lg">
+                                    <CheckCircle2 className="w-5 h-5 text-action" />
                                 </div>
                                 <h3 className="text-xl font-semibold text-foreground">Final Review</h3>
                             </div>
@@ -761,7 +761,7 @@ export default function TherapistVerificationView() {
 
                         <button
                             onClick={exportToCSV}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-all"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-action text-white rounded-lg font-medium hover:bg-action-dark transition-all"
                         >
                             <Download className="w-4 h-4" />
                             Export CSV
@@ -806,14 +806,14 @@ export default function TherapistVerificationView() {
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-4 gap-4">
-                        <div className="bg-orange-50 rounded-lg p-4 border border-orange-100">
+                        <div className="bg-action-light rounded-lg p-4 border border-action-light">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs text-muted-foreground mb-1">Total Therapists</p>
                                     <p className="text-3xl font-bold text-foreground">{stats.total}</p>
                                 </div>
-                                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                                    <User className="w-5 h-5 text-orange-600" />
+                                <div className="w-10 h-10 bg-action-light rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-action" />
                                 </div>
                             </div>
                         </div>

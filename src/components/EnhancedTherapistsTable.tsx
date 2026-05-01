@@ -8,6 +8,8 @@ import { Input } from './ui/input';
 // REMOVED: TherapistVerificationDetailModal - verification is handled in separate screen
 import { dataService } from '../api';
 import { get } from '../api/client';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localDb } from '../lib/db/localDb';
 import { UserRole } from '../types/appointment';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -60,9 +62,10 @@ interface Therapist {
 interface EnhancedTherapistsTableProps {
   userRole: UserRole;
   organizationId?: string;
+  currentUserId?: string;
 }
 
-export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTherapistsTableProps) {
+export function EnhancedTherapistsTable({ userRole, organizationId, currentUserId }: EnhancedTherapistsTableProps) {
   // const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
   // REMOVED: verificationModalOpen - verification handled in separate screen
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
@@ -81,6 +84,37 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
   const loadTherapists = async () => {
     try {
       setLoading(true);
+      if (USE_LOCAL_DB) {
+        let dbTherapists = await localDb.therapists.findMany();
+        
+        // Filter out therapists without an organization if orgAdmin/admin
+        if (userRole === 'admin' || userRole === 'org_admin') {
+          const user = (await localDb.users.findMany(u => u.id === currentUserId))[0];
+          if (user?.organizationId) {
+            dbTherapists = dbTherapists.filter(t => t.organizationId === user.organizationId);
+          }
+        }
+        
+        const orgs = await localDb.organizations.findMany();
+        const transformedTherapists: Therapist[] = dbTherapists.map(t => {
+          const org = orgs.find(o => o.id === t.organizationId);
+          return {
+            id: t.id,
+            name: t.name,
+            email: t.email,
+            phone: t.phone || 'N/A',
+            specialty: t.specialties[0] || 'General Therapy',
+            location: 'N/A',
+            credentials: t.title || 'N/A',
+            status: t.status,
+            organization: org ? org.name : 'Independent',
+            avatar: t.avatar
+          };
+        });
+        setTherapists(transformedTherapists);
+        return;
+      }
+
       // Call the real therapist service backend using secure client
       const data = await get<any[]>('/api/therapists');
 

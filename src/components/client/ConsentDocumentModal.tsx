@@ -208,7 +208,7 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                                                         [field.id]: e.target.value,
                                                     }))
                                                 }
-                                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
                                             />
                                         ) : (
                                             <div className="relative">
@@ -221,7 +221,7 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                                                         />
                                                         <button
                                                             onClick={() => handleOpenSignatureModal(field.id)}
-                                                            className="mt-2 text-sm text-[#F97316] hover:text-[#ea6b0f]"
+                                                            className="mt-2 text-sm text-[#1E7048] hover:text-[#ea6b0f]"
                                                         >
                                                             Change Signature
                                                         </button>
@@ -229,7 +229,7 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                                                 ) : (
                                                     <button
                                                         onClick={() => handleOpenSignatureModal(field.id)}
-                                                        className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-md hover:border-[#F97316] transition-colors flex flex-col items-center justify-center gap-2 text-gray-600"
+                                                        className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-md hover:border-[#1E7048] transition-colors flex flex-col items-center justify-center gap-2 text-gray-600"
                                                     >
                                                         <PenTool className="w-5 h-5" />
                                                         <span className="text-sm">Click to sign</span>
@@ -246,7 +246,7 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                                 disabled={documentSigned}
                                 className={`mt-6 w-full ${documentSigned
                                     ? 'bg-green-600 hover:bg-green-600 cursor-not-allowed'
-                                    : 'bg-[#F97316] hover:bg-[#ea6b0f]'
+                                    : 'bg-[#1E7048] hover:bg-[#ea6b0f]'
                                     }`}
                             >
                                 {documentSigned ? (
@@ -302,7 +302,7 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                                 </Button>
                                 <Button
                                     onClick={handleSaveSignature}
-                                    className="bg-[#F97316] hover:bg-[#ea6b0f]"
+                                    className="bg-[#1E7048] hover:bg-[#ea6b0f]"
                                 >
                                     Save Signature
                                 </Button>

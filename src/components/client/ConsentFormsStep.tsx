@@ -481,7 +481,7 @@ export function ConsentFormsStep({ formData, updateFormData }: StepProps) {
                                         {!isSigned ? (
                                             <Button
                                                 onClick={() => handleViewDocument(doc)}
-                                                className="bg-[#F97316] hover:bg-[#ea6b0f] text-white"
+                                                className="bg-[#1E7048] hover:bg-[#ea6b0f] text-white"
                                             >
                                                 <Eye className="w-4 h-4 mr-2" />
                                                 Review & Sign

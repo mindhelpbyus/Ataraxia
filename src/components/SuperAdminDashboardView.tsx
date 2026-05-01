@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { localDb } from '../lib/db/localDb';
 import { motion } from 'framer-motion';
 import {
     Building2,
@@ -130,7 +131,25 @@ const CustomAreaChart = ({ data, color = "#6366f1" }: { data: any[], color?: str
 );
 
 export function SuperAdminDashboardView({ userId, userEmail, userName, onNavigate }: SuperAdminDashboardViewProps) {
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = React.useState('overview');
+    const [stats, setStats] = React.useState<any>(null);
+    const [loading, setLoading] = React.useState(true);
+
+    const loadStats = async () => {
+        try {
+            setLoading(true);
+            const data = await localDb.getDashboardStats();
+            setStats(data);
+        } catch (e) {
+            console.error('Failed to load super admin stats', e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    React.useEffect(() => {
+        loadStats();
+    }, []);
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -138,6 +157,26 @@ export function SuperAdminDashboardView({ userId, userEmail, userName, onNavigat
         if (hour < 18) return 'Good Afternoon';
         return 'Good Evening';
     };
+
+    const platformGrowth = stats ? {
+        totalOrganizations: stats.totalOrganizations,
+        totalProviders: stats.totalTherapists,
+        totalClients: stats.totalClients,
+        dailyActiveUsers: 892, // Still mock for now
+        monthlyActiveUsers: 2847, // Still mock for now
+        growth: { organizations: 12.4, providers: 18.2, clients: 24.8, dau: 8.4, mau: 15.2 }
+    } : null;
+
+    const revenueMetrics = stats ? {
+        mrr: stats.totalRevenue / 12,
+        arr: stats.totalRevenue,
+        revenueGrowth: 18.5,
+        churnRate: 2.8
+    } : null;
+
+    if (loading || !stats) {
+        return <div className="flex items-center justify-center h-screen text-muted-foreground">Loading platform insights...</div>;
+    }
 
     return (
         <div className="min-h-screen bg-background p-8 max-w-[1600px] mx-auto font-sans">
@@ -212,7 +251,7 @@ export function SuperAdminDashboardView({ userId, userEmail, userName, onNavigat
                                 trend="up"
                                 trendValue={platformGrowth.growth.clients}
                                 icon={Users}
-                                colorClass="bg-orange-500"
+                                colorClass="bg-action"
                             />
                         </div>
 

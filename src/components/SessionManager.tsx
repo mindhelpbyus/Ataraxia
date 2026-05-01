@@ -205,7 +205,7 @@ export const SessionManager: React.FC = () => {
                   <div className="text-sm text-muted-foreground">Active Sessions</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">
+                  <div className="text-2xl font-bold text-action">
                     {Math.round(analytics.averageSessionDuration)}m
                   </div>
                   <div className="text-sm text-muted-foreground">Avg Duration</div>
@@ -328,7 +328,7 @@ export const SessionManager: React.FC = () => {
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-action rounded-full mt-2"></div>
                 <p>
                   <strong>Suspicious activity:</strong> If you see unfamiliar sessions, log out all devices immediately and change your password.
                 </p>

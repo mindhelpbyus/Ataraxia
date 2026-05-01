@@ -531,7 +531,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                                                 onCheckedChange={(checked) => updateNotificationChannel(item.id, 'inApp', checked)}
                                                                 disabled={item.locked || !masterChannels.inApp}
                                                             />
-                                                            <Bell className="w-4 h-4 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                                                            <Bell className="w-4 h-4 text-gray-400 group-hover:text-action transition-colors" />
                                                             <span className="text-sm text-gray-600">In-App</span>
                                                         </div>
                                                     </div>

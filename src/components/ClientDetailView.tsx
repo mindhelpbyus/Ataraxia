@@ -201,7 +201,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
     const getRiskBadge = (level: string) => {
         const colors = {
             low: 'bg-green-100 text-green-800',
-            medium: 'bg-orange-100 text-orange-800',
+            medium: 'bg-action-light text-action-dark',
             high: 'bg-red-100 text-red-800'
         };
         return (
@@ -277,7 +277,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Edit className="h-4 w-4 mr-2" />
                             Edit Profile
                         </Button>
-                        <Button className="bg-[#F97316] hover:bg-[#ea580c] text-white rounded-full">
+                        <Button className="bg-[#1E7048] hover:bg-[#145C34] text-white rounded-full">
                             <Calendar className="h-4 w-4 mr-2" />
                             Schedule Session
                         </Button>
@@ -286,14 +286,14 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
 
                 {/* Risk Banner */}
                 {clientData.profile.status.riskBanner && (
-                    <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg flex items-start gap-3">
-                        <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                    <div className="bg-action-light border-l-4 border-action p-4 rounded-lg flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-action flex-shrink-0 mt-0.5" />
                         <div>
-                            <h3 className="font-semibold text-orange-900">Risk Alert: {clientData.profile.status.riskLevel.toUpperCase()}</h3>
-                            <p className="text-sm text-orange-800 mt-1">{clientData.profile.status.riskBanner}</p>
+                            <h3 className="font-semibold text-action-dark">Risk Alert: {clientData.profile.status.riskLevel.toUpperCase()}</h3>
+                            <p className="text-sm text-action-dark mt-1">{clientData.profile.status.riskBanner}</p>
                             <Button
                                 variant="link"
-                                className="text-orange-600 p-0 h-auto mt-2"
+                                className="text-action p-0 h-auto mt-2"
                                 onClick={() => window.open(clientData.clinical.safety.safetyPlanUrl, '_blank')}
                             >
                                 View Safety Plan <ExternalLink className="h-3 w-3 ml-1" />
@@ -317,7 +317,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             {clientData.aiInsights.documentationAlerts.length > 0 && (
                                 <div className="space-y-1">
                                     {clientData.aiInsights.documentationAlerts.map((alert, i) => (
-                                        <div key={i} className="flex items-start gap-2 text-sm text-orange-800">
+                                        <div key={i} className="flex items-start gap-2 text-sm text-action-dark">
                                             <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                                             {alert}
                                         </div>
@@ -364,7 +364,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                         {getRiskBadge(clientData.profile.status.riskLevel)}
                                     </div>
                                 </div>
-                                <Shield className="h-8 w-8 text-orange-500" />
+                                <Shield className="h-8 w-8 text-action" />
                             </div>
                         </CardContent>
                     </Card>
@@ -412,7 +412,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <User className="h-5 w-5 text-[#F97316]" />
+                                        <User className="h-5 w-5 text-[#1E7048]" />
                                         Contact Information
                                     </CardTitle>
                                 </CardHeader>
@@ -467,7 +467,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg flex items-center gap-2">
-                                            <Calendar className="h-5 w-5 text-[#F97316]" />
+                                            <Calendar className="h-5 w-5 text-[#1E7048]" />
                                             Next Session
                                         </CardTitle>
                                     </CardHeader>
@@ -482,7 +482,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                             </Badge>
                                         </div>
                                         <Separator />
-                                        <Button className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white rounded-full">
+                                        <Button className="w-full bg-[#1E7048] hover:bg-[#145C34] text-white rounded-full">
                                             <Video className="h-4 w-4 mr-2" />
                                             Join Session
                                         </Button>
@@ -505,7 +505,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 <Card className="lg:col-span-2">
                                     <CardHeader>
                                         <CardTitle className="text-lg flex items-center gap-2">
-                                            <FileText className="h-5 w-5 text-[#F97316]" />
+                                            <FileText className="h-5 w-5 text-[#1E7048]" />
                                             Last Session Summary
                                         </CardTitle>
                                         <CardDescription>
@@ -522,7 +522,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                             <ul className="space-y-1">
                                                 {clientData.sessions.lastSession.goalsDiscussed.map((goal, i) => (
                                                     <li key={i} className="flex items-start gap-2 text-sm">
-                                                        <ChevronRight className="h-4 w-4 text-[#F97316] flex-shrink-0 mt-0.5" />
+                                                        <ChevronRight className="h-4 w-4 text-[#1E7048] flex-shrink-0 mt-0.5" />
                                                         {goal}
                                                     </li>
                                                 ))}
@@ -539,7 +539,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                                 ))}
                                             </ul>
                                         </div>
-                                        <Button variant="link" className="p-0 h-auto text-[#F97316]">
+                                        <Button variant="link" className="p-0 h-auto text-[#1E7048]">
                                             View Full Note <ExternalLink className="h-3 w-3 ml-1" />
                                         </Button>
                                     </CardContent>
@@ -555,7 +555,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Heart className="h-5 w-5 text-[#F97316]" />
+                                        <Heart className="h-5 w-5 text-[#1E7048]" />
                                         Diagnoses
                                     </CardTitle>
                                 </CardHeader>
@@ -587,13 +587,13 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Pill className="h-5 w-5 text-[#F97316]" />
+                                        <Pill className="h-5 w-5 text-[#1E7048]" />
                                         Current Medications
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     {clientData.clinical.medications.map((med, i) => (
-                                        <div key={i} className="border-l-2 border-[#F97316] pl-3 py-2">
+                                        <div key={i} className="border-l-2 border-[#1E7048] pl-3 py-2">
                                             <p className="font-semibold">{med.name}</p>
                                             <p className="text-sm text-muted-foreground">{med.dosage}</p>
                                             <p className="text-xs text-muted-foreground mt-1">
@@ -612,7 +612,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card className="lg:col-span-2">
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Target className="h-5 w-5 text-[#F97316]" />
+                                        <Target className="h-5 w-5 text-[#1E7048]" />
                                         Treatment Plan
                                     </CardTitle>
                                 </CardHeader>
@@ -635,7 +635,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                         <ul className="space-y-1">
                                             {clientData.clinical.treatmentPlan.subGoals.map((goal, i) => (
                                                 <li key={i} className="flex items-start gap-2 text-sm">
-                                                    <CheckCircle2 className="h-4 w-4 text-[#F97316] flex-shrink-0 mt-0.5" />
+                                                    <CheckCircle2 className="h-4 w-4 text-[#1E7048] flex-shrink-0 mt-0.5" />
                                                     {goal}
                                                 </li>
                                             ))}
@@ -650,10 +650,10 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             </Card>
 
                             {/* Safety Assessment */}
-                            <Card className="lg:col-span-2 border-orange-200">
+                            <Card className="lg:col-span-2 border-action-light">
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Shield className="h-5 w-5 text-orange-500" />
+                                        <Shield className="h-5 w-5 text-action" />
                                         Safety Assessment
                                     </CardTitle>
                                 </CardHeader>
@@ -708,7 +708,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Cancelled</p>
-                                        <p className="text-3xl font-semibold mt-1 text-orange-500">{clientData.sessions.stats.cancelled}</p>
+                                        <p className="text-3xl font-semibold mt-1 text-action">{clientData.sessions.stats.cancelled}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">No-Shows</p>
@@ -737,7 +737,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-center">
-                                        <p className="text-5xl font-bold text-[#F97316]">{clientData.assessments.latest.PHQ9?.score ?? '-'}</p>
+                                        <p className="text-5xl font-bold text-[#1E7048]">{clientData.assessments.latest.PHQ9?.score ?? '-'}</p>
                                         <p className="text-sm text-muted-foreground mt-2">
                                             Trend: <span className="font-semibold capitalize">{clientData.assessments.latest.PHQ9?.trend || 'N/A'}</span>
                                         </p>
@@ -779,7 +779,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                         <YAxis domain={[0, 27]} />
                                         <Tooltip />
                                         <Legend />
-                                        <Line type="monotone" dataKey="PHQ9" stroke="#F97316" strokeWidth={2} name="PHQ-9" />
+                                        <Line type="monotone" dataKey="PHQ9" stroke="#1E7048" strokeWidth={2} name="PHQ-9" />
                                         <Line type="monotone" dataKey="GAD7" stroke="#F59E0B" strokeWidth={2} name="GAD-7" />
                                     </LineChart>
                                 </ResponsiveContainer>
@@ -861,7 +861,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Shield className="h-5 w-5 text-[#F97316]" />
+                                        <Shield className="h-5 w-5 text-[#1E7048]" />
                                         Insurance Information
                                     </CardTitle>
                                 </CardHeader>
@@ -886,7 +886,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <DollarSign className="h-5 w-5 text-[#F97316]" />
+                                        <DollarSign className="h-5 w-5 text-[#1E7048]" />
                                         Recent Claims
                                     </CardTitle>
                                 </CardHeader>

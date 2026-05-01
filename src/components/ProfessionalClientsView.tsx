@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { get } from '../api/client';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localDb } from '../lib/db/localDb';
 import { Search, Filter, Plus, MoreVertical, Phone, Mail, Calendar, User, MapPin, AlertCircle, TrendingUp, AlertTriangle, Shield, Brain, CheckCircle2, Stethoscope, Clock, FileText, ChevronRight, Eye, Send, Sparkles, ShieldAlert, Files, MessageSquare, Activity, Target, Upload, XCircle, Download, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -55,6 +57,7 @@ interface Client {
 
 interface ProfessionalClientsViewProps {
   userRole: 'admin' | 'therapist' | 'superadmin' | 'client' | string;
+  currentUserId?: string;
 }
 
 // Helper to map simple Client data to detailed view data
@@ -201,7 +204,7 @@ const mapClientToDetailData = (client: Client): ClientDetailData => {
 
 
 
-export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewProps) {
+export function ProfessionalClientsView({ userRole, currentUserId }: ProfessionalClientsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -224,6 +227,55 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
 
   const loadClients = async () => {
     try {
+      if (USE_LOCAL_DB) {
+        let dbClients = await localDb.clients.findMany();
+        
+        // Apply RBAC filtering
+        if (userRole === 'therapist') {
+          // Therapist only sees their own assigned clients
+          const therapist = (await localDb.therapists.findMany(t => t.userId === currentUserId))[0];
+          if (therapist) {
+            dbClients = dbClients.filter(c => c.assignedTherapistId === therapist.id);
+          } else {
+            dbClients = [];
+          }
+        } else if (userRole === 'admin' || userRole === 'org_admin') {
+          // Org Admin sees all clients in their organization
+          const user = (await localDb.users.findMany(u => u.id === currentUserId))[0];
+          if (user?.organizationId) {
+            dbClients = dbClients.filter(c => c.organizationId === user.organizationId);
+          }
+        }
+        
+        const dbAppointments = await localDb.appointments.findMany();
+        const dbTherapists = await localDb.therapists.findMany();
+
+        const transformedClients: Client[] = dbClients.map(client => {
+          const therapist = dbTherapists.find(t => t.id === client.assignedTherapistId);
+          const clientAppts = dbAppointments.filter(a => a.clientId === client.userId).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+          
+          const pastAppts = clientAppts.filter(a => new Date(a.startTime) < new Date());
+          const futureAppts = clientAppts.filter(a => new Date(a.startTime) >= new Date());
+
+          return {
+            id: client.userId,
+            name: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email,
+            email: client.email,
+            phone: client.phone || 'N/A',
+            status: client.status === 'active' ? 'active' : 'inactive',
+            lastVisit: pastAppts.length > 0 ? pastAppts[pastAppts.length - 1].startTime.split('T')[0] : 'N/A',
+            nextAppointment: futureAppts.length > 0 ? futureAppts[0].startTime.split('T')[0] : null,
+            therapist: therapist ? therapist.name : 'Unassigned',
+            totalSessions: pastAppts.length,
+            condition: client.condition || 'General Therapy',
+            safetyRisk: client.safetyRisk || 'low',
+            safetyFlags: [] 
+          };
+        });
+        setClients(transformedClients);
+        return;
+      }
+
       // Use the secure API client with HTTP-only cookies
       const baseUrl = import.meta.env.VITE_CLIENT_SERVICE_URL || 'http://localhost:3003/api';
       const data = await get<any[]>(`${baseUrl}/clients`);
@@ -668,7 +720,7 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
                               </h2>
                               <span className="text-sm text-zinc-500 font-medium">({detailData.profile.identity.preferredName})</span>
                               <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${detailData.profile.status.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
-                                detailData.profile.status.riskLevel === 'medium' ? 'bg-orange-100 text-orange-700' :
+                                detailData.profile.status.riskLevel === 'medium' ? 'bg-action-light text-action-dark' :
                                   'bg-emerald-100 text-emerald-700'
                                 }`}>
                                 {detailData.profile.status.riskLevel} Risk
@@ -699,7 +751,7 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
 
                       {/* Safety Banner - Feature Flagged: Disabled */}
                       {false && (detailData.profile.status.riskLevel === 'high' || detailData.profile.status.riskLevel === 'medium') && (
-                        <div className={`mt-6 p-3 rounded-lg flex items-center gap-3 ${detailData.profile.status.riskLevel === 'high' ? 'bg-red-50 border border-red-100 text-red-800' : 'bg-orange-50 border border-orange-100 text-orange-800'}`}>
+                        <div className={`mt-6 p-3 rounded-lg flex items-center gap-3 ${detailData.profile.status.riskLevel === 'high' ? 'bg-red-50 border border-red-100 text-red-800' : 'bg-action-light border border-action-light text-action-dark'}`}>
                           <ShieldAlert className="h-5 w-5 flex-shrink-0" />
                           <span className="text-sm font-medium">
                             {detailData.profile.status.riskBanner || "Safety Alert: Please review recent assessments."}
@@ -731,7 +783,7 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
                           <div className="space-y-3">
                             {detailData.aiInsights.documentationAlerts.map((alert, i) => (
                               <div key={`doc-${i}`} className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
-                                <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                                <AlertTriangle className="h-4 w-4 text-action flex-shrink-0 mt-0.5" />
                                 <span className="text-sm text-zinc-700">{alert}</span>
                               </div>
                             ))}
@@ -1134,7 +1186,7 @@ export function ProfessionalClientsView({ userRole }: ProfessionalClientsViewPro
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#71717A', fontSize: 12 }} />
                                     <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                                     <Legend />
-                                    <Line type="monotone" dataKey="PHQ9" stroke="#F97316" strokeWidth={2} dot={{ r: 4 }} />
+                                    <Line type="monotone" dataKey="PHQ9" stroke="#1E7048" strokeWidth={2} dot={{ r: 4 }} />
                                     <Line type="monotone" dataKey="GAD7" stroke="#3B82F6" strokeWidth={2} dot={{ r: 4 }} />
                                   </LineChart>
                                 </ResponsiveContainer>
@@ -1543,7 +1595,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
               <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100">
                 <span className="text-xs text-zinc-500 uppercase font-semibold">Current Risk Status</span>
                 <div className="mt-1 flex items-center gap-2">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clientData.profile.status.riskLevel === 'high' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}`}>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clientData.profile.status.riskLevel === 'high' ? 'bg-red-100 text-red-800' : 'bg-action-light text-action-dark'}`}>
                     {clientData.profile.status.riskLevel.toUpperCase()} Risk
                   </span>
                 </div>

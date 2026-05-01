@@ -54,8 +54,8 @@ export function SessionTimeoutWarning({
             <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
                 <DialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                            <AlertTriangle className="h-6 w-6 text-orange-600" />
+                        <div className="h-12 w-12 rounded-full bg-action-light flex items-center justify-center">
+                            <AlertTriangle className="h-6 w-6 text-action" />
                         </div>
                         <DialogTitle className="text-xl">Session Expiring Soon</DialogTitle>
                     </div>
@@ -66,7 +66,7 @@ export function SessionTimeoutWarning({
 
                 <div className="flex items-center justify-center py-6">
                     <div className="text-center">
-                        <div className="text-6xl font-bold text-orange-600 tabular-nums">
+                        <div className="text-6xl font-bold text-action tabular-nums">
                             {minutes}:{seconds.toString().padStart(2, '0')}
                         </div>
                         <p className="text-sm text-muted-foreground mt-2">minutes remaining</p>
@@ -90,7 +90,7 @@ export function SessionTimeoutWarning({
                     </Button>
                     <Button
                         onClick={onExtendSession}
-                        className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700"
+                        className="w-full sm:w-auto bg-action-dark hover:bg-action-dark"
                     >
                         Stay Logged In
                     </Button>

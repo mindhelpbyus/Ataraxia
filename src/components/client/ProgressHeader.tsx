@@ -25,7 +25,7 @@ export function ProgressHeader({ currentStep, totalSteps, stepTitle }: ProgressH
             </div>
             <Progress value={progressPercent} className="h-2 bg-gray-100">
                 <div
-                    className="h-full bg-[#F97316] transition-all duration-300 rounded-full"
+                    className="h-full bg-[#1E7048] transition-all duration-300 rounded-full"
                     style={{ width: `${progressPercent}%` }}
                 />
             </Progress>

@@ -67,8 +67,8 @@ function useIdleTimeout(timeoutMs = 15 * 60 * 1000, onTimeout: () => void) {
 
 // ─── Shared Fallback UI ───────────────────────────────────────────────────────
 const PageSpinner = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--canvas)' }}>
+    <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--action)', borderTopColor: 'transparent' }} />
   </div>
 );
 
@@ -128,7 +128,10 @@ export default function App() {
               path="/login"
               element={
                 <ErrorBoundary>
-                  {user ? <Navigate to="/dashboard" replace /> : <LoginPage onLogin={(u) => useAuthStore.getState()._setUser(u)} />}
+                  {user ? <Navigate to="/dashboard" replace /> : <LoginPage
+                    onLogin={(u) => useAuthStore.getState()._setUser(u)}
+                    onRegisterTherapist={() => window.location.href = '/register'}
+                  />}
                 </ErrorBoundary>
               }
             />
@@ -136,7 +139,7 @@ export default function App() {
               path="/register"
               element={
                 <ErrorBoundary>
-                  <TherapistRegistrationForm onRegisterComplete={() => { }} onBackToLogin={() => { }} />
+                  <TherapistRegistrationForm onRegisterComplete={() => { }} onBackToLogin={() => window.location.href = '/login'} />
                 </ErrorBoundary>
               }
             />

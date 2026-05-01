@@ -459,7 +459,7 @@ export function AppointmentPanel({
                               size="sm"
                               onClick={() => handleStartCall(appointment.videoCallType || 'video')}
                               disabled={loading}
-                              className="w-full bg-[#F97316] hover:bg-[#F97316]/90 text-white"
+                              className="w-full bg-[#1E7048] hover:bg-[#1E7048]/90 text-white"
                             >
                               {appointment.videoCallType === 'video' ? (
                                 <Video className="h-4 w-4 mr-2" />

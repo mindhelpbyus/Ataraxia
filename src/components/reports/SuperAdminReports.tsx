@@ -141,7 +141,7 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
           icon={Users}
           trend="up"
           trendValue="+19"
-          colorClass="bg-orange-500"
+          colorClass="bg-action"
         />
         <MetricCard
           title="Total Clients"
@@ -180,10 +180,10 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
-                  <p className="text-sm font-medium text-orange-900 mb-1">Therapists</p>
-                  <p className="text-2xl font-bold text-orange-900">125</p>
-                  <p className="text-xs text-orange-700 mt-1">Avg 21/month</p>
+                <div className="p-4 bg-action-light border border-action-light rounded-xl">
+                  <p className="text-sm font-medium text-action-dark mb-1">Therapists</p>
+                  <p className="text-2xl font-bold text-action-dark">125</p>
+                  <p className="text-xs text-action-dark mt-1">Avg 21/month</p>
                 </div>
                 <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
                   <p className="text-sm font-medium text-blue-900 mb-1">Clients</p>
@@ -207,7 +207,7 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
                     contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="therapists" fill="#f97316" name="Therapists" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar yAxisId="left" dataKey="therapists" fill="#1E7048" name="Therapists" radius={[4, 4, 0, 0]} barSize={20} />
                   <Line
                     yAxisId="right"
                     type="monotone"
@@ -286,8 +286,8 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
                 <AreaChart data={activeUsersData}>
                   <defs>
                     <linearGradient id="colorDau" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#1E7048" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#1E7048" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorMau" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
@@ -304,7 +304,7 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
                     type="monotone"
                     dataKey="dau"
                     stackId="1"
-                    stroke="#f97316"
+                    stroke="#1E7048"
                     fill="url(#colorDau)"
                     name="Daily Active"
                   />
@@ -419,7 +419,7 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
                 {slowEndpoints.map((endpoint, index) => (
                   <div
                     key={endpoint.endpoint}
-                    className="p-3 border border-slate-100 rounded-xl hover:border-orange-200 hover:bg-orange-50/50 transition-colors"
+                    className="p-3 border border-slate-100 rounded-xl hover:border-action-light hover:bg-action-light/50 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1 overflow-hidden">

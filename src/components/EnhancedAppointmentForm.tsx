@@ -36,7 +36,7 @@ const PRESET_COLORS = [
   { name: 'Ocean Blue', value: '#0176d3' },
   { name: 'Emerald', value: '#2e844a' },
   { name: 'Amethyst', value: '#9050e9' },
-  { name: 'Sunset', value: '#F97316' },
+  { name: 'Sunset', value: '#1E7048' },
   { name: 'Ruby', value: '#ea001e' },
   { name: 'Turquoise', value: '#06a59a' },
   { name: 'Rose', value: '#e91e63' },
@@ -279,8 +279,8 @@ export function EnhancedAppointmentForm({
         <div className="px-8 pt-8 pb-6 bg-gradient-to-b from-muted/30 to-background border-b flex-shrink-0">
           <SheetHeader>
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-[#F97316]/10 flex items-center justify-center">
-                <CalendarIcon className="h-5 w-5 text-[#F97316]" />
+              <div className="w-11 h-11 rounded-xl bg-[#1E7048]/10 flex items-center justify-center">
+                <CalendarIcon className="h-5 w-5 text-[#1E7048]" />
               </div>
               <div>
                 <SheetTitle className="text-2xl font-medium leading-7">
@@ -303,7 +303,7 @@ export function EnhancedAppointmentForm({
             {/* Appointment Type Section */}
             <div className="space-y-5">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#F97316]" />
+                <Sparkles className="h-4 w-4 text-[#1E7048]" />
                 <Label className="text-base">Appointment Type</Label>
               </div>
               <RadioGroup
@@ -323,15 +323,15 @@ export function EnhancedAppointmentForm({
                       className={`
                         relative flex items-center gap-4 border-2 rounded-xl p-5 cursor-pointer transition-all group
                         ${isSelected
-                          ? 'border-[#F97316] bg-[#F97316]/5 shadow-sm'
-                          : 'border-border hover:border-[#F97316]/30 hover:bg-accent/50'
+                          ? 'border-[#1E7048] bg-[#1E7048]/5 shadow-sm'
+                          : 'border-border hover:border-[#1E7048]/30 hover:bg-accent/50'
                         }
                       `}
                     >
                       <RadioGroupItem value={type.value} id={type.value} className="sr-only" />
                       <div className={`
                         w-14 h-14 rounded-xl flex items-center justify-center transition-all flex-shrink-0
-                        ${isSelected ? 'bg-[#F97316] text-white shadow-md shadow-[#F97316]/20' : 'bg-muted text-muted-foreground group-hover:bg-muted/80'}
+                        ${isSelected ? 'bg-[#1E7048] text-white shadow-md shadow-[#1E7048]/20' : 'bg-muted text-muted-foreground group-hover:bg-muted/80'}
                       `}>
                         <Icon className="h-7 w-7" />
                       </div>
@@ -412,7 +412,7 @@ export function EnhancedAppointmentForm({
                         onClick={() => handleColorSelect(color.value)}
                         className={cn(
                           "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
-                          (formData.customColor === color.value || formData.color === color.value) ? "ring-2 ring-offset-2 ring-[#ea580c]" : "hover:scale-105"
+                          (formData.customColor === color.value || formData.color === color.value) ? "ring-2 ring-offset-2 ring-[#145C34]" : "hover:scale-105"
                         )}
                         style={{ backgroundColor: color.value }}
                         title={color.name}
@@ -423,7 +423,7 @@ export function EnhancedAppointmentForm({
 
                     {/* Custom Color Input */}
                     <div className="relative">
-                      <div className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-[#ea580c] transition-colors relative">
+                      <div className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-[#145C34] transition-colors relative">
                         <Palette className="w-4 h-4 text-muted-foreground" />
                         <Input
                           type="color"
@@ -647,15 +647,15 @@ export function EnhancedAppointmentForm({
                           className={`
                             flex items-center gap-3 border-2 rounded-lg p-4 cursor-pointer transition-all
                             ${formData.videoCallType === 'video'
-                              ? 'border-[#F97316] bg-[#F97316]/5'
-                              : 'border-border hover:border-[#F97316]/30'
+                              ? 'border-[#1E7048] bg-[#1E7048]/5'
+                              : 'border-border hover:border-[#1E7048]/30'
                             }
                           `}
                         >
                           <RadioGroupItem value="video" id="video-call" className="sr-only" />
                           <div className={`
                             w-10 h-10 rounded-lg flex items-center justify-center
-                            ${formData.videoCallType === 'video' ? 'bg-[#F97316] text-white' : 'bg-muted text-muted-foreground'}
+                            ${formData.videoCallType === 'video' ? 'bg-[#1E7048] text-white' : 'bg-muted text-muted-foreground'}
                           `}>
                             <Video className="h-5 w-5" />
                           </div>
@@ -670,15 +670,15 @@ export function EnhancedAppointmentForm({
                           className={`
                             flex items-center gap-3 border-2 rounded-lg p-4 cursor-pointer transition-all
                             ${formData.videoCallType === 'audio'
-                              ? 'border-[#F97316] bg-[#F97316]/5'
-                              : 'border-border hover:border-[#F97316]/30'
+                              ? 'border-[#1E7048] bg-[#1E7048]/5'
+                              : 'border-border hover:border-[#1E7048]/30'
                             }
                           `}
                         >
                           <RadioGroupItem value="audio" id="audio-call" className="sr-only" />
                           <div className={`
                             w-10 h-10 rounded-lg flex items-center justify-center
-                            ${formData.videoCallType === 'audio' ? 'bg-[#F97316] text-white' : 'bg-muted text-muted-foreground'}
+                            ${formData.videoCallType === 'audio' ? 'bg-[#1E7048] text-white' : 'bg-muted text-muted-foreground'}
                           `}>
                             <Phone className="h-5 w-5" />
                           </div>
@@ -743,8 +743,8 @@ export function EnhancedAppointmentForm({
               </div>
 
               {formData.flagged && (
-                <div className="rounded-xl border-2 border-[#F97316]/20 bg-[#F97316]/5 p-5 space-y-3">
-                  <div className="flex items-center gap-2 text-[#F97316]">
+                <div className="rounded-xl border-2 border-[#1E7048]/20 bg-[#1E7048]/5 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-[#1E7048]">
                     <Flag className="h-4 w-4" />
                     <span className="text-sm">This appointment is flagged for follow-up</span>
                   </div>
@@ -789,7 +789,7 @@ export function EnhancedAppointmentForm({
           <Button
             type="submit"
             disabled={loading}
-            className="px-8 h-11 bg-[#F97316] hover:bg-[#ea580c] text-white shadow-lg shadow-[#F97316]/20"
+            className="px-8 h-11 bg-[#1E7048] hover:bg-[#145C34] text-white shadow-lg shadow-[#1E7048]/20"
             onClick={handleSubmit}
           >
             {loading ? (

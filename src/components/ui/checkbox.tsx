@@ -25,8 +25,8 @@ function Checkbox({
         "hover:border-[var(--interaction-outline-hover,#A3A7B0)]",
 
         // Checked state
-        "data-[state=checked]:bg-[var(--action-primary-base,#F97316)]",
-        "data-[state=checked]:border-[var(--action-primary-base,#F97316)]",
+        "data-[state=checked]:bg-[var(--action-primary-base,#1E7048)]",
+        "data-[state=checked]:border-[var(--action-primary-base,#1E7048)]",
         "data-[state=checked]:text-white",
 
         // Focus state

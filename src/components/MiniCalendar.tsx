@@ -147,11 +147,11 @@ export function MiniCalendar({
                       ${selected
                         ? 'shadow-sm font-bold'
                         : todayDay
-                          ? 'text-orange-600 bg-orange-50 font-bold hover:bg-orange-100'
+                          ? 'text-action bg-action-light font-bold hover:bg-action-light'
                           : 'hover:bg-muted'
                       }
                     `}
-                    style={selected ? { backgroundColor: '#ea580c', color: 'white' } : {}}
+                    style={selected ? { backgroundColor: '#1E7048', color: 'white' } : {}}
                   >
                     <span className="">{date.getDate()}</span>
                   </button>
@@ -159,7 +159,7 @@ export function MiniCalendar({
                 <TooltipContent side="top">
                   <div className="text-xs">
                     <div className="font-medium">{date.toDateString()}</div>
-                    <div className="text-orange-300">
+                    <div className="text-sage">
                       {availability > 0 ? `${availability} Available Slots` : 'No Availability'}
                     </div>
                   </div>

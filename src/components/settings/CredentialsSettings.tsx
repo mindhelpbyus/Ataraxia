@@ -176,7 +176,7 @@ export const CredentialsSettings: React.FC<CredentialsSettingsProps> = ({ userId
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Brain className="w-5 h-5 text-orange-600" />
+                                <Brain className="w-5 h-5 text-action" />
                                 <h3 className="text-lg font-medium">Clinical Specialties</h3>
                             </div>
                             {clinicalCount > 0 && (
@@ -191,8 +191,8 @@ export const CredentialsSettings: React.FC<CredentialsSettingsProps> = ({ userId
                                 <div
                                     key={spec.value}
                                     className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${profileData.clinicalSpecialties[spec.value]
-                                        ? 'border-orange-500 bg-orange-50'
-                                        : 'border-border/50 hover:border-orange-300 bg-card'
+                                        ? 'border-action bg-action-light'
+                                        : 'border-border/50 hover:border-action-border bg-card'
                                         }`}
                                     onClick={() => handleCheckboxChange('clinical', spec.value, !profileData.clinicalSpecialties[spec.value])}
                                 >
@@ -214,7 +214,7 @@ export const CredentialsSettings: React.FC<CredentialsSettingsProps> = ({ userId
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Heart className="w-5 h-5 text-orange-600" />
+                                <Heart className="w-5 h-5 text-action" />
                                 <h3 className="text-lg font-medium">Age Groups & Populations</h3>
                             </div>
                             {lifeContextCount > 0 && (
@@ -229,8 +229,8 @@ export const CredentialsSettings: React.FC<CredentialsSettingsProps> = ({ userId
                                 <div
                                     key={spec.value}
                                     className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${profileData.lifeContextSpecialties[spec.value]
-                                        ? 'border-orange-500 bg-orange-50'
-                                        : 'border-border/50 hover:border-orange-300 bg-card'
+                                        ? 'border-action bg-action-light'
+                                        : 'border-border/50 hover:border-action-border bg-card'
                                         }`}
                                     onClick={() => handleCheckboxChange('lifeContext', spec.value, !profileData.lifeContextSpecialties[spec.value])}
                                 >
@@ -264,8 +264,8 @@ export const CredentialsSettings: React.FC<CredentialsSettingsProps> = ({ userId
                                 <div
                                     key={modality.value}
                                     className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${profileData.modalities[modality.value]
-                                        ? 'border-orange-500 bg-orange-50'
-                                        : 'border-border/50 hover:border-orange-300 bg-card'
+                                        ? 'border-action bg-action-light'
+                                        : 'border-border/50 hover:border-action-border bg-card'
                                         }`}
                                     onClick={() => handleCheckboxChange('modality', modality.value, !profileData.modalities[modality.value])}
                                 >
@@ -299,8 +299,8 @@ export const CredentialsSettings: React.FC<CredentialsSettingsProps> = ({ userId
                                 <div
                                     key={style.value}
                                     className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${profileData.styles[style.value]
-                                        ? 'border-orange-500 bg-orange-50'
-                                        : 'border-border/50 hover:border-orange-300 bg-card'
+                                        ? 'border-action bg-action-light'
+                                        : 'border-border/50 hover:border-action-border bg-card'
                                         }`}
                                     onClick={() => handleCheckboxChange('style', style.value, !profileData.styles[style.value])}
                                 >

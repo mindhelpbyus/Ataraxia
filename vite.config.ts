@@ -1,10 +1,63 @@
-
-  import { defineConfig } from 'vite';
+  import { defineConfig, loadEnv } from 'vite';
   import react from '@vitejs/plugin-react-swc';
   import path from 'path';
+  import { AccessToken } from 'livekit-server-sdk';
 
-  export default defineConfig({
-    plugins: [react()],
+  export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, process.cwd(), '');
+    
+    return {
+      plugins: [
+        react(),
+        {
+          name: 'livekit-token-mock',
+          configureServer(server) {
+            server.middlewares.use(async (req, res, next) => {
+              if (req.url?.startsWith('/api/video/token')) {
+                  const url = new URL(req.url, `http://${req.headers.host}`);
+                const appointmentId = url.searchParams.get('appointmentId') || 'test-room';
+                const participantName = url.searchParams.get('name') || 'User';
+                const role = url.searchParams.get('role') || 'client';
+
+                const apiKey = env.LIVEKIT_API_KEY;
+                const apiSecret = env.LIVEKIT_API_SECRET;
+
+                if (!apiKey || !apiSecret) {
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ error: 'LiveKit credentials missing in .env.local' }));
+                  return;
+                }
+
+                try {
+                  const roomName = `session-${appointmentId}`;
+                  const at = new AccessToken(apiKey, apiSecret, {
+                    identity: participantName,
+                    ttl: '2h',
+                  });
+                  at.addGrant({
+                    roomJoin: true,
+                    room: roomName,
+                    canPublish: true,
+                    canSubscribe: true,
+                    canPublishData: true,
+                    roomAdmin: role === 'therapist',
+                    roomRecord: role === 'therapist',
+                  });
+
+                  const token = await at.toJwt();
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ token, room: roomName }));
+                } catch (e: any) {
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ error: e.message }));
+                }
+                return;
+              }
+              next();
+            });
+          },
+        },
+      ],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {

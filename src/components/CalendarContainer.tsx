@@ -70,17 +70,22 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
   const loadData = async () => {
     setLoading(true);
     try {
-      const [appointmentsData, therapistsData] = await Promise.all([
-        appointmentsApi.getAppointments(
-          getStartDate().toISOString(),
-          getEndDate().toISOString(),
-          state.selectedTherapistIds.length > 0 ? state.selectedTherapistIds : undefined
-        ),
-        appointmentsApi.getTherapists(),
-      ]);
+      const therapistsData = await appointmentsApi.getTherapists();
+      setTherapists(therapistsData);
+
+      let idsToFetch = state.selectedTherapistIds;
+      if (userRole === 'therapist') {
+        const me = therapistsData.find(t => (t as any).userId === currentUserId || t.id === currentUserId);
+        if (me) idsToFetch = [me.id];
+      }
+
+      const appointmentsData = await appointmentsApi.getAppointments(
+        getStartDate().toISOString(),
+        getEndDate().toISOString(),
+        idsToFetch.length > 0 ? idsToFetch : undefined
+      );
 
       setAppointments(appointmentsData as unknown as Appointment[]);
-      setTherapists(therapistsData);
     } catch (error) {
       console.error('Failed to load data:', error);
       // Set empty arrays as fallback
@@ -228,11 +233,14 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
   };
 
   const currentTherapists = useMemo(() => {
-    if (userRole === 'admin') {
+    if (userRole === 'admin' || userRole === 'org_admin') {
+      if (state.selectedTherapistIds.length === 0) {
+        return therapists.slice(0, 3);
+      }
       return therapists.filter(t => state.selectedTherapistIds.includes(t.id));
     } else if (userRole === 'therapist') {
       // For therapists, try to find their profile in the therapists list
-      const therapistProfile = therapists.find(t => t.id === currentUserId);
+      const therapistProfile = therapists.find(t => (t as any).userId === currentUserId || t.id === currentUserId);
 
       if (therapistProfile) {
         return [therapistProfile];
@@ -336,10 +344,10 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
             {(['day', 'week', 'month'] as CalendarView[]).map((view) => (
               <Button
                 key={view}
-                variant={state.view === view ? "default" : "ghost"}
+                variant="ghost"
                 size="sm"
                 onClick={() => handleViewChange(view)}
-                className="capitalize text-sm px-4 py-1.5 h-8"
+                className={`capitalize text-sm px-4 py-1.5 h-8 ${state.view === view ? 'bg-action-light text-action font-bold shadow-sm rounded-md' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 {view}
               </Button>

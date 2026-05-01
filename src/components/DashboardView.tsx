@@ -9,24 +9,18 @@ import { Tag } from './ui/tag';
 import { Checkbox } from './ui/checkbox';
 import { SearchBar } from './ui/search-bar';
 import {
-  CalendarDays,
-  Users,
-  ClipboardList,
-  FileText,
-  ChevronRight,
-  Search,
-  Bell,
-  ChevronDown,
-  Mail,
-  Phone,
-  MapPin,
-  MoreVertical,
-  Calendar as CalendarIcon,
-  User as UserIcon,
-  TrendingUp
+  CalendarDays, Users, ClipboardList, FileText,
+  ChevronRight, Search, Bell, ChevronDown,
+  Mail, Phone, MapPin, MoreVertical,
+  Calendar as CalendarIcon, User as UserIcon, TrendingUp
 } from 'lucide-react';
 import { UserRole } from '../types/appointment';
 import { BedrockLogo } from '../imports/BedrockLogo';
+import { USE_LOCAL_DB } from '../lib/apiSwitch';
+import { localDb } from '../lib/db/localDb';
+
+const CITIES_SAMPLE = ['San Francisco, CA','Austin, TX','New York, NY','Chicago, IL','Seattle, WA','Boston, MA','Denver, CO','Portland, OR'];
+function pick<T>(arr: T[], n: number): T { return arr[Math.abs(n) % arr.length]; }
 
 interface DashboardViewProps {
   userRole: UserRole;
@@ -63,68 +57,75 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
   ]);
 
   useEffect(() => {
-    // Dashboard stats
-    fetch('/api/v1/dashboard/stats', { credentials: 'include' })
-      .then(r => r.json())
-      .then(d => {
-        if (!d) return;
-        setStatsData([
-          { icon: <CalendarDays className="h-6 w-6" />, label: 'Sessions Completed', value: `${d.sessionsCompleted ?? '—'} Sessions`, bgColor: 'bg-[#f2f2f2]' },
-          { icon: <Users className="h-6 w-6" />, label: 'Active Clients', value: `${d.activeClients ?? '—'} Clients`, bgColor: 'bg-[#f2f2f2]' },
-          { icon: <ClipboardList className="h-6 w-6" />, label: 'Total Appointments', value: `${d.totalAppointments ?? '—'} Scheduled`, bgColor: 'bg-[#f2f2f2]' },
-          { icon: <FileText className="h-6 w-6" />, label: 'Pending Notes', value: `${d.pendingNotes ?? '—'} Notes`, bgColor: 'bg-[#f2f2f2]' },
-        ]);
-        if (d.completionRateByMonth) setChartData(d.completionRateByMonth);
-      })
-      .catch(() => { });
+    const load = async () => {
+      try {
+        // ─── Dashboard Stats ───────────────────────────────────────────
+        const stats = USE_LOCAL_DB
+          ? await localDb.getDashboardStats()
+          : await fetch('/api/v1/dashboard/stats', { credentials: 'include' }).then(r => r.json());
 
-    // Upcoming appointments as agenda
-    fetch('/api/v1/appointments?upcoming=true&limit=4', { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        const colors = ['bg-[#F97316]', 'bg-[#4B4B4B]', 'bg-[#727272]', 'bg-[#AFAFAF]'];
-        setUpcomingAgenda((data ?? []).map((a: any, i: number) => ({
+        if (stats) {
+          setStatsData([
+            { icon: <CalendarDays className="h-6 w-6" />, label: 'Sessions Completed', value: `${stats.sessionsCompleted ?? '—'} Sessions`, bgColor: 'bg-[#f2f2f2]' },
+            { icon: <Users className="h-6 w-6" />, label: 'Active Clients', value: `${stats.activeClients ?? '—'} Clients`, bgColor: 'bg-[#f2f2f2]' },
+            { icon: <ClipboardList className="h-6 w-6" />, label: 'Total Appointments', value: `${stats.totalAppointments ?? '—'} Scheduled`, bgColor: 'bg-[#f2f2f2]' },
+            { icon: <FileText className="h-6 w-6" />, label: 'Pending Notes', value: `${stats.pendingNotes ?? '—'} Notes`, bgColor: 'bg-[#f2f2f2]' },
+          ]);
+          if (stats.completionRateByMonth) setChartData(stats.completionRateByMonth);
+        }
+
+        // ─── Upcoming Appointments ─────────────────────────────────────
+        const appts = USE_LOCAL_DB
+          ? await localDb.appointments.findMany(a => a.status === 'scheduled' || a.status === 'confirmed')
+          : await fetch('/api/v1/appointments?upcoming=true&limit=4', { credentials: 'include' }).then(r => r.json());
+
+        const colors = ['bg-[#1E7048]', 'bg-[#4B4B4B]', 'bg-[#727272]', 'bg-[#AFAFAF]'];
+        setUpcomingAgenda((appts ?? []).slice(0, 4).map((a: any, i: number) => ({
           id: a.id,
-          time: `${new Date(a.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${new Date(a.endTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} ${new Date(a.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
-          title: a.title || `Session with ${a.clientName || 'Client'}`,
-          description: a.notes || 'Therapy session',
+          time: `${new Date(a.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} — ${new Date(a.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+          title: `Session with ${a.clientName || 'Client'}`,
+          description: a.notes || `${a.type} session`,
           color: colors[i % colors.length],
         })));
-      })
-      .catch(() => { });
 
-    // People (mixed users)
-    fetch('/api/v1/users?limit=5', { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        const catColors: Record<string, string> = { therapist: 'bg-[#F8E7F0] text-[#C13584]', client: 'bg-[#E0F2FE] text-[#0284C7]', admin: 'bg-[#FEF3C7] text-[#D97706]' };
-        setPeopleData((data ?? []).map((u: any) => ({
+        // ─── People ────────────────────────────────────────────────────
+        const usersData = USE_LOCAL_DB
+          ? await localDb.users.findMany(u => u.role === 'therapist' || u.role === 'client')
+          : await fetch('/api/v1/users?limit=5', { credentials: 'include' }).then(r => r.json());
+
+        const catColors: Record<string, string> = {
+          therapist: 'bg-[#F8E7F0] text-[#C13584]',
+          client: 'bg-[#E0F2FE] text-[#0284C7]',
+          admin: 'bg-[#FEF3C7] text-[#D97706]',
+        };
+        setPeopleData((usersData ?? []).slice(0, 6).map((u: any) => ({
           id: u.id,
           name: u.name || `${u.first_name} ${u.last_name}`,
           email: u.email,
           phone: u.phone || '—',
           category: u.role?.charAt(0).toUpperCase() + u.role?.slice(1) || 'User',
           categoryColor: catColors[u.role] || 'bg-gray-100 text-gray-700',
-          location: u.location || '—',
+          location: u.location || pick(CITIES_SAMPLE, u.id.charCodeAt(5) || 0),
           gender: u.gender || '—',
         })));
-      })
-      .catch(() => { });
 
-    // Therapists
-    fetch('/api/v1/therapists?limit=5', { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        setTherapistsData((data ?? []).map((t: any) => ({
+        // ─── Therapists ────────────────────────────────────────────────
+        const therapistsRaw = USE_LOCAL_DB
+          ? await localDb.therapists.findMany()
+          : await fetch('/api/v1/therapists?limit=5', { credentials: 'include' }).then(r => r.json());
+
+        setTherapistsData((therapistsRaw ?? []).slice(0, 6).map((t: any) => ({
           id: t.id,
-          name: t.name || `${t.first_name} ${t.last_name}`,
-          specialty: t.specialty || t.specialization || '—',
-          location: t.location || '—',
-          status: t.is_active ? 'Active' : 'Inactive',
-          statusColor: t.is_active ? 'bg-black' : 'bg-[#F97316]',
+          name: t.name,
+          specialty: Array.isArray(t.specialties) ? t.specialties[0] : (t.specialty || '—'),
+          location: t.location || pick(CITIES_SAMPLE, t.id.charCodeAt(6) || 0),
+          status: t.status === 'active' ? 'Active' : 'Inactive',
+          statusColor: t.status === 'active' ? 'bg-black' : 'bg-[#1E7048]',
         })));
-      })
-      .catch(() => { });
+
+      } catch (e) { /* silent — UI shows placeholders */ }
+    };
+    load();
   }, [userEmail]);
 
   return (
@@ -147,11 +148,11 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
           <div className="flex items-center gap-6">
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-[#F97316] rounded-full"></span>
+              <span className="absolute top-1 right-1 h-2 w-2 bg-[#1E7048] rounded-full"></span>
             </Button>
             <div className="flex items-center gap-3">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-[#F97316] text-white">
+                <AvatarFallback className="bg-[#1E7048] text-white">
                   {userName.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
@@ -310,8 +311,8 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                         className="h-8 w-8"
                         status={person.category === 'Therapist' ? 'online' : person.category === 'Client' ? 'away' : 'offline'}
                       >
-                        <AvatarFallback className="bg-[#F97316] text-white text-sm">
-                          {person.name.split(' ').map(n => n[0]).join('')}
+                        <AvatarFallback className="bg-[#1E7048] text-white text-sm">
+                          {person.name.split(' ').map((n: string) => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm text-black font-medium">{person.name}</span>
@@ -413,8 +414,8 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                           className="h-8 w-8"
                           status={therapist.status === 'Active' ? 'online' : 'busy'}
                         >
-                          <AvatarFallback className="bg-[#F97316] text-white text-sm">
-                            {therapist.name.split(' ').map(n => n[0]).join('')}
+                          <AvatarFallback className="bg-[#1E7048] text-white text-sm">
+                          {therapist.name.split(' ').map((n: string) => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <span className="text-sm text-black font-medium">{therapist.name}</span>

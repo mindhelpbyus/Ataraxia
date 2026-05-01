@@ -39,16 +39,16 @@ export function ClientSidebar({
     onLogout
 }: ClientSidebarProps) {
     return (
-        <div className="w-72 h-screen bg-gradient-to-b from-white to-orange-50/30 border-r border-gray-200 flex flex-col">
+        <div className="w-72 h-screen bg-gradient-to-b from-white to-action-light/30 border-r border-gray-200 flex flex-col">
 
             {/* Logo */}
             <div className="p-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-action to-action-dark flex items-center justify-center shadow-lg">
                         <Sparkles className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+                        <h1 className="text-xl font-bold bg-gradient-to-r from-action-dark to-action bg-clip-text text-transparent">
                             Ataraxia
                         </h1>
                         <p className="text-xs text-muted-foreground">Your Wellness Journey</p>
@@ -73,8 +73,8 @@ export function ClientSidebar({
                             className={`
                                 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all
                                 ${isActive
-                                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30'
-                                    : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'
+                                    ? 'bg-gradient-to-r from-action to-action-dark text-white shadow-lg shadow-action/30'
+                                    : 'text-gray-600 hover:bg-action-light hover:text-action'
                                 }
                             `}
                         >
@@ -83,7 +83,7 @@ export function ClientSidebar({
                                 <div className={`font-semibold text-sm ${isActive ? 'text-white' : ''}`}>
                                     {item.label}
                                 </div>
-                                <div className={`text-xs ${isActive ? 'text-orange-100' : 'text-gray-500'}`}>
+                                <div className={`text-xs ${isActive ? 'text-action-light' : 'text-gray-500'}`}>
                                     {item.description}
                                 </div>
                             </div>
@@ -96,10 +96,10 @@ export function ClientSidebar({
 
             {/* User Profile */}
             <div className="p-4 space-y-3">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-orange-50/30">
-                    <Avatar className="w-12 h-12 border-2 border-orange-200">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-action-light/30">
+                    <Avatar className="w-12 h-12 border-2 border-action-light">
                         <AvatarImage src={userAvatar} />
-                        <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white">
+                        <AvatarFallback className="bg-gradient-to-br from-action to-action-dark text-white">
                             {userName.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                     </Avatar>

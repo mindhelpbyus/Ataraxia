@@ -201,7 +201,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
                                                 </Button>
                                                 <Button
                                                     onClick={startCamera}
-                                                    className="bg-[#F97316] hover:bg-[#ea6b0f] text-white"
+                                                    className="bg-[#1E7048] hover:bg-[#ea6b0f] text-white"
                                                     size="sm"
                                                 >
                                                     Try Again
@@ -240,7 +240,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
                                         type="button"
                                         onClick={capturePhoto}
                                         disabled={!isCameraReady}
-                                        className="bg-[#F97316] hover:bg-[#ea6b0f] text-white"
+                                        className="bg-[#1E7048] hover:bg-[#ea6b0f] text-white"
                                     >
                                         <Camera className="h-4 w-4 mr-2" />
                                         Capture Photo

@@ -26,7 +26,7 @@ function TimelineStep({ title, description, icon, completed, active, last }: Tim
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     className={`
             w-12 h-12 rounded-full flex items-center justify-center
-            ${completed ? 'bg-green-500 text-white' : active ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-400'}
+            ${completed ? 'bg-green-500 text-white' : active ? 'bg-action text-white' : 'bg-gray-200 text-gray-400'}
           `}
                 >
                     {completed ? <CheckCircle2 className="w-6 h-6" /> : icon}
@@ -46,7 +46,7 @@ function TimelineStep({ title, description, icon, completed, active, last }: Tim
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="mt-2 inline-flex items-center gap-2 text-sm text-orange-600"
+                        className="mt-2 inline-flex items-center gap-2 text-sm text-action"
                     >
                         <Clock className="w-4 h-4 animate-pulse" />
                         In Progress...
@@ -110,9 +110,9 @@ export function VerificationPendingPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-action-light to-yellow-50">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto" />
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-action mx-auto" />
                     <p className="mt-4 text-gray-600">Loading verification status...</p>
                 </div>
             </div>
@@ -121,7 +121,7 @@ export function VerificationPendingPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-action-light to-yellow-50">
                 <Card className="max-w-md w-full">
                     <CardContent className="p-6 text-center">
                         <p className="text-red-600">{error}</p>
@@ -191,7 +191,7 @@ export function VerificationPendingPage() {
     //    → Show Verification Pending Page with dynamic timeline
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-50 py-12 px-4">
+        <div className="min-h-screen bg-gradient-to-br from-action-light via-yellow-50 to-action-light py-12 px-4">
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <motion.div
@@ -199,8 +199,8 @@ export function VerificationPendingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center mb-12"
                 >
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-orange-100 mb-4">
-                        <Shield className="w-10 h-10 text-orange-600" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-action-light mb-4">
+                        <Shield className="w-10 h-10 text-action" />
                     </div>
                     <h1 className="text-4xl font-bold text-gray-900 mb-2">
                         Verification In Progress
@@ -217,16 +217,16 @@ export function VerificationPendingPage() {
                     transition={{ delay: 0.1 }}
                 >
                     <Card className="shadow-xl">
-                        <CardHeader className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white">
+                        <CardHeader className="bg-gradient-to-r from-action to-yellow-500 text-white">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h2 className="text-2xl font-semibold">Application Status</h2>
-                                    <p className="text-orange-100 mt-1">
+                                    <p className="text-action-light mt-1">
                                         {status?.message || 'Your application is being reviewed'}
                                     </p>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm text-orange-100">Estimated Time</div>
+                                    <div className="text-sm text-action-light">Estimated Time</div>
                                     <div className="text-xl font-bold">2-5 Days</div>
                                 </div>
                             </div>
@@ -319,7 +319,7 @@ export function VerificationPendingPage() {
                 >
                     <p>
                         Questions about your application?{' '}
-                        <a href="mailto:support@ataraxia.app" className="text-orange-600 hover:underline">
+                        <a href="mailto:support@ataraxia.app" className="text-action hover:underline">
                             Contact our support team
                         </a>
                     </p>

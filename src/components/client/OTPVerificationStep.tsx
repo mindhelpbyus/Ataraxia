@@ -44,7 +44,7 @@ export function OTPVerificationStep({
     return (
         <div className="space-y-8">
             <div className="text-center">
-                <Shield className="h-20 w-20 text-[#F97316] mx-auto mb-6" strokeWidth={1.5} />
+                <Shield className="h-20 w-20 text-[#1E7048] mx-auto mb-6" strokeWidth={1.5} />
                 <h2 className="text-2xl font-semibold mb-3">Verify Your Identity</h2>
                 <p className="text-muted-foreground text-sm">
                     To ensure your security, please verify your identity using a one-time password
@@ -58,15 +58,15 @@ export function OTPVerificationStep({
                         <RadioGroup value={verificationType} onValueChange={(v: 'email' | 'sms') => setVerificationType(v)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div
                                 className={`flex items-start space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 ${verificationType === 'email'
-                                        ? 'border-[#F97316] bg-orange-50 shadow-sm'
+                                        ? 'border-[#1E7048] bg-action-light shadow-sm'
                                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                     }`}
                                 onClick={() => setVerificationType('email')}
                             >
-                                <RadioGroupItem value="email" id="email" className="mt-1 data-[state=checked]:border-[#F97316] data-[state=checked]:text-[#F97316]" />
+                                <RadioGroupItem value="email" id="email" className="mt-1 data-[state=checked]:border-[#1E7048] data-[state=checked]:text-[#1E7048]" />
                                 <Label htmlFor="email" className="flex flex-col gap-1 cursor-pointer flex-1 font-normal">
                                     <div className="flex items-center gap-2 font-medium text-gray-900">
-                                        <Mail className={`h-4 w-4 ${verificationType === 'email' ? 'text-[#F97316]' : 'text-gray-500'}`} />
+                                        <Mail className={`h-4 w-4 ${verificationType === 'email' ? 'text-[#1E7048]' : 'text-gray-500'}`} />
                                         Email Verification
                                     </div>
                                     <div className="text-sm text-muted-foreground break-all">{clientEmail}</div>
@@ -75,15 +75,15 @@ export function OTPVerificationStep({
 
                             <div
                                 className={`flex items-start space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 ${verificationType === 'sms'
-                                        ? 'border-[#F97316] bg-orange-50 shadow-sm'
+                                        ? 'border-[#1E7048] bg-action-light shadow-sm'
                                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                     }`}
                                 onClick={() => setVerificationType('sms')}
                             >
-                                <RadioGroupItem value="sms" id="sms" className="mt-1 data-[state=checked]:border-[#F97316] data-[state=checked]:text-[#F97316]" />
+                                <RadioGroupItem value="sms" id="sms" className="mt-1 data-[state=checked]:border-[#1E7048] data-[state=checked]:text-[#1E7048]" />
                                 <Label htmlFor="sms" className="flex flex-col gap-1 cursor-pointer flex-1 font-normal">
                                     <div className="flex items-center gap-2 font-medium text-gray-900">
-                                        <Phone className={`h-4 w-4 ${verificationType === 'sms' ? 'text-[#F97316]' : 'text-gray-500'}`} />
+                                        <Phone className={`h-4 w-4 ${verificationType === 'sms' ? 'text-[#1E7048]' : 'text-gray-500'}`} />
                                         SMS Verification
                                     </div>
                                     <div className="text-sm text-muted-foreground">{clientPhone}</div>
@@ -93,7 +93,7 @@ export function OTPVerificationStep({
                     </div>
 
                     {!otpSent ? (
-                        <Button onClick={handleSendOTP} className="w-full bg-[#F97316] hover:bg-[#ea6b0f] text-white" size="lg">
+                        <Button onClick={handleSendOTP} className="w-full bg-[#1E7048] hover:bg-[#ea6b0f] text-white" size="lg">
                             <Send className="h-4 w-4 mr-2" />
                             Send Verification Code
                         </Button>
@@ -110,7 +110,7 @@ export function OTPVerificationStep({
                                     className="text-center text-2xl tracking-widest"
                                 />
                             </div>
-                            <Button onClick={handleVerifyOTP} className="w-full bg-[#F97316] hover:bg-[#ea6b0f] text-white" size="lg">
+                            <Button onClick={handleVerifyOTP} className="w-full bg-[#1E7048] hover:bg-[#ea6b0f] text-white" size="lg">
                                 <CheckCircle2 className="h-4 w-4 mr-2" />
                                 Verify Code
                             </Button>

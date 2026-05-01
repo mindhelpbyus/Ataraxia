@@ -70,7 +70,7 @@ export function ClientJournalView() {
         switch (mood) {
             case 'happy': return <Smile className={`${size} text-green-500`} />;
             case 'neutral': return <Meh className={`${size} text-yellow-500`} />;
-            case 'sad': return <Frown className={`${size} text-orange-500`} />;
+            case 'sad': return <Frown className={`${size} text-action`} />;
             default: return <Meh className={`${size} text-gray-400`} />;
         }
     };
@@ -102,13 +102,13 @@ export function ClientJournalView() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50/30 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-action-light via-white to-action-light/30 p-6">
             <div className="max-w-5xl mx-auto space-y-6">
 
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-action bg-clip-text text-transparent">
                             My Journal
                         </h1>
                         <p className="text-muted-foreground mt-1">Track your mood, energy, and reflections</p>
@@ -116,7 +116,7 @@ export function ClientJournalView() {
                     <Button
                         size="lg"
                         onClick={() => setShowNewEntry(!showNewEntry)}
-                        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
+                        className="bg-gradient-to-r from-action to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
                     >
                         <Plus className="w-5 h-5 mr-2" />
                         New Entry
@@ -131,10 +131,10 @@ export function ClientJournalView() {
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                         >
-                            <Card className="border-2 border-orange-200 shadow-2xl">
+                            <Card className="border-2 border-action-light shadow-2xl">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
-                                        <Sparkles className="w-5 h-5 text-orange-500" />
+                                        <Sparkles className="w-5 h-5 text-action" />
                                         How are you feeling today?
                                     </CardTitle>
                                 </CardHeader>
@@ -148,8 +148,8 @@ export function ClientJournalView() {
                                         <div className="grid grid-cols-3 gap-4">
                                             {[
                                                 { mood: 'happy' as const, label: 'Good', icon: <Smile className="w-8 h-8" />, color: 'from-green-400 to-emerald-500' },
-                                                { mood: 'neutral' as const, label: 'Okay', icon: <Meh className="w-8 h-8" />, color: 'from-yellow-400 to-orange-400' },
-                                                { mood: 'sad' as const, label: 'Low', icon: <Frown className="w-8 h-8" />, color: 'from-orange-400 to-red-400' },
+                                                { mood: 'neutral' as const, label: 'Okay', icon: <Meh className="w-8 h-8" />, color: 'from-yellow-400 to-action' },
+                                                { mood: 'sad' as const, label: 'Low', icon: <Frown className="w-8 h-8" />, color: 'from-action to-red-400' },
                                             ].map((item) => (
                                                 <motion.button
                                                     key={item.mood}
@@ -160,7 +160,7 @@ export function ClientJournalView() {
                                                         flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all
                                                         ${selectedMood === item.mood
                                                             ? `bg-gradient-to-br ${item.color} text-white border-transparent shadow-lg`
-                                                            : 'bg-white border-gray-200 hover:border-orange-300 text-gray-600'
+                                                            : 'bg-white border-gray-200 hover:border-action-border text-gray-600'
                                                         }
                                                     `}
                                                 >
@@ -255,7 +255,7 @@ export function ClientJournalView() {
                                         <Button
                                             onClick={handleSaveEntry}
                                             disabled={!selectedMood}
-                                            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
+                                            className="flex-1 bg-gradient-to-r from-action to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
                                             size="lg"
                                         >
                                             Save Entry
@@ -287,7 +287,7 @@ export function ClientJournalView() {
                                 <CardContent className="p-6">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center border-2 border-orange-200">
+                                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-action-light to-action-light flex items-center justify-center border-2 border-action-light">
                                                 {getMoodIcon(entry.mood, 'w-8 h-8')}
                                             </div>
                                             <div>
@@ -321,9 +321,9 @@ export function ClientJournalView() {
                                     )}
 
                                     {entry.highlights && (
-                                        <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
-                                            <p className="text-sm font-semibold text-orange-900 mb-1">✨ Highlights:</p>
-                                            <p className="text-sm text-orange-800">{entry.highlights}</p>
+                                        <div className="p-4 bg-action-light rounded-xl border border-action-light">
+                                            <p className="text-sm font-semibold text-action-dark mb-1">✨ Highlights:</p>
+                                            <p className="text-sm text-action-dark">{entry.highlights}</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -340,7 +340,7 @@ export function ClientJournalView() {
                             <p className="text-gray-500 mb-6">Start tracking your journey today</p>
                             <Button
                                 onClick={() => setShowNewEntry(true)}
-                                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                                className="bg-gradient-to-r from-action to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Create Your First Entry

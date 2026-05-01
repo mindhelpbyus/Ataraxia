@@ -286,7 +286,7 @@ export function SignatureCapture({
                 type="button"
                 onClick={handleTypedSignature}
                 disabled={!typedName.trim()}
-                className="w-full bg-[#F97316] hover:bg-[#ea580c]"
+                className="w-full bg-[#1E7048] hover:bg-[#145C34]"
               >
                 <Check className="h-4 w-4 mr-2" />
                 Use This Signature

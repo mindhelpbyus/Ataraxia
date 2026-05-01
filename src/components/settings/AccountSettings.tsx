@@ -438,7 +438,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                     <div className="bg-white rounded-lg border border-gray-200 p-6">
                         <div className="mb-4">
                             <h2 className="text-base font-semibold flex items-center gap-2">
-                                <Upload className="h-5 w-5 text-orange-500" />
+                                <Upload className="h-5 w-5 text-action" />
                                 Profile Photo
                             </h2>
                             <p className="text-sm text-muted-foreground mt-1">Upload a headshot, take a photo, or choose an avatar</p>
@@ -447,7 +447,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                         <div className="flex items-center gap-6">
                             <Avatar className="w-24 h-24 border-2 border-border shadow-sm">
                                 <AvatarImage src={profileImage || ''} />
-                                <AvatarFallback className="text-2xl bg-orange-100 text-orange-600 font-semibold">
+                                <AvatarFallback className="text-2xl bg-action-light text-action font-semibold">
                                     {firstName[0]?.toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
@@ -456,7 +456,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                                     <Button
                                         variant="default"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="h-9 bg-orange-500 hover:bg-orange-600 text-white"
+                                        className="h-9 bg-action hover:bg-action-dark text-white"
                                     >
                                         <Upload className="w-4 h-4 mr-2" /> Upload Photo
                                     </Button>
@@ -483,7 +483,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                     <div className="bg-white rounded-lg border border-gray-200 p-6">
                         <div className="mb-6">
                             <h2 className="text-base font-semibold flex items-center gap-2">
-                                <MapPin className="h-5 w-5 text-orange-500" />
+                                <MapPin className="h-5 w-5 text-action" />
                                 Personal Details
                             </h2>
                         </div>
@@ -567,7 +567,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                     <div className="bg-white rounded-lg border border-gray-200 p-6">
                         <div className="mb-6">
                             <h2 className="text-base font-semibold flex items-center gap-2">
-                                <MapPin className="h-5 w-5 text-orange-500" />
+                                <MapPin className="h-5 w-5 text-action" />
                                 Address <span className="text-red-500">*</span>
                             </h2>
                         </div>
@@ -715,7 +715,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
                             <div className="mb-6">
                                 <h2 className="text-base font-semibold flex items-center gap-2">
-                                    <AlertTriangle className="h-5 w-5 text-orange-500" />
+                                    <AlertTriangle className="h-5 w-5 text-action" />
                                     Emergency Contact <span className="text-red-500">*</span>
                                 </h2>
                             </div>
@@ -738,7 +738,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                         <Button
                             onClick={handleSave}
                             disabled={isLoading}
-                            className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-8 h-10 shadow-sm transition-all rounded-md"
+                            className="bg-action hover:bg-action-dark text-white font-medium px-8 h-10 shadow-sm transition-all rounded-md"
                         >
                             {isLoading ? 'Saving...' : 'Save Changes'}
                         </Button>

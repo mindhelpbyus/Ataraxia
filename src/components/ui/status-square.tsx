@@ -17,10 +17,10 @@ const StatusSquare = React.forwardRef<HTMLDivElement, StatusSquareProps>(
           // Colors
           variant === "blue" && "bg-[var(--interaction-blue-base,#2E90FA)]",
           variant === "green" && "bg-[var(--interaction-green-base,#589E67)]",
-          variant === "orange" && "bg-[var(--interaction-orange-base,#F97316)]",
+          variant === "orange" && "bg-[var(--interaction-orange-base,#1E7048)]",
           variant === "yellow" && "bg-[var(--interaction-yellow-base,#DC6803)]",
           variant === "red" && "bg-[var(--interaction-red-base,#AF4B4B)]",
-          variant === "neutral" && "bg-[var(--interaction-primary-base,#F97316)]",
+          variant === "neutral" && "bg-[var(--interaction-primary-base,#1E7048)]",
           variant === "purple" && "bg-[var(--interaction-purple-base,#7F56D9)]",
           
           className,

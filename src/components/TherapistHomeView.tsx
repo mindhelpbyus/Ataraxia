@@ -50,7 +50,7 @@ const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, coun
 
   let greeting = "Good morning";
   let Icon = Sun;
-  let bgGradient = "from-orange-400 via-amber-500 to-amber-600";
+  let bgGradient = "from-action via-action-dark to-sage-dark";
   let message = "Let's bring some light to your patients' lives today.";
 
   if (hour >= 12 && hour < 17) {
@@ -69,7 +69,7 @@ const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, coun
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br ${bgGradient} shadow-2xl shadow-orange-900/10 mb-10`}
+      className={`relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br ${bgGradient} shadow-2xl shadow-ink/10 mb-10`}
     >
       <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px]" />
       {/* Organic Shapes */}
@@ -175,7 +175,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
     <div className="col-span-12 mb-12 animate-in slide-in-from-bottom-4 duration-700 fade-in">
       <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
         {/* Subtle Background Decor */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-50/50 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-action-light/30 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-50/50 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none" />
 
         <div className="relative z-10 p-8 lg:p-10">
@@ -185,13 +185,13 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
             <div className="flex flex-col items-center text-center lg:items-start lg:text-left gap-6 min-w-[280px]">
               <div className="relative w-32 h-32">
                 {/* Glow behind progress */}
-                <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-90" />
+                <div className="absolute inset-0 bg-action/20 blur-xl rounded-full scale-90" />
                 <CircularProgressbar
                   value={progress}
                   text={`${progress}%`}
                   styles={buildStyles({
                     textSize: '20px',
-                    pathColor: '#f97316', // Orange-500
+                    pathColor: '#1E7048', // Orange-500
                     textColor: '#0f172a', // Slate-900 (High contrast)
                     trailColor: '#f1f5f9', // Slate-100
                     backgroundColor: '#ffffff',
@@ -204,7 +204,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                 <h3 className="text-2xl font-bold tracking-tight text-slate-900">
                   Complete Profile
                 </h3>
-                <p className="text-slate-500 leading-relaxed max-w-xs mx-auto lg:mx-0">
+                <p className="text-dim leading-relaxed max-w-xs mx-auto lg:mx-0">
                   Finish these mandatory steps to activate your account and start receiving clients.
                 </p>
               </div>
@@ -220,7 +220,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                 return (
                   <motion.button
                     key={section.id}
-                    whileHover={!isCompleted ? { y: -4, boxShadow: "0 10px 30px -10px rgba(249, 115, 22, 0.15)" } : {}}
+                    whileHover={!isCompleted ? { y: -4, boxShadow: "0 10px 30px -10px rgba(30, 112, 72, 0.15)" } : {}}
                     whileTap={!isCompleted ? { scale: 0.98 } : {}}
                     onClick={() => {
                       const targetTab = section.id === 'payment' ? 'insurance' : section.id;
@@ -231,7 +231,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                       relative flex items-center gap-5 p-5 rounded-2xl border transition-all duration-300 w-full text-left group
                       ${isCompleted
                         ? 'bg-slate-50/50 border-slate-100 opacity-60 cursor-default'
-                        : 'bg-white border-slate-100 shadow-sm hover:border-orange-200'
+                        : 'bg-surface border-rule shadow-sm hover:border-action-border'
                       }
                     `}
                   >
@@ -240,7 +240,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                       flex items-center justify-center w-12 h-12 rounded-xl text-lg shadow-sm transition-all duration-300 shrink-0
                       ${isCompleted
                         ? 'bg-green-100 text-green-600 ring-1 ring-green-100' // Completed State
-                        : 'bg-gradient-to-br from-orange-50 to-orange-100/50 text-orange-600 ring-1 ring-orange-100 group-hover:from-orange-500 group-hover:to-amber-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/20' // Active State
+                        : 'bg-action-light text-action ring-1 ring-action-border group-hover:from-action group-hover:to-action-dark group-hover:text-white group-hover:shadow-lg group-hover:shadow-action/20' // Active State
                       }
                     `}>
                       {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <section.icon className="w-5 h-5" />}
@@ -249,14 +249,14 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                     {/* Text Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`font-bold text-base tracking-tight ${isCompleted ? 'text-slate-500' : 'text-slate-900 group-hover:text-orange-950 transition-colors'}`}>
+                        <span className={`font-bold text-base tracking-tight ${isCompleted ? 'text-dim' : 'text-ink group-hover:text-action-dark transition-colors'}`}>
                           {section.label}
                         </span>
                         {!isCompleted && (
-                          <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
+                          <span className="flex h-2 w-2 rounded-full bg-action animate-pulse shadow-[0_0_8px_rgba(30,112,72,0.6)]" />
                         )}
                       </div>
-                      <span className={`text-sm font-medium ${isCompleted ? 'text-slate-400' : 'text-slate-500 group-hover:text-slate-600'}`}>
+                      <span className={`text-sm font-medium ${isCompleted ? 'text-slate-400' : 'text-dim group-hover:text-slate-600'}`}>
                         {isCompleted ? 'Completed' : 'Action Required'}
                       </span>
                     </div>
@@ -264,7 +264,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                     {/* Arrow Indicator (Only for active items) */}
                     {!isCompleted && (
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 -ml-2 translate-x-0 group-hover:translate-x-1">
-                        <div className="p-1.5 rounded-full bg-orange-50 text-orange-600">
+                        <div className="p-1.5 rounded-full bg-action-light text-action">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                         </div>
                       </div>
@@ -498,7 +498,7 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
                     className="relative group"
                   >
                     {/* Timeline Node */}
-                    <div className={`absolute -left-[2.2rem] top-1 w-4 h-4 rounded-full border-[3px] border-background ring-1 ring-border ${session.status === 'confirmed' ? 'bg-primary shadow-[0_0_0_4px_rgba(234,88,12,0.1)]' : 'bg-muted'}`} />
+                    <div className={`absolute -left-[2.2rem] top-1 w-4 h-4 rounded-full border-[3px] border-background ring-1 ring-border ${session.status === 'confirmed' ? 'bg-primary shadow-[0_0_0_4px_rgba(30,112,72,0.1)]' : 'bg-muted'}`} />
 
                     <div className="bg-secondary/50 hover:bg-primary/5 p-5 rounded-2xl transition-colors border border-transparent hover:border-sidebar-primary/20 cursor-pointer">
                       <div className="flex justify-between items-start mb-2">
@@ -538,7 +538,7 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
               transition={{ delay: 0.6 }}
               className="bg-card rounded-[2rem] p-8 text-foreground border border-border h-full shadow-sm relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-action/10 rounded-full blur-[100px] pointer-events-none" />
 
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-8">
@@ -547,7 +547,7 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
                     <p className="text-muted-foreground">Session consistency</p>
                   </div>
                   <div className="p-3 bg-secondary rounded-2xl backdrop-blur-md">
-                    <TrendingUp className="w-6 h-6 text-orange-500" />
+                    <TrendingUp className="w-6 h-6 text-action" />
                   </div>
                 </div>
 
@@ -574,7 +574,7 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
                       />
                       <Bar
                         dataKey="sessions"
-                        fill="#f97316"
+                        fill="#1E7048"
                         radius={[6, 6, 6, 6]}
                         barSize={12}
                       />

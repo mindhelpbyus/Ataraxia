@@ -134,7 +134,7 @@ export function ProfessionalDashboard({ userRole, userEmail, onNavigate }: Profe
             trend="down"
             trendValue="-1"
             icon={FileText}
-            colorClass="bg-orange-500"
+            colorClass="bg-action"
           />
         </div>
 
@@ -246,7 +246,7 @@ export function ProfessionalDashboard({ userRole, userEmail, onNavigate }: Profe
         </div>
 
         <div className="col-span-4">
-          <Card className="border-slate-100 shadow-sm h-full bg-gradient-to-br from-amber-50 to-orange-50">
+          <Card className="border-slate-100 shadow-sm h-full bg-gradient-to-br from-amber-50 to-action-light">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-amber-900">
                 <Star className="h-5 w-5 text-amber-500" /> Weekly Goal

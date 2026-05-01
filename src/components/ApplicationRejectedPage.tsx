@@ -20,7 +20,7 @@ export function ApplicationRejectedPage({
     const supportPhone = '1-800-ATARAXIA';
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-50 py-12 px-4">
+        <div className="min-h-screen bg-gradient-to-br from-action-light via-yellow-50 to-action-light py-12 px-4">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <motion.div
@@ -52,8 +52,8 @@ export function ApplicationRejectedPage({
                 >
                     <Card className="shadow-xl">
                         <CardHeader className={`${isRejected
-                                ? 'bg-gradient-to-r from-red-500 to-orange-500'
-                                : 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                                ? 'bg-gradient-to-r from-red-500 to-action'
+                                : 'bg-gradient-to-r from-yellow-500 to-action'
                             } text-white`}>
                             <h2 className="text-2xl font-semibold">What You Need to Do</h2>
                         </CardHeader>
@@ -83,7 +83,7 @@ export function ApplicationRejectedPage({
                                 </h3>
                                 <ol className="space-y-3 text-gray-700">
                                     <li className="flex gap-3">
-                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-semibold">
+                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-action-light text-action flex items-center justify-center text-sm font-semibold">
                                             1
                                         </span>
                                         <span>
@@ -91,7 +91,7 @@ export function ApplicationRejectedPage({
                                         </span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-semibold">
+                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-action-light text-action flex items-center justify-center text-sm font-semibold">
                                             2
                                         </span>
                                         <span>
@@ -99,7 +99,7 @@ export function ApplicationRejectedPage({
                                         </span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-semibold">
+                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-action-light text-action flex items-center justify-center text-sm font-semibold">
                                             3
                                         </span>
                                         <span>
@@ -107,7 +107,7 @@ export function ApplicationRejectedPage({
                                         </span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-semibold">
+                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-action-light text-action flex items-center justify-center text-sm font-semibold">
                                             4
                                         </span>
                                         <span>
@@ -118,7 +118,7 @@ export function ApplicationRejectedPage({
                             </div>
 
                             {/* Contact Information */}
-                            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-lg p-6 space-y-4">
+                            <div className="bg-gradient-to-br from-action-light to-yellow-50 rounded-lg p-6 space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                                     Contact Support
                                 </h3>
@@ -126,13 +126,13 @@ export function ApplicationRejectedPage({
                                 {/* Email */}
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                                        <Mail className="w-5 h-5 text-orange-600" />
+                                        <Mail className="w-5 h-5 text-action" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-600">Email</p>
                                         <a
                                             href={`mailto:${supportEmail}`}
-                                            className="text-orange-600 hover:text-orange-700 font-medium"
+                                            className="text-action hover:text-action-dark font-medium"
                                         >
                                             {supportEmail}
                                         </a>
@@ -142,13 +142,13 @@ export function ApplicationRejectedPage({
                                 {/* Phone */}
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                                        <Phone className="w-5 h-5 text-orange-600" />
+                                        <Phone className="w-5 h-5 text-action" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-600">Phone</p>
                                         <a
                                             href={`tel:${supportPhone}`}
-                                            className="text-orange-600 hover:text-orange-700 font-medium"
+                                            className="text-action hover:text-action-dark font-medium"
                                         >
                                             {supportPhone}
                                         </a>
@@ -160,7 +160,7 @@ export function ApplicationRejectedPage({
                             <div className="flex gap-4 pt-4">
                                 <Button
                                     onClick={() => window.location.href = `mailto:${supportEmail}`}
-                                    className="flex-1 bg-orange-500 hover:bg-orange-600"
+                                    className="flex-1 bg-action hover:bg-action-dark"
                                 >
                                     <Mail className="w-4 h-4 mr-2" />
                                     Email Support

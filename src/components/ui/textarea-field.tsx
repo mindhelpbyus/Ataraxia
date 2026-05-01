@@ -86,7 +86,7 @@ export const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>
       if (success) {
         return 'outline-[color:var(--interaction-green-base,#10b981)]';
       }
-      return 'outline-[color:var(--interaction-outline-base,#d1d5db)] hover:outline-[color:var(--interaction-outline-hover,#9ca3af)] focus-within:outline-[color:var(--interaction-outline-active,#F97316)] focus-within:outline-2';
+      return 'outline-[color:var(--interaction-outline-base,#d1d5db)] hover:outline-[color:var(--interaction-outline-hover,#9ca3af)] focus-within:outline-[color:var(--interaction-outline-active,#1E7048)] focus-within:outline-2';
     };
 
     // Text color: filled = primary, empty = tertiary, disabled = disabled
