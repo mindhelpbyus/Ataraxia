@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: gitleaks (block committed secrets/keys)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
 
