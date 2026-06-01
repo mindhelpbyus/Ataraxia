@@ -35,16 +35,16 @@ export function GdprConsent() {
                     className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6"
                     data-testid="gdpr-consent-banner"
                 >
-                    <div className="mx-auto max-w-4xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-2xl rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="mx-auto max-w-4xl bg-card dark:bg-zinc-900 border border-border dark:border-zinc-800 shadow-2xl rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="flex items-start md:items-center gap-4">
                             <div className="bg-primary/10 p-3 rounded-full flex-shrink-0">
                                 <Cookie className="size-6 text-primary" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                                <h3 className="text-lg font-semibold text-foreground dark:text-muted-foreground mb-1">
                                     We value your privacy
                                 </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                                     We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking &quot;Accept All&quot;, you consent to our use of cookies according to GDPR standards.
                                 </p>
                             </div>

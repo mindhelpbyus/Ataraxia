@@ -158,13 +158,13 @@ export function ClinicalIntakeStep({ formData, updateFormData, toggleArrayValue 
                                 <p className="mb-2">If you're in crisis or having thoughts of suicide:</p>
                                 <div className="grid gap-2 mt-2">
                                     {getCrisisResources(formData.country).map((resource) => (
-                                        <div key={resource.id} className="flex items-center justify-between bg-white/50 p-2 rounded border border-red-100">
+                                        <div key={resource.id} className="flex items-center justify-between bg-card/50 p-2 rounded border border-red-100">
                                             <div>
                                                 <span className="font-bold">{resource.name}:</span> {resource.number}
                                             </div>
                                             <div className="flex gap-1">
-                                                {resource.method.includes('call') && <Badge variant="outline" className="bg-white text-[10px] h-5">Call</Badge>}
-                                                {resource.method.includes('text') && <Badge variant="outline" className="bg-white text-[10px] h-5">Text</Badge>}
+                                                {resource.method.includes('call') && <Badge variant="outline" className="bg-card text-[10px] h-5">Call</Badge>}
+                                                {resource.method.includes('text') && <Badge variant="outline" className="bg-card text-[10px] h-5">Text</Badge>}
                                             </div>
                                         </div>
                                     ))}

@@ -314,7 +314,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
             title: 'Platform Updates',
             description: 'News and feature announcements',
             icon: Bell,
-            iconColor: 'text-gray-500',
+            iconColor: 'text-muted-foreground',
             items: [
                 {
                     id: 'platformNews' as NotificationType,
@@ -334,26 +334,26 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
             <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h2 className="text-lg font-semibold text-gray-900 mb-1">Notification Preferences</h2>
-                        <p className="text-sm text-gray-600 mb-4">
+                        <h2 className="text-lg font-semibold text-foreground mb-1">Notification Preferences</h2>
+                        <p className="text-sm text-muted-foreground mb-4">
                             Control how and when you receive updates across all channels
                         </p>
                         <div className="flex items-center gap-6 text-sm">
                             <div className="flex items-center gap-2">
                                 <div className={`w-2 h-2 rounded-full ${masterChannels.email ? 'bg-green-500' : 'bg-red-500'}`} />
-                                <span className="text-gray-700">Email</span>
+                                <span className="text-foreground">Email</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className={`w-2 h-2 rounded-full ${masterChannels.push ? 'bg-green-500' : 'bg-red-500'}`} />
-                                <span className="text-gray-700">Push</span>
+                                <span className="text-foreground">Push</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className={`w-2 h-2 rounded-full ${masterChannels.sms ? 'bg-green-500' : 'bg-red-500'}`} />
-                                <span className="text-gray-700">SMS</span>
+                                <span className="text-foreground">SMS</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className={`w-2 h-2 rounded-full ${masterChannels.inApp ? 'bg-green-500' : 'bg-red-500'}`} />
-                                <span className="text-gray-700">In-App</span>
+                                <span className="text-foreground">In-App</span>
                             </div>
                         </div>
                     </div>
@@ -415,20 +415,20 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                 description="Receive bundled updates instead of individual emails"
             >
                 <CardContent className="p-6 space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-[var(--surface-warm)] transition-colors">
                         <div className="space-y-1">
-                            <div className="font-medium text-gray-900">Daily Digest</div>
-                            <p className="text-sm text-gray-500">Receive one email per day with all updates</p>
+                            <div className="font-medium text-foreground">Daily Digest</div>
+                            <p className="text-sm text-muted-foreground">Receive one email per day with all updates</p>
                         </div>
                         <Switch
                             checked={digestSettings.dailyDigest}
                             onCheckedChange={(checked) => setDigestSettings(prev => ({ ...prev, dailyDigest: checked }))}
                         />
                     </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-[var(--surface-warm)] transition-colors">
                         <div className="space-y-1">
-                            <div className="font-medium text-gray-900">Weekly Summary</div>
-                            <p className="text-sm text-gray-500">Weekly recap every Monday morning</p>
+                            <div className="font-medium text-foreground">Weekly Summary</div>
+                            <p className="text-sm text-muted-foreground">Weekly recap every Monday morning</p>
                         </div>
                         <Switch
                             checked={digestSettings.weeklyDigest}
@@ -437,14 +437,14 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                     </div>
                     {(digestSettings.dailyDigest || digestSettings.weeklyDigest) && (
                         <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                            <label className="text-sm font-medium text-gray-700 mb-2 block">
+                            <label className="text-sm font-medium text-foreground mb-2 block">
                                 Preferred Delivery Time
                             </label>
                             <input
                                 type="time"
                                 value={digestSettings.digestTime}
                                 onChange={(e) => setDigestSettings(prev => ({ ...prev, digestTime: e.target.value }))}
-                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                className="px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-card"
                             />
                         </div>
                     )}
@@ -468,10 +468,10 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                     return (
                                         <div
                                             key={itemIndex}
-                                            className="p-6 hover:bg-gray-50 transition-colors"
+                                            className="p-6 hover:bg-[var(--surface-warm)] transition-colors"
                                         >
                                             <div className="flex items-start gap-4">
-                                                <div className={`p-2 rounded-lg ${item.critical ? 'bg-red-50' : 'bg-gray-50'
+                                                <div className={`p-2 rounded-lg ${item.critical ? 'bg-red-50' : 'bg-[var(--surface-warm)]'
                                                     }`}>
                                                     <Icon className={`w-5 h-5 ${item.critical ? 'text-red-600' : category.iconColor
                                                         }`} />
@@ -479,15 +479,15 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
 
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <h4 className="font-medium text-gray-900">{item.title}</h4>
+                                                        <h4 className="font-medium text-foreground">{item.title}</h4>
                                                         {item.critical && (
                                                             <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
                                                                 Critical
                                                             </span>
                                                         )}
-                                                        {item.locked && <Lock className="w-3.5 h-3.5 text-gray-400" />}
+                                                        {item.locked && <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
                                                     </div>
-                                                    <p className="text-sm text-gray-500 mb-4">{item.description}</p>
+                                                    <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
 
                                                     {/* Channel Toggles */}
                                                     <div className="flex flex-wrap gap-3">
@@ -498,8 +498,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                                                 onCheckedChange={(checked) => updateNotificationChannel(item.id, 'email', checked)}
                                                                 disabled={item.locked || !masterChannels.email}
                                                             />
-                                                            <Mail className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                                                            <span className="text-sm text-gray-600">Email</span>
+                                                            <Mail className="w-4 h-4 text-muted-foreground group-hover:text-blue-500 transition-colors" />
+                                                            <span className="text-sm text-muted-foreground">Email</span>
                                                         </div>
 
                                                         <div className="flex items-center gap-2 group">
@@ -509,8 +509,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                                                 onCheckedChange={(checked) => updateNotificationChannel(item.id, 'push', checked)}
                                                                 disabled={item.locked || !masterChannels.push}
                                                             />
-                                                            <Smartphone className="w-4 h-4 text-gray-400 group-hover:text-green-500 transition-colors" />
-                                                            <span className="text-sm text-gray-600">Push</span>
+                                                            <Smartphone className="w-4 h-4 text-muted-foreground group-hover:text-green-500 transition-colors" />
+                                                            <span className="text-sm text-muted-foreground">Push</span>
                                                         </div>
 
                                                         <div className="flex items-center gap-2 group">
@@ -520,8 +520,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                                                 onCheckedChange={(checked) => updateNotificationChannel(item.id, 'sms', checked)}
                                                                 disabled={item.critical ? item.locked : !masterChannels.sms}
                                                             />
-                                                            <MessageSquare className="w-4 h-4 text-gray-400 group-hover:text-purple-500 transition-colors" />
-                                                            <span className="text-sm text-gray-600">SMS</span>
+                                                            <MessageSquare className="w-4 h-4 text-muted-foreground group-hover:text-purple-500 transition-colors" />
+                                                            <span className="text-sm text-muted-foreground">SMS</span>
                                                         </div>
 
                                                         <div className="flex items-center gap-2 group">
@@ -531,8 +531,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
                                                                 onCheckedChange={(checked) => updateNotificationChannel(item.id, 'inApp', checked)}
                                                                 disabled={item.locked || !masterChannels.inApp}
                                                             />
-                                                            <Bell className="w-4 h-4 text-gray-400 group-hover:text-action transition-colors" />
-                                                            <span className="text-sm text-gray-600">In-App</span>
+                                                            <Bell className="w-4 h-4 text-muted-foreground group-hover:text-action transition-colors" />
+                                                            <span className="text-sm text-muted-foreground">In-App</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -547,7 +547,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ user
             }
 
             {/* Action Buttons */}
-            <div className="pt-6 flex items-center justify-between bg-white py-4 border-t border-gray-200 mt-8">
+            <div className="pt-6 flex items-center justify-between bg-card py-4 border-t border-border mt-8">
                 <div className="flex gap-3 ml-auto">
                     <Button
                         variant="outline"

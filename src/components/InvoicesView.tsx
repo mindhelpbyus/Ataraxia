@@ -5,8 +5,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogHeader } from './ui/dialog';
 import { FileText, DollarSign, Clock, CheckCircle, FileSearch } from 'lucide-react';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+import { get } from '../api/client';
 import { UserRole } from '../types/appointment';
 import { TherapyInvoice, InvoiceData } from './TherapyInvoice';
 
@@ -121,42 +120,10 @@ export function InvoicesView({ userRole, currentUserId }: InvoicesViewProps) {
     const load = async () => {
       setLoading(true);
       try {
-        if (USE_LOCAL_DB) {
-          let data: any[] = [];
-
-          if (userRole === 'admin') {
-            data = await localDb.invoices.findMany();
-          } else if (userRole === 'org_admin') {
-            const user = (await localDb.users.findMany((u: any) => u.id === currentUserId))[0];
-            if (user?.organizationId) {
-              data = await localDb.getOrgInvoices(user.organizationId);
-            }
-          } else if (userRole === 'therapist') {
-            const therapist = (
-              await localDb.therapists.findMany((t: any) => t.userId === currentUserId)
-            )[0];
-            if (therapist) data = await localDb.getTherapistInvoices(therapist.id);
-          } else {
-            // client
-            const all = await localDb.invoices.findMany();
-            data = all.filter((i: any) => i.userId === currentUserId);
-          }
-
-          // Enrich with human-readable names
-          const users = await localDb.users.findMany();
-          const userMap = Object.fromEntries(users.map((u: any) => [u.id, u.name]));
-          data = data.map((i: any) => ({
-            ...i,
-            clientName: userMap[i.userId] || i.userId,
-            therapistName:
-              i.organizationId ? 'Organization' : userMap[i.therapistId] || i.therapistId,
-          }));
-
-          setInvoices(data);
-        } else {
-          const res = await fetch('/api/v1/invoices');
-          if (res.ok) setInvoices(await res.json());
-        }
+        // billing_payment: GET /api/invoices — backend scopes by the authenticated
+        // Cognito identity/role, so no client-side ownership filtering is needed.
+        const data = await get<any[]>('/api/invoices');
+        setInvoices(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to load invoices', err);
       } finally {

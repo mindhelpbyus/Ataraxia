@@ -81,7 +81,7 @@ export function ProfileCompletionBanner({
                   </div>
                   <Progress 
                     value={completionPercentage} 
-                    className="h-2 bg-white/50"
+                    className="h-2 bg-card/50"
                     indicatorClassName={
                       isLowCompletion 
                         ? 'bg-action' 

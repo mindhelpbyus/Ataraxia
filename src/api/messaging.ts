@@ -7,12 +7,15 @@
  */
 
 import { get, post } from './client';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+
+// backend-initial chat REST routes (community-stack):
+//   GET  /chat/conversations/{userId}          → list conversations
+//   GET  /chat/conversation/{conversationId}   → messages in a conversation
+//   POST /chat/conversations/{conversationId}/read
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type UserRole = 'client' | 'therapist' | 'receptionist' | 'admin' | 'super_admin';
+export type UserRole = 'client' | 'therapist' | 'receptionist' | 'admin' | 'superadmin';
 
 export interface Message {
     id: string;
@@ -37,46 +40,30 @@ export interface Conversation {
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export const messagingService = {
-    async getConversations(): Promise<Conversation[]> {
-        if (USE_LOCAL_DB) return localDb.conversations.findMany() as Promise<Conversation[]>;
-        return get<Conversation[]>('/api/v1/messages/conversations');
+    /** @param userId the authenticated user whose conversations to list */
+    async getConversations(userId: string): Promise<Conversation[]> {
+        return get<Conversation[]>(`/chat/conversations/${userId}`);
     },
 
     async getMessages(conversationId: string): Promise<Message[]> {
-        if (USE_LOCAL_DB) return localDb.messages.findMany(m => m.conversationId === conversationId) as unknown as Promise<Message[]>;
-        return get<Message[]>(`/api/v1/messages/conversations/${conversationId}/messages`);
+        return get<Message[]>(`/chat/conversation/${conversationId}`);
     },
 
     async sendMessage(conversationId: string, content: string): Promise<Message> {
-        if (USE_LOCAL_DB) {
-            const userId = sessionStorage.getItem('localDb_userId') ?? 'user-therapist-1';
-            const db = await localDb.users.findOne(userId);
-            const msg: Message = {
-                id: `msg-${Date.now()}`,
-                conversationId,
-                senderId: userId,
-                senderName: db?.name ?? 'Unknown',
-                senderRole: (db?.role ?? 'therapist') as Message['senderRole'],
-                content,
-                timestamp: new Date().toISOString(),
-                read: false,
-            };
-            await localDb.messages.create(msg as any);
-            await localDb.conversations.update(conversationId, { lastMessage: msg, updatedAt: new Date().toISOString() } as any);
-            return msg;
-        }
-        return post<Message>(`/api/v1/messages/conversations/${conversationId}/messages`, { content });
+        return post<Message>(`/chat/conversation/${conversationId}`, { content });
     },
 
     async markAsRead(conversationId: string): Promise<void> {
-        return post<void>(`/api/v1/messages/conversations/${conversationId}/read`, undefined);
+        return post<void>(`/chat/conversations/${conversationId}/read`, undefined);
     },
 
-    async toggleStar(conversationId: string): Promise<void> {
-        return post<void>(`/api/v1/messages/conversations/${conversationId}/star`, undefined);
+    // NOTE: backend-initial has no star/archive chat routes yet. These are no-ops
+    // until those endpoints exist (TODO(backend): add /chat/.../star, /archive).
+    async toggleStar(_conversationId: string): Promise<void> {
+        return;
     },
 
-    async archiveConversation(conversationId: string): Promise<void> {
-        return post<void>(`/api/v1/messages/conversations/${conversationId}/archive`, undefined);
+    async archiveConversation(_conversationId: string): Promise<void> {
+        return;
     },
 };

@@ -11,5 +11,6 @@ export * from '../securityConstants';
 export * from '../sanitization';
 export * from '../secureLogger';
 
-// Test helpers (only for test environment)
-export * from '../testHelpers';
+// Test helpers are intentionally NOT re-exported here (test-only, and they
+// duplicate names like containsPHI / storageContainsPattern). Import them
+// directly from '../testHelpers' in tests.

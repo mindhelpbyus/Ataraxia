@@ -10,8 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFo
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+import { get } from '../api/client';
 
 interface Task {
   id: string;
@@ -38,23 +37,17 @@ export function TasksView({ userRole }: TasksViewProps) {
   React.useEffect(() => {
     const loadTasks = async () => {
       try {
-        if (USE_LOCAL_DB) {
-          const dbTasks = await localDb.tasks.findMany();
-          setTasks(dbTasks.map(t => ({
-            id: t.id,
-            title: t.title,
-            priority: t.priority,
-            dueDate: t.dueDate,
-            completed: t.status === 'completed',
-            type: 'admin', // Default mapping
-            notes: t.description || ''
-          })));
-        } else {
-          const res = await fetch('/api/v1/tasks');
-          if (res.ok) {
-            setTasks(await res.json());
-          }
-        }
+        // backend-initial: GET /homework (clinician task/assignment entity)
+        const dbTasks = await get<any[]>('/homework');
+        setTasks((dbTasks ?? []).map(t => ({
+          id: t.id,
+          title: t.title,
+          priority: t.priority,
+          dueDate: t.dueDate,
+          completed: t.status === 'completed',
+          type: 'admin',
+          notes: t.description || ''
+        })));
       } catch (err) {
         console.error('Failed to load tasks', err);
       }
@@ -529,7 +522,7 @@ export function TasksView({ userRole }: TasksViewProps) {
                   onChange={(e) => setEditReason(e.target.value)}
                   placeholder="e.g., Client requested changes, Incorrect information, Additional details needed..."
                   required
-                  className="min-h-[120px] text-base p-4 leading-relaxed bg-white border-amber-300 rounded-xl resize-none focus:border-amber-500 focus:ring-amber-500/20 transition-all"
+                  className="min-h-[120px] text-base p-4 leading-relaxed bg-card border-amber-300 rounded-xl resize-none focus:border-amber-500 focus:ring-amber-500/20 transition-all"
                 />
               </div>
             )}

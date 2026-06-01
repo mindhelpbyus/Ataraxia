@@ -510,24 +510,24 @@ By signing below, you agree to uphold these ethical standards and code of conduc
 
     if (!docData) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-[var(--surface-warm)] flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-gray-600">Loading document...</p>
+                    <p className="text-muted-foreground">Loading document...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-[var(--surface-warm)]">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+            <div className="bg-card border-b border-border sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => navigate(-1)}
-                                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                className="p-2 hover:bg-muted rounded-md transition-colors"
                                 title="Back to Documents"
                             >
                                 <ArrowLeft className="w-5 h-5" />
@@ -546,31 +546,31 @@ By signing below, you agree to uphold these ethical standards and code of conduc
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleZoomOut}
-                                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                className="p-2 hover:bg-muted rounded-md transition-colors"
                                 title="Zoom Out"
                             >
                                 <ZoomOut className="w-5 h-5" />
                             </button>
-                            <span className="text-sm text-gray-600 min-w-[60px] text-center">
+                            <span className="text-sm text-muted-foreground min-w-[60px] text-center">
                                 {zoom}%
                             </span>
                             <button
                                 onClick={handleZoomIn}
-                                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                className="p-2 hover:bg-muted rounded-md transition-colors"
                                 title="Zoom In"
                             >
                                 <ZoomIn className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={handleFullScreen}
-                                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                className="p-2 hover:bg-muted rounded-md transition-colors"
                                 title="Full Screen"
                             >
                                 <Maximize2 className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={handleDownload}
-                                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                className="p-2 hover:bg-muted rounded-md transition-colors"
                                 title="Download"
                             >
                                 <Download className="w-5 h-5" />
@@ -582,7 +582,7 @@ By signing below, you agree to uphold these ethical standards and code of conduc
 
             {/* Document Content */}
             <div className="max-w-5xl mx-auto px-4 py-8">
-                <div className="bg-white rounded-lg shadow-sm p-8 md:p-12">
+                <div className="bg-card rounded-lg shadow-sm p-8 md:p-12">
                     <div
                         style={{
                             fontSize: `${zoom}%`,
@@ -597,12 +597,12 @@ By signing below, you agree to uphold these ethical standards and code of conduc
 
                     {/* Signature Fields */}
                     {docData.requiresSignature && docData.signatureFields.length > 0 && (
-                        <div className="mt-12 pt-8 border-t border-gray-200">
+                        <div className="mt-12 pt-8 border-t border-border">
                             <h3 className="text-lg font-semibold mb-6">Signature Required</h3>
                             <div className="space-y-6">
                                 {docData.signatureFields.map((field) => (
                                     <div key={field.id}>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-foreground mb-2">
                                             {field.label}
                                             {field.required && (
                                                 <span className="text-red-500 ml-1">*</span>
@@ -618,12 +618,12 @@ By signing below, you agree to uphold these ethical standards and code of conduc
                                                         [field.id]: e.target.value,
                                                     }))
                                                 }
-                                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         ) : (
                                             <div className="relative">
                                                 {signatures[field.id] ? (
-                                                    <div className="border border-gray-300 rounded-md p-4 bg-gray-50">
+                                                    <div className="border border-border rounded-md p-4 bg-[var(--surface-warm)]">
                                                         <img
                                                             src={signatures[field.id]}
                                                             alt="Signature"
@@ -639,7 +639,7 @@ By signing below, you agree to uphold these ethical standards and code of conduc
                                                 ) : (
                                                     <button
                                                         onClick={() => handleOpenSignatureModal(field.id)}
-                                                        className="w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400 transition-colors flex flex-col items-center justify-center gap-2 text-gray-600"
+                                                        className="w-full px-4 py-8 border-2 border-dashed border-border rounded-md hover:border-gray-400 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground"
                                                     >
                                                         <PenTool className="w-6 h-6" />
                                                         <span className="text-sm">Click to sign</span>
@@ -673,7 +673,7 @@ By signing below, you agree to uphold these ethical standards and code of conduc
 
                     {/* Acknowledge Button for non-signature documents */}
                     {!docData.requiresSignature && (
-                        <div className="mt-12 pt-8 border-t border-gray-200">
+                        <div className="mt-12 pt-8 border-t border-border">
                             <button
                                 onClick={() => {
                                     alert('Protocol acknowledged!');
@@ -691,8 +691,8 @@ By signing below, you agree to uphold these ethical standards and code of conduc
             {/* Signature Modal */}
             {showSignatureModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full">
+                        <div className="p-6 border-b border-border">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-semibold">Draw Your Signature</h2>
                                 <button
@@ -700,7 +700,7 @@ By signing below, you agree to uphold these ethical standards and code of conduc
                                         setShowSignatureModal(false);
                                         setCurrentSignatureField(null);
                                     }}
-                                    className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                    className="p-2 hover:bg-muted rounded-md transition-colors"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -708,7 +708,7 @@ By signing below, you agree to uphold these ethical standards and code of conduc
                         </div>
 
                         <div className="p-6">
-                            <div className="border-2 border-gray-300 rounded-md bg-gray-50 mb-4">
+                            <div className="border-2 border-border rounded-md bg-[var(--surface-warm)] mb-4">
                                 <SignatureCanvas
                                     ref={signatureCanvasRef}
                                     canvasProps={{
@@ -721,7 +721,7 @@ By signing below, you agree to uphold these ethical standards and code of conduc
                             <div className="flex items-center justify-between">
                                 <button
                                     onClick={handleClearSignature}
-                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                                    className="px-4 py-2 text-foreground border border-border rounded-md hover:bg-[var(--surface-warm)] transition-colors"
                                 >
                                     Clear
                                 </button>

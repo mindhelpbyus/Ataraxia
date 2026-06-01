@@ -28,20 +28,20 @@ export function InputShowcase() {
       <div className="max-w-7xl mx-auto space-y-16">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-semibold text-gray-900">Input Field Design System</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-semibold text-foreground">Input Field Design System</h1>
+          <p className="text-lg text-muted-foreground">
             Using CSS variables from design tokens • All states and variants
           </p>
         </div>
 
         {/* BASE INPUT STATES */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Base Input States</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Base Input States</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Base State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Base State</h3>
+              <h3 className="text-sm font-medium text-foreground">Base State</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -51,7 +51,7 @@ export function InputShowcase() {
 
             {/* Hover State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Hover State</h3>
+              <h3 className="text-sm font-medium text-foreground">Hover State</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -62,7 +62,7 @@ export function InputShowcase() {
 
             {/* Focus/Active State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Focus/Active State</h3>
+              <h3 className="text-sm font-medium text-foreground">Focus/Active State</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -73,7 +73,7 @@ export function InputShowcase() {
 
             {/* With Value */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Value</h3>
+              <h3 className="text-sm font-medium text-foreground">With Value</h3>
               <InputField
                 label="Input Label"
                 value="Enter your title here"
@@ -83,7 +83,7 @@ export function InputShowcase() {
 
             {/* Error State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Error State</h3>
+              <h3 className="text-sm font-medium text-foreground">Error State</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -93,7 +93,7 @@ export function InputShowcase() {
 
             {/* Success State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Success State</h3>
+              <h3 className="text-sm font-medium text-foreground">Success State</h3>
               <InputField
                 label="Input Label"
                 value="valid@email.com"
@@ -104,7 +104,7 @@ export function InputShowcase() {
 
             {/* Disabled State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -115,7 +115,7 @@ export function InputShowcase() {
 
             {/* Required Field */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Required Field</h3>
+              <h3 className="text-sm font-medium text-foreground">Required Field</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -128,12 +128,12 @@ export function InputShowcase() {
 
         {/* INPUT WITH ICONS */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Input with Icons</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Input with Icons</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Icon */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Left Icon</h3>
+              <h3 className="text-sm font-medium text-foreground">Left Icon</h3>
               <InputField
                 label="Email Address"
                 type="email"
@@ -147,7 +147,7 @@ export function InputShowcase() {
 
             {/* Right Icon */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Right Icon</h3>
+              <h3 className="text-sm font-medium text-foreground">Right Icon</h3>
               <InputField
                 label="Search"
                 placeholder="Search..."
@@ -160,7 +160,7 @@ export function InputShowcase() {
 
             {/* Both Icons */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Both Icons</h3>
+              <h3 className="text-sm font-medium text-foreground">Both Icons</h3>
               <InputField
                 label="Amount"
                 type="number"
@@ -173,7 +173,7 @@ export function InputShowcase() {
 
             {/* Icon with Character Count */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Icon + Character Count</h3>
+              <h3 className="text-sm font-medium text-foreground">Icon + Character Count</h3>
               <InputField
                 label="Full Name"
                 placeholder="John Doe"
@@ -190,12 +190,12 @@ export function InputShowcase() {
 
         {/* CHARACTER COUNTER */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Character Counter</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Character Counter</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* With Counter */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Character Count</h3>
+              <h3 className="text-sm font-medium text-foreground">With Character Count</h3>
               <InputField
                 label="Bio"
                 placeholder="Tell us about yourself"
@@ -207,7 +207,7 @@ export function InputShowcase() {
 
             {/* Counter with Icons */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Counter + Icon</h3>
+              <h3 className="text-sm font-medium text-foreground">Counter + Icon</h3>
               <InputField
                 label="Password"
                 type="password"
@@ -225,15 +225,15 @@ export function InputShowcase() {
 
         {/* SEARCH BAR */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Search Bar</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-2xl font-semibold text-foreground">Search Bar</h2>
+          <p className="text-sm text-muted-foreground">
             Specialized search input with keyboard shortcuts (⌘+F or Ctrl+F) and clear button
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Basic Search */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Basic Search</h3>
+              <h3 className="text-sm font-medium text-foreground">Basic Search</h3>
               <SearchBar
                 placeholder="Search..."
                 value={searchValue}
@@ -244,7 +244,7 @@ export function InputShowcase() {
 
             {/* Search with Value */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Search Value</h3>
+              <h3 className="text-sm font-medium text-foreground">With Search Value</h3>
               <SearchBar
                 placeholder="Search appointments..."
                 value="john doe"
@@ -254,17 +254,17 @@ export function InputShowcase() {
 
             {/* Focused State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Focused State</h3>
+              <h3 className="text-sm font-medium text-foreground">Focused State</h3>
               <SearchBar
                 placeholder="Search..."
                 showKeyboardShortcut
               />
-              <p className="text-xs text-gray-500">Try pressing ⌘+F (Mac) or Ctrl+F (Windows) to focus</p>
+              <p className="text-xs text-muted-foreground">Try pressing ⌘+F (Mac) or Ctrl+F (Windows) to focus</p>
             </div>
 
             {/* Without Keyboard Shortcut */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Without Keyboard Shortcuts</h3>
+              <h3 className="text-sm font-medium text-foreground">Without Keyboard Shortcuts</h3>
               <SearchBar
                 placeholder="Search..."
                 showKeyboardShortcut={false}
@@ -273,7 +273,7 @@ export function InputShowcase() {
 
             {/* Custom Styling */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Rounded (Custom Style)</h3>
+              <h3 className="text-sm font-medium text-foreground">Rounded (Custom Style)</h3>
               <SearchBar
                 placeholder="Search people..."
                 className="rounded-full"
@@ -283,7 +283,7 @@ export function InputShowcase() {
 
             {/* Disabled State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <SearchBar
                 placeholder="Search..."
                 disabled
@@ -295,15 +295,15 @@ export function InputShowcase() {
 
         {/* PHONE INPUT */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Phone Input</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-2xl font-semibold text-foreground">Phone Input</h2>
+          <p className="text-sm text-muted-foreground">
             Advanced phone input with country code selector, search icon, and character counter
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Basic Phone Input */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Basic Phone Input</h3>
+              <h3 className="text-sm font-medium text-foreground">Basic Phone Input</h3>
               <PhoneInput
                 label="Phone Number"
                 value={phoneValue}
@@ -316,7 +316,7 @@ export function InputShowcase() {
 
             {/* With Character Counter */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Character Counter</h3>
+              <h3 className="text-sm font-medium text-foreground">With Character Counter</h3>
               <PhoneInput
                 label="Phone Number"
                 countryCode="+91"
@@ -327,7 +327,7 @@ export function InputShowcase() {
 
             {/* Error State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Error State</h3>
+              <h3 className="text-sm font-medium text-foreground">Error State</h3>
               <PhoneInput
                 label="Phone Number"
                 countryCode="+44"
@@ -338,7 +338,7 @@ export function InputShowcase() {
 
             {/* Success State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Success State</h3>
+              <h3 className="text-sm font-medium text-foreground">Success State</h3>
               <PhoneInput
                 label="Phone Number"
                 countryCode="+61"
@@ -350,7 +350,7 @@ export function InputShowcase() {
 
             {/* Disabled State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <PhoneInput
                 label="Phone Number"
                 countryCode="+1"
@@ -362,7 +362,7 @@ export function InputShowcase() {
 
             {/* Different Countries */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Different Country</h3>
+              <h3 className="text-sm font-medium text-foreground">Different Country</h3>
               <PhoneInput
                 label="Phone Number"
                 countryCode="+49"
@@ -375,15 +375,15 @@ export function InputShowcase() {
 
         {/* TEXTAREA */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Text Area</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-2xl font-semibold text-foreground">Text Area</h2>
+          <p className="text-sm text-muted-foreground">
             Multi-line text input with label, character counter, and helper text
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Base State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Base State</h3>
+              <h3 className="text-sm font-medium text-foreground">Base State</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -393,7 +393,7 @@ export function InputShowcase() {
 
             {/* With Character Counter */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Character Counter</h3>
+              <h3 className="text-sm font-medium text-foreground">With Character Counter</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -405,7 +405,7 @@ export function InputShowcase() {
 
             {/* With Value */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Value</h3>
+              <h3 className="text-sm font-medium text-foreground">With Value</h3>
               <TextareaField
                 label="Input Label"
                 value="This is some sample text that the user has entered into the textarea field."
@@ -417,7 +417,7 @@ export function InputShowcase() {
 
             {/* Focused/Active State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Focused/Active State</h3>
+              <h3 className="text-sm font-medium text-foreground">Focused/Active State</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -429,7 +429,7 @@ export function InputShowcase() {
 
             {/* Error State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Error State</h3>
+              <h3 className="text-sm font-medium text-foreground">Error State</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -441,7 +441,7 @@ export function InputShowcase() {
 
             {/* Success State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Success State</h3>
+              <h3 className="text-sm font-medium text-foreground">Success State</h3>
               <TextareaField
                 label="Input Label"
                 value="This feedback looks great!"
@@ -454,7 +454,7 @@ export function InputShowcase() {
 
             {/* Disabled State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -467,7 +467,7 @@ export function InputShowcase() {
 
             {/* Required Field */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Required Field</h3>
+              <h3 className="text-sm font-medium text-foreground">Required Field</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -480,7 +480,7 @@ export function InputShowcase() {
 
             {/* Long Text Example */}
             <div className="space-y-3 md:col-span-2">
-              <h3 className="text-sm font-medium text-gray-700">Session Notes (Real Use Case)</h3>
+              <h3 className="text-sm font-medium text-foreground">Session Notes (Real Use Case)</h3>
               <TextareaField
                 label="Session Notes"
                 placeholder="Document what happened during the session, client's presentation, topics discussed..."
@@ -496,15 +496,15 @@ export function InputShowcase() {
 
         {/* SELECT */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Select</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-2xl font-semibold text-foreground">Select</h2>
+          <p className="text-sm text-muted-foreground">
             Select allows users to make a single selection from a list of options
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Base State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Base State</h3>
+              <h3 className="text-sm font-medium text-foreground">Base State</h3>
               <SelectField
                 label="Label"
                 placeholder="Select an option"
@@ -519,7 +519,7 @@ export function InputShowcase() {
 
             {/* With Value */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Selected Value</h3>
+              <h3 className="text-sm font-medium text-foreground">With Selected Value</h3>
               <SelectField
                 label="Label"
                 value="option2"
@@ -534,7 +534,7 @@ export function InputShowcase() {
 
             {/* Error State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Error State</h3>
+              <h3 className="text-sm font-medium text-foreground">Error State</h3>
               <SelectField
                 label="Label"
                 placeholder="Select an option"
@@ -550,7 +550,7 @@ export function InputShowcase() {
 
             {/* Success State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Success State</h3>
+              <h3 className="text-sm font-medium text-foreground">Success State</h3>
               <SelectField
                 label="Label"
                 value="option1"
@@ -566,7 +566,7 @@ export function InputShowcase() {
 
             {/* Disabled State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <SelectField
                 label="Label"
                 value="option2"
@@ -582,7 +582,7 @@ export function InputShowcase() {
 
             {/* Required Field */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Required Field</h3>
+              <h3 className="text-sm font-medium text-foreground">Required Field</h3>
               <SelectField
                 label="Label"
                 placeholder="Select an option"
@@ -598,7 +598,7 @@ export function InputShowcase() {
 
             {/* With Many Options */}
             <div className="space-y-3 md:col-span-2">
-              <h3 className="text-sm font-medium text-gray-700">Real Use Case: Status Selection</h3>
+              <h3 className="text-sm font-medium text-foreground">Real Use Case: Status Selection</h3>
               <SelectField
                 label="Appointment Status"
                 value={selectValue}
@@ -620,15 +620,15 @@ export function InputShowcase() {
 
         {/* DATE PICKER */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Date Picker</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-2xl font-semibold text-foreground">Date Picker</h2>
+          <p className="text-sm text-muted-foreground">
             Date picker allows users to select a date from a calendar
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Base State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Base State</h3>
+              <h3 className="text-sm font-medium text-foreground">Base State</h3>
               <DatePickerField
                 label="Label"
                 placeholder="Select a date"
@@ -638,7 +638,7 @@ export function InputShowcase() {
 
             {/* With Value */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Selected Value</h3>
+              <h3 className="text-sm font-medium text-foreground">With Selected Value</h3>
               <DatePickerField
                 label="Label"
                 value={dateValue}
@@ -649,7 +649,7 @@ export function InputShowcase() {
 
             {/* Error State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Error State</h3>
+              <h3 className="text-sm font-medium text-foreground">Error State</h3>
               <DatePickerField
                 label="Label"
                 placeholder="Select a date"
@@ -660,7 +660,7 @@ export function InputShowcase() {
 
             {/* Success State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Success State</h3>
+              <h3 className="text-sm font-medium text-foreground">Success State</h3>
               <DatePickerField
                 label="Label"
                 value={new Date('2023-10-15')}
@@ -671,7 +671,7 @@ export function InputShowcase() {
 
             {/* Disabled State */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <DatePickerField
                 label="Label"
                 value={new Date('2023-10-15')}
@@ -682,7 +682,7 @@ export function InputShowcase() {
 
             {/* Required Field */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Required Field</h3>
+              <h3 className="text-sm font-medium text-foreground">Required Field</h3>
               <DatePickerField
                 label="Label"
                 placeholder="Select a date"
@@ -695,9 +695,9 @@ export function InputShowcase() {
 
         {/* FORM EXAMPLE */}
         <section className="space-y-6 border-t pt-8">
-          <h2 className="text-2xl font-semibold text-gray-900">Complete Form Example</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Complete Form Example</h2>
 
-          <div className="max-w-2xl space-y-6 bg-gray-50 p-8 rounded-lg">
+          <div className="max-w-2xl space-y-6 bg-[var(--surface-warm)] p-8 rounded-lg">
             <InputField
               label="Full Name"
               placeholder="John Doe"
@@ -746,22 +746,22 @@ export function InputShowcase() {
 
         {/* DESIGN SYSTEM FEATURES */}
         <section className="space-y-6 border-t pt-8">
-          <h2 className="text-2xl font-semibold text-gray-900">Design System Features</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Design System Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <h3 className="text-lg font-medium text-gray-900">✅ Using CSS Variables</h3>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• <code className="bg-gray-100 px-2 py-0.5 rounded">--interaction-secondary-base</code></li>
-                <li>• <code className="bg-gray-100 px-2 py-0.5 rounded">--interaction-outline-base</code></li>
-                <li>• <code className="bg-gray-100 px-2 py-0.5 rounded">--interaction-outline-hover</code></li>
-                <li>• <code className="bg-gray-100 px-2 py-0.5 rounded">--interaction-primary-active</code></li>
-                <li>• <code className="bg-gray-100 px-2 py-0.5 rounded">--interaction-red-base</code> (error)</li>
-                <li>• <code className="bg-gray-100 px-2 py-0.5 rounded">--interaction-green-base</code> (success)</li>
+              <h3 className="text-lg font-medium text-foreground">✅ Using CSS Variables</h3>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• <code className="bg-muted px-2 py-0.5 rounded">--interaction-secondary-base</code></li>
+                <li>• <code className="bg-muted px-2 py-0.5 rounded">--interaction-outline-base</code></li>
+                <li>• <code className="bg-muted px-2 py-0.5 rounded">--interaction-outline-hover</code></li>
+                <li>• <code className="bg-muted px-2 py-0.5 rounded">--interaction-primary-active</code></li>
+                <li>• <code className="bg-muted px-2 py-0.5 rounded">--interaction-red-base</code> (error)</li>
+                <li>• <code className="bg-muted px-2 py-0.5 rounded">--interaction-green-base</code> (success)</li>
               </ul>
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-medium text-gray-900">✅ Design Spec Compliance</h3>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <h3 className="text-lg font-medium text-foreground">✅ Design Spec Compliance</h3>
+              <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• All interaction states (base, hover, focus, disabled)</li>
                 <li>• Validation states (error, success)</li>
                 <li>• Character counter with semantic colors</li>

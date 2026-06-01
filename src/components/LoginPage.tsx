@@ -1,23 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ParallaxAntiGravity } from './ui/parallax-anti-gravity';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { BedrockLogo } from '../imports/BedrockLogo';
-import { Eye, EyeOff, Mail, Phone, Sparkles, ChevronRight } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
+import { Eye, EyeOff, Mail, Phone, Check, ShieldCheck, Lock } from 'lucide-react';
+import { TooltipProvider } from "./ui/tooltip";
 import { Alert, AlertDescription } from "./ui/alert";
-import { verifyPhoneOtp, getGoogleOAuthUrl, sendPhoneOtp } from '../api/auth';
+import { login as cognitoLogin, completeMfaLogin, forgotPassword, MfaRequiredError } from '../api/auth';
+import { startGoogleSignIn, phoneSignIn, phoneConfirm, phoneSignUp } from '../lib/cognito';
 import { PhoneInput, validatePhoneNumber as validatePhone } from './PhoneInput';
-import { Spotlight } from './ui/spotlight';
-import { tryMockLogin, MOCK_USERS } from '../lib/devMockUser';
 import type { AuthUser } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,38 +21,18 @@ interface LoginPageProps {
   onBackToHome?: () => void;
 }
 
-const QUOTES = [
-  "Mental health is not a destination, but a process. It's about how you drive, not where you're going.",
-  "Your mental health is a priority. Your happiness is essential. Your self-care is a necessity.",
-  "It's okay to not be okay. It's okay to ask for help. You are not alone.",
-  "Healing takes time, and asking for help is a courageous step.",
-  "You don't have to be positive all the time. It's perfectly okay to feel sad, angry, or anxious.",
-  "Self-care is how you take your power back.",
-  "There is hope, even when your brain tells you there isn't.",
-  "Recovery is a lifelong journey that takes place one day, one step at a time.",
-  "You are stronger than you think, braver than you believe, and more loved than you know.",
-  "Courage doesn't always roar. Sometimes courage is the quiet voice saying, 'I will try again tomorrow.'",
-  "You are allowed to be both a masterpiece and a work in progress simultaneously.",
-  "Healing doesn't mean the damage never existed. It means the damage no longer controls our lives.",
-  "Be patient with yourself. Self-growth is tender; it's holy ground.",
-  "The strongest people are not those who show strength in front of us, but those who win battles we know nothing about.",
-];
-
-const DEV_MODE = import.meta.env.DEV;
-
 export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loginMode, setLoginMode] = useState<LoginMode>('email');
-  const [showDevPanel, setShowDevPanel] = useState(false);
 
   // Email state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Phone state
+  // Phone state (UI retained; phone auth not enabled on Cognito for now)
   const [isSignup, setIsSignup] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [phoneCountryCode, setPhoneCountryCode] = useState('US');
@@ -68,16 +40,10 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
   const [otpSent, setOtpSent] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
-  // Quote of the day
-  const [dailyQuote, setDailyQuote] = useState('');
-  useEffect(() => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
-    setDailyQuote(QUOTES[dayOfYear % QUOTES.length]);
-  }, []);
+  // MFA (TOTP) challenge state
+  const [mfaChallenge, setMfaChallenge] = useState<MfaRequiredError['challenge'] | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
@@ -89,9 +55,14 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
     }
   };
 
-  const handleForgotPassword = () => {
+  const handleForgotPassword = async () => {
     if (!email) { toast.error('Please enter your email address first'); return; }
-    toast.info('Password reset coming soon', { description: 'Please contact support for password reset assistance.' });
+    try {
+      await forgotPassword(email);
+      toast.success('Password reset code sent', { description: 'Check your email for the verification code.' });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not send reset code');
+    }
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -101,79 +72,71 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
 
     try {
       if (!email || !password) throw new Error('Please enter both email and password');
-
-      // ─── Dev mock login bypass ──────────────────────────────────────────
-      if (DEV_MODE) {
-        const mockUser = tryMockLogin(email, password);
-        if (mockUser) {
-          await new Promise(r => setTimeout(r, 400)); // simulate network
-          toast.success(`Signed in as ${mockUser.name} (mock)`, { icon: '🌿' });
-          onLogin(mockUser);
-          return;
-        }
-      }
-
-      // ─── Real backend login ─────────────────────────────────────────────
-      const { login: loginFn } = await import('../api/auth');
-      const user = await loginFn(email, password);
+      // AWS Cognito SRP sign-in. Throws MfaRequiredError if TOTP MFA is enabled.
+      const user = await cognitoLogin(email, password);
+      toast.success(`Welcome back, ${user.name}`, { icon: '🌿' });
       onLogin(user);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid credentials');
+      if (err instanceof MfaRequiredError) {
+        setMfaChallenge(err.challenge);
+      } else {
+        setError(err instanceof Error ? err.message : 'Invalid credentials');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaChallenge) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const user = await completeMfaLogin(mfaChallenge, mfaCode.trim());
+      toast.success(`Welcome back, ${user.name}`, { icon: '🌿' });
+      onLogin(user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid authentication code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Phone sign-in via Cognito SMS. (Pool must enable phone sign-in/SMS — backend backlog.)
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
+      const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
       if (!otpSent) {
         if (!validatePhone(phoneNumber, phoneCountryCode)) throw new Error('Please enter a valid phone number');
-        if (isSignup && (!firstName || !lastName)) throw new Error('Please enter your name');
-        const fullPhoneNumber = `+${phoneCountryCode}${phoneNumber}`;
-        const { sessionId } = await sendPhoneOtp(fullPhoneNumber);
-        setConfirmationResult(sessionId);
+        if (isSignup) {
+          if (!firstName || !lastName) throw new Error('Please enter your name');
+          // A password is required by Cognito; phone OTP confirms the account.
+          await phoneSignUp(fullPhoneNumber, `${crypto.randomUUID()}A1!`);
+        }
         setOtpSent(true);
         toast.success('Verification code sent to your phone');
       } else {
-        if (otp.length !== 6) throw new Error('Please enter a valid 6-digit OTP');
-        const user = await verifyPhoneOtp(confirmationResult as string, otp);
-        onLogin(user);
+        if (otp.length !== 6) throw new Error('Please enter a valid 6-digit code');
+        if (isSignup) await phoneConfirm(fullPhoneNumber, otp);
+        // After confirm/login, exchange via SRP (requires the user's password flow).
+        const tokens = await phoneSignIn(fullPhoneNumber, otp);
+        onLogin({ id: tokens.claims.sub, email: null, phone: fullPhoneNumber, name: `${firstName} ${lastName}`.trim() || fullPhoneNumber, role: 'client' });
       }
-    } catch (err: unknown) {
-      const e = err as { message?: string };
-      setError(e.message || 'Authentication failed');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Phone authentication failed');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Google sign-in via Cognito Hosted UI (redirects out; returns to /callback).
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
     setError(null);
-    try {
-      const { url } = await getGoogleOAuthUrl();
-      window.location.href = url;
-    } catch (err) {
-      const e = err as { message?: string };
-      setError(e.message || 'Google sign-in failed');
-      toast.error(e.message || 'Google sign-in failed');
-      setIsLoading(false);
-    }
-  };
-
-  const handleMockLogin = async (mockEmail: string) => {
-    setEmail(mockEmail);
-    setPassword(MOCK_USERS[mockEmail].password);
-    setIsLoading(true);
-    setError(null);
-    await new Promise(r => setTimeout(r, 500));
-    const mockUser = MOCK_USERS[mockEmail].user;
-    toast.success(`Signed in as ${mockUser.name}`, { icon: '🌿' });
-    onLogin(mockUser);
-    setIsLoading(false);
+    startGoogleSignIn();
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -182,55 +145,86 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
     <TooltipProvider>
       <div id="recaptcha-container" />
 
-      <div className="relative min-h-screen bg-canvas transition-colors duration-300 flex items-center justify-center p-4 overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 z-0">
-          <ParallaxAntiGravity shapes={60} intensity={0.4} className="w-full h-full">
-            <></>
-          </ParallaxAntiGravity>
-        </div>
+      <div className="relative min-h-screen bg-canvas flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+        {/* Calm, subtle ambient wash — no busy decoration */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{
+            background:
+              'radial-gradient(60rem 40rem at 50% -10%, rgba(30,112,72,0.06), transparent 60%), radial-gradient(50rem 40rem at 100% 110%, rgba(122,158,136,0.07), transparent 60%)',
+          }}
+        />
 
-        {/* Sage-green ambient glow */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          <Spotlight className="w-full h-full opacity-30 mix-blend-soft-light" fill="#1E7048" />
-        </div>
+        {/* Two-panel: brand + form (matches the register flow) */}
+        <div
+          className="relative z-10 w-full max-w-[56rem] grid grid-cols-1 md:grid-cols-2 rounded-2xl overflow-hidden border border-rule"
+          style={{ boxShadow: '0 1px 2px rgba(28,24,18,0.04), 0 16px 40px rgba(28,24,18,0.08)' }}
+        >
+          {/* Left brand panel */}
+          <div
+            className="hidden md:flex flex-col justify-between p-10 text-white"
+            style={{ background: 'linear-gradient(160deg, var(--action) 0%, var(--action-dark) 100%)' }}
+          >
+            <div className="flex items-center gap-2.5">
+              <span aria-hidden className="inline-block h-6 w-6 rounded-full" style={{ border: '3px solid rgba(255,255,255,0.85)' }} />
+              <span className="text-[15px] font-semibold tracking-tight">Bedrock&nbsp;Health</span>
+            </div>
+            <div className="space-y-5">
+              <h2 className="text-[2rem] leading-[1.12] font-semibold tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+                Care,<br />simplified.
+              </h2>
+              <p className="text-[15px] leading-relaxed text-white/85">
+                Scheduling, clinical notes, telehealth and billing — one calm workspace for your practice.
+              </p>
+              <ul className="space-y-3 text-[15px] text-white/90">
+                {['Everything in one place', 'Secure telehealth & messaging', 'AI-assisted progress notes'].map((t) => (
+                  <li key={t} className="flex items-start gap-2.5">
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 shrink-0">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center gap-5 text-white/80 text-xs">
+              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> DPDP-aligned</span>
+              <span className="inline-flex items-center gap-1.5"><Lock className="h-4 w-4" /> Encrypted &amp; private</span>
+            </div>
+          </div>
 
-        {/* Main content */}
-        <div className="relative z-10 w-full flex flex-col items-center justify-center">
-          <div className="w-full max-w-md px-4 py-8">
+          {/* Right form panel */}
             <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-7"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="bg-card p-8 sm:p-10 space-y-6"
             >
               {/* ─── Header ─────────────────────────────────────────────── */}
-              <div className="text-center space-y-4">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex flex-col items-center gap-3 cursor-default">
-                      <BedrockLogo variant="icon" size={68} />
-                      <h1
-                        className="text-4xl tracking-tight"
-                        style={{ fontFamily: 'var(--font-display)', fontWeight: 500, color: 'var(--ink)', letterSpacing: '-0.03em' }}
-                      >
-                        Ataraxia
-                      </h1>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p className="text-xs">by Bedrock Health Solutions</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                {dailyQuote && (
-                  <p
-                    className="text-sm italic leading-relaxed max-w-xs mx-auto"
-                    style={{ color: 'var(--muted-text)', fontFamily: 'var(--font-display)', fontWeight: 400 }}
+              <div className="space-y-2">
+                {/* Brand mark only on mobile — the left panel already shows it on desktop */}
+                <div className="flex md:hidden items-center gap-2.5">
+                  <span
+                    aria-hidden
+                    className="inline-block h-6 w-6 rounded-full shrink-0"
+                    style={{ border: '3px solid var(--action)' }}
+                  />
+                  <span
+                    className="text-[15px] font-semibold tracking-tight"
+                    style={{ color: 'var(--ink)' }}
                   >
-                    "{dailyQuote}"
-                  </p>
-                )}
+                    Bedrock&nbsp;Health
+                  </span>
+                </div>
+                <h1
+                  className="text-[1.7rem] leading-tight tracking-tight pt-2"
+                  style={{ fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.02em' }}
+                >
+                  Welcome back
+                </h1>
+                <p className="text-sm" style={{ color: 'var(--muted-text)' }}>
+                  Sign in to your Ataraxia account
+                </p>
               </div>
 
               {/* ─── Error ──────────────────────────────────────────────── */}
@@ -248,62 +242,38 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                 )}
               </AnimatePresence>
 
-              {/* ─── Dev Panel ──────────────────────────────────────────── */}
-              {DEV_MODE && (
-                <div className="rounded-2xl border border-dashed overflow-hidden" style={{ borderColor: 'var(--action-border)', background: 'var(--action-light)' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowDevPanel(v => !v)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-widest transition-colors"
-                    style={{ color: 'var(--action)', background: 'transparent' }}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Dev Quick Login
-                    </span>
-                    <ChevronRight
-                      className="w-3.5 h-3.5 transition-transform"
-                      style={{ transform: showDevPanel ? 'rotate(90deg)' : 'none' }}
+              {/* ─── MFA challenge (TOTP) ───────────────────────────────── */}
+              {mfaChallenge ? (
+                <form onSubmit={handleMfaSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="mfa" className="ml-1 text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--muted-text)' }}>
+                      Authentication code
+                    </Label>
+                    <Input
+                      id="mfa"
+                      inputMode="numeric"
+                      maxLength={6}
+                      autoFocus
+                      placeholder="123456"
+                      value={mfaCode}
+                      onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                      className="text-center text-lg tracking-[0.5em]"
                     />
+                    <p className="text-xs px-1" style={{ color: 'var(--muted-text)' }}>
+                      Enter the 6-digit code from your authenticator app.
+                    </p>
+                  </div>
+                  <Button type="submit" disabled={isLoading || mfaCode.length < 6} className="w-full"
+                    style={{ background: 'var(--action)', boxShadow: 'var(--shadow-action)' }}>
+                    {isLoading ? 'Verifying…' : 'Verify & Sign In'}
+                  </Button>
+                  <button type="button" onClick={() => { setMfaChallenge(null); setMfaCode(''); }}
+                    className="w-full text-xs hover:underline" style={{ color: 'var(--muted-text)' }}>
+                    Back to sign in
                   </button>
-                  <AnimatePresence>
-                    {showDevPanel && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-4 pb-4 pt-1 grid gap-2">
-                          {Object.entries(MOCK_USERS).map(([mockEmail, { label }]) => (
-                            <button
-                              key={mockEmail}
-                              type="button"
-                              onClick={() => handleMockLogin(mockEmail)}
-                              disabled={isLoading}
-                              className="flex items-center gap-3 text-left px-3 py-2.5 rounded-xl border text-sm font-medium transition-all active:scale-[0.98]"
-                              style={{
-                                background: 'var(--surface)',
-                                borderColor: 'var(--action-border)',
-                                color: 'var(--ink)',
-                              }}
-                            >
-                              <span className="flex-1">{label}</span>
-                              <ChevronRight className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--muted-text)' }} />
-                            </button>
-                          ))}
-                          <p className="text-[10px] leading-relaxed mt-1" style={{ color: 'var(--muted-text)' }}>
-                            These mock accounts only exist in development mode and are stripped from production builds.
-                          </p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
-
-              {/* ─── Form ───────────────────────────────────────────────── */}
+                </form>
+              ) : (
+              /* ─── Form ───────────────────────────────────────────────── */
               <form onSubmit={loginMode === 'email' ? handleEmailSubmit : handlePhoneSubmit} className="space-y-5">
                 {loginMode === 'email' ? (
                   <>
@@ -462,11 +432,10 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                         </motion.div>
                         <div className="flex justify-between text-xs px-2" style={{ color: 'var(--muted-text)' }}>
                           <button type="button" onClick={() => setOtpSent(false)} className="hover:underline">Change Number</button>
-                          <button type="button" onClick={async () => {
-                            const fp = `+${phoneCountryCode}${phoneNumber}`;
-                            const { sessionId } = await sendPhoneOtp(fp);
-                            setConfirmationResult(sessionId);
-                            toast.success('OTP resent');
+                          <button type="button" onClick={() => {
+                            // Re-trigger by going back to the send step.
+                            setOtpSent(false);
+                            toast.info('Re-enter your number to receive a new code');
                           }} className="hover:underline">Resend Code</button>
                         </div>
                       </div>
@@ -474,8 +443,11 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                   </>
                 )}
               </form>
+              )}
 
-              {/* ─── Divider + Social ────────────────────────────────────── */}
+              {/* ─── Divider + Social (hidden during MFA step) ───────────── */}
+              {!mfaChallenge && (
+              <>
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" style={{ borderColor: 'var(--rule)' }} />
@@ -492,15 +464,16 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                   <>
                     <SocialButton onClick={() => { setLoginMode('phone'); setError(null); }} icon={<Phone className="w-4 h-4" />} label="Continue with Phone" />
                     <SocialButton onClick={handleGoogleSignIn} disabled={isLoading} icon={<GoogleIcon />} label={isLoading ? 'Signing in…' : 'Continue with Google'} />
-                    <SocialButton onClick={() => toast.info('Apple Sign-in coming soon', { description: 'Please use email login for now.' })} icon={<AppleIcon />} label="Continue with Apple" />
                   </>
                 ) : (
                   <SocialButton onClick={() => { setLoginMode('email'); setError(null); }} icon={<Mail className="w-4 h-4" />} label="Back to Email Login" />
                 )}
               </div>
+              </>
+              )}
 
               {/* ─── Register CTA ────────────────────────────────────────── */}
-              {loginMode === 'email' && (
+              {!mfaChallenge && loginMode === 'email' && (
                 <div className="text-center text-sm pt-2">
                   <span style={{ color: 'var(--muted-text)' }}>Don't have an account? </span>
                   <button
@@ -514,7 +487,6 @@ export function LoginPage({ onLogin, onRegisterTherapist }: LoginPageProps) {
                 </div>
               )}
             </motion.div>
-          </div>
         </div>
       </div>
     </TooltipProvider>
@@ -555,10 +527,3 @@ function GoogleIcon() {
   );
 }
 
-function AppleIcon() {
-  return (
-    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-      <path d="M17.05 20.28c-1.02.95-2.09.8-3.12.35-1.1-.46-2.1-.48-3.25.1-1.42.6-2.22.41-3.13-.35C2.24 14.97 3.02 6.96 8.96 6.68c1.39.07 2.35.76 3.15.82 1.24-.27 2.43-.98 3.76-.89 1.61.13 2.83.78 3.6 1.95-3.35 1.99-2.53 6.59.56 7.87-.61 1.59-1.42 3.16-2.99 3.86zM12.03 6.64c-.14-2.37 1.72-4.29 3.95-4.45.29 2.72-2.47 4.71-3.95 4.45z" fill="currentColor" />
-    </svg>
-  );
-}

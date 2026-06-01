@@ -122,8 +122,8 @@ export function MonthView({
                       className={`
                         text-xs p-1 rounded cursor-pointer transition-colors
                         ${appointment.type === 'break'
-                          ? 'bg-gray-200 text-gray-700'
-                          : 'bg-white border-l-2 shadow-sm hover:shadow-md'
+                          ? 'bg-muted text-foreground'
+                          : 'bg-card border-l-2 shadow-sm hover:shadow-md'
                         }
                       `}
                       style={{

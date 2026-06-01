@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { localDb } from '../lib/db/localDb';
+import { get } from '../api/client';
 import { motion } from 'framer-motion';
 import {
     Building2,
@@ -138,7 +138,8 @@ export function SuperAdminDashboardView({ userId, userEmail, userName, onNavigat
     const loadStats = async () => {
         try {
             setLoading(true);
-            const data = await localDb.getDashboardStats();
+            // backend-initial: GET /admin/dashboard/counts
+            const data = await get<any>('/admin/dashboard/counts');
             setStats(data);
         } catch (e) {
             console.error('Failed to load super admin stats', e);
@@ -158,25 +159,25 @@ export function SuperAdminDashboardView({ userId, userEmail, userName, onNavigat
         return 'Good Evening';
     };
 
-    const platformGrowth = stats ? {
+    if (loading || !stats) {
+        return <div className="flex items-center justify-center h-screen text-muted-foreground">Loading platform insights...</div>;
+    }
+
+    const platformGrowth = {
         totalOrganizations: stats.totalOrganizations,
         totalProviders: stats.totalTherapists,
         totalClients: stats.totalClients,
         dailyActiveUsers: 892, // Still mock for now
         monthlyActiveUsers: 2847, // Still mock for now
         growth: { organizations: 12.4, providers: 18.2, clients: 24.8, dau: 8.4, mau: 15.2 }
-    } : null;
+    };
 
-    const revenueMetrics = stats ? {
+    const revenueMetrics = {
         mrr: stats.totalRevenue / 12,
         arr: stats.totalRevenue,
         revenueGrowth: 18.5,
         churnRate: 2.8
-    } : null;
-
-    if (loading || !stats) {
-        return <div className="flex items-center justify-center h-screen text-muted-foreground">Loading platform insights...</div>;
-    }
+    };
 
     return (
         <div className="min-h-screen bg-background p-8 max-w-[1600px] mx-auto font-sans">

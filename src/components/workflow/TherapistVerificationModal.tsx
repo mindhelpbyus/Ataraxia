@@ -166,8 +166,8 @@ export function TherapistVerificationModal({
                                     description="Verify the therapist's state license against the official registry."
                                     status={getStep2Status()}
                                     details={[
-                                        { label: 'License Number', value: therapist.license_number },
-                                        { label: 'State', value: therapist.license_state }
+                                        { label: 'License Number', value: therapist.license_number ?? '' },
+                                        { label: 'State', value: therapist.license_state ?? '' }
                                     ]}
                                     approveLabel="Verify License"
                                     rejectLabel="Reject License"

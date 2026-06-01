@@ -107,7 +107,7 @@ function SelectContent({
         className={cn(
           // Base styles matching design system
           "relative z-[100] min-w-[8rem] rounded",
-          "bg-white",
+          "bg-card",
           "text-[var(--content-dark-primary,#000000)]",
 
           // Shadow from design system
@@ -182,7 +182,7 @@ function SelectItem({
         "px-3 py-1.5",
         "text-sm",
         "text-[var(--content-dark-primary,#000000)]",
-        "bg-white",
+        "bg-card",
         "select-none outline-none",
 
         // Hover state - matching design system

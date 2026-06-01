@@ -109,7 +109,7 @@ function StatusBadge({ status }: { status?: string }) {
     <span
       className={cn(
         'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border whitespace-nowrap flex-shrink-0',
-        variants[status] ?? 'bg-gray-100 text-gray-700 border-gray-200'
+        variants[status] ?? 'bg-muted text-foreground border-border'
       )}
     >
       {status}
@@ -236,7 +236,7 @@ export function GlobalSearchBar({
         className={cn(
           'flex items-center gap-2.5 h-11 px-4 rounded-full transition-all duration-150',
           'bg-black/5 hover:bg-black/8',
-          isFocused && 'bg-white border border-border shadow-sm'
+          isFocused && 'bg-card border border-border shadow-sm'
         )}
         onClick={() => inputRef.current?.focus()}
       >

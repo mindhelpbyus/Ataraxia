@@ -1,0 +1,60 @@
+# AWS Amplify Hosting — Ataraxia (Vite SPA, authenticated CRM)
+# Matches the platform pattern (Iragu-website also hosts on Amplify).
+# Static SPA on Amplify's S3+CloudFront, hardened with security headers.
+
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm use 20
+        - npm ci --prefer-offline
+    build:
+      commands:
+        - npm run typecheck   # fail the build on type errors
+        - npm run build
+  artifacts:
+    baseDirectory: build
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+
+# ── Security headers (defense-in-depth; XSS matters since Cognito tokens live in
+#    browser storage). Set on every response by Amplify's CloudFront. ──
+customHeaders:
+  - pattern: '**'
+    headers:
+      - key: Strict-Transport-Security
+        value: 'max-age=63072000; includeSubDomains; preload'
+      - key: X-Frame-Options
+        value: 'DENY'                      # clickjacking
+      - key: X-Content-Type-Options
+        value: 'nosniff'                   # MIME sniffing
+      - key: Referrer-Policy
+        value: 'strict-origin-when-cross-origin'
+      - key: Permissions-Policy
+        value: 'camera=(self), microphone=(self), geolocation=(), payment=(self), usb=(), interest-cohort=()'
+      - key: Cross-Origin-Opener-Policy
+        value: 'same-origin'
+      - key: X-Permitted-Cross-Domain-Policies
+        value: 'none'
+  # Hashed, immutable build assets → cache forever
+  - pattern: '/assets/**'
+    headers:
+      - key: Cache-Control
+        value: 'public, max-age=31536000, immutable'
+  # App shell must always revalidate so deploys go live immediately
+  - pattern: '/index.html'
+    headers:
+      - key: Cache-Control
+        value: 'no-cache, no-store, must-revalidate'
+
+# NOTE (configure in Amplify console / IaC, not expressible here):
+#  - SPA rewrite: 200-rewrite all paths → /index.html  (client-side routing)
+#  - AWS WAF on the Amplify/CloudFront distribution: AWS managed rules
+#    (Core, Known-Bad-Inputs, SQLi) + rate-based rule (per-IP throttle) + bot control
+#  - Basic-auth on non-prod branches; restrict preview env access
+#  - TLS 1.2+ only; HTTP/2/3
+#  - CSP is served via <meta> in index.html (see also: move to a header for report-uri)

@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { SettingsSection } from './SettingsSection';
 import { Shield, Check } from "lucide-react";
 import { LICENSE_TYPES } from '@/types/onboarding';
-import { State } from 'country-state-city';
+import { State } from '../../lib/location';
 
 interface LicenseSettingsProps {
     userId: string;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { State, City } from 'country-state-city';
+import { State, City } from '../lib/location';
 
 // AddressAutocomplete uses components with countryCode
 import { AddressComponents } from '../components/AddressAutocomplete';

@@ -80,7 +80,7 @@ export function EnhancedAppointmentForm({
       const currentUserTherapist: Therapist = {
         id: user.id,
         name: user.name,
-        email: user.email,
+        email: user.email ?? '',
         color: '#3b82f6', // Default blue
         workingDays: [1, 2, 3, 4, 5],
         workingHours: { start: '09:00', end: '17:00' }
@@ -423,7 +423,7 @@ export function EnhancedAppointmentForm({
 
                     {/* Custom Color Input */}
                     <div className="relative">
-                      <div className="w-8 h-8 rounded-full border border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-[#145C34] transition-colors relative">
+                      <div className="w-8 h-8 rounded-full border border-dashed border-border flex items-center justify-center overflow-hidden hover:border-[#145C34] transition-colors relative">
                         <Palette className="w-4 h-4 text-muted-foreground" />
                         <Input
                           type="color"

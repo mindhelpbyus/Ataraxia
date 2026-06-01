@@ -90,7 +90,7 @@ const PremiumMetricCard = ({ title, value, trend, trendValue, icon: Icon, colorC
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.05 }}
     whileHover={{ y: -5 }}
-    className="relative overflow-hidden rounded-[2rem] bg-white p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] cursor-pointer group"
+    className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] cursor-pointer group"
   >
     {/* Subtle gradient splash on hover */}
     <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClass} opacity-0 group-hover:opacity-10 rounded-full blur-3xl -mr-10 -mt-10 transition-opacity duration-500`} />
@@ -140,7 +140,7 @@ export function AdminDashboardView({ userId, userEmail, onNavigate }: AdminDashb
         </div>
 
         <div className="flex gap-4">
-          <Button variant="outline" onClick={() => onNavigate('analytics')} className="h-12 px-6 rounded-xl border-slate-200 text-slate-600 hover:bg-white hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm bg-white/50 backdrop-blur-sm">
+          <Button variant="outline" onClick={() => onNavigate('analytics')} className="h-12 px-6 rounded-xl border-slate-200 text-slate-600 hover:bg-card hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm bg-card/50 backdrop-blur-sm">
             <BarChart3 className="mr-2 h-5 w-5" /> Insights
           </Button>
           <Button onClick={() => onNavigate('calendar')} className="h-12 px-6 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all">
@@ -204,7 +204,7 @@ export function AdminDashboardView({ userId, userEmail, onNavigate }: AdminDashb
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 h-[450px]"
+            className="bg-card rounded-[2rem] p-8 shadow-sm border border-slate-100 h-[450px]"
           >
             <div className="flex items-center justify-between mb-8">
               <div>
@@ -238,7 +238,7 @@ export function AdminDashboardView({ userId, userEmail, onNavigate }: AdminDashb
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.25 }}
-            className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 h-[450px] flex flex-col"
+            className="bg-card rounded-[2rem] p-8 shadow-sm border border-slate-100 h-[450px] flex flex-col"
           >
             <div className="mb-6">
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">Performance Radar</h3>
@@ -266,7 +266,7 @@ export function AdminDashboardView({ userId, userEmail, onNavigate }: AdminDashb
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"
+            className="bg-card rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"
           >
             <div className="p-8 border-b border-slate-50 flex items-center justify-between">
               <div>
@@ -319,7 +319,7 @@ export function AdminDashboardView({ userId, userEmail, onNavigate }: AdminDashb
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 h-full"
+            className="bg-card rounded-[2rem] shadow-sm border border-slate-100 p-8 h-full"
           >
             <h3 className="text-xl font-bold text-slate-900 tracking-tight mb-6">Client Pipeline</h3>
             <div className="space-y-6">

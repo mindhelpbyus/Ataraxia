@@ -73,7 +73,7 @@ export function SignatureStep({ formData, updateFormData }: StepProps) {
       />
 
       {/* Legal Notice */}
-      <Card className="bg-gray-50">
+      <Card className="bg-[var(--surface-warm)]">
         <CardContent className="pt-6">
           <p className="text-xs text-muted-foreground leading-relaxed">
             By signing this document, you acknowledge that you have read, understood, and agree to all policies,

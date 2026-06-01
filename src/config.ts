@@ -1,19 +1,35 @@
-// Use VITE_API_BASE_URL as single source of truth with localhost:3002 as development fallback
-let apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+/**
+ * config.ts — runtime configuration sourced from VITE_* env.
+ *
+ * Backends (see .claude/context/domain-model.md):
+ *   - VITE_API_BASE_URL        → shared HTTP API Gateway: backend-initial (no /api prefix)
+ *                                 + billing_payment (/api/* prefix). No stage suffix.
+ *   - VITE_VIDEO_API_BASE_URL  → video-service (LiveKit rooms/tokens/transcripts).
+ * Auth is AWS Cognito (lib/cognito.ts) — there are NO backend /auth/* routes.
+ */
 
-// Remove trailing slash only - don't remove /api as it might be intentional
-apiUrl = apiUrl.replace(/\/$/, '');
+const apiUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const videoApiUrl = (import.meta.env.VITE_VIDEO_API_BASE_URL || '').replace(/\/$/, '');
+
+// AppSync Event API endpoint for real-time chat — same backend the mobile apps
+// use (community-app / therapistApp). Defaults to the shared dev endpoint; can be
+// overridden with VITE_APPSYNC_EVENTS_ENDPOINT per environment.
+export const APPSYNC_EVENTS_ENDPOINT = (
+  import.meta.env.VITE_APPSYNC_EVENTS_ENDPOINT ||
+  'https://ibyqhrxdnrekjpznxdvfhruswm.appsync-api.ap-south-1.amazonaws.com/event'
+).replace(/\/$/, '');
 
 export const config = {
-    api: {
-        baseUrl: apiUrl, // Remove /api prefix since backend handles both /api and direct routes
-        endpoints: {
-            auth: {
-                login: '/auth/login',
-                register: '/auth/register',
-                firebaseLogin: '/auth/firebase-login', // This will become http://localhost:3005/auth/firebase-login
-                me: '/auth/me'
-            }
-        }
-    }
+  api: {
+    baseUrl: apiUrl,
+    videoBaseUrl: videoApiUrl,
+  },
+  cognito: {
+    region: import.meta.env.VITE_AWS_REGION || '',
+    userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || '',
+    clientId: import.meta.env.VITE_COGNITO_CLIENT_ID || '',
+  },
+  appsync: {
+    eventsEndpoint: APPSYNC_EVENTS_ENDPOINT,
+  },
 };

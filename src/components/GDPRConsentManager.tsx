@@ -102,14 +102,14 @@ export function GDPRConsentManager({ onConsentChange }: GDPRConsentManagerProps)
   return (
     <>
       {/* Cookie Banner */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 p-4 md:p-6">
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50 p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 We value your privacy
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 We use cookies and similar technologies to provide, protect, and improve our services. 
                 By clicking "Accept All", you consent to our use of cookies for analytics, personalization, and marketing.
                 {' '}
@@ -164,10 +164,10 @@ export function GDPRConsentManager({ onConsentChange }: GDPRConsentManagerProps)
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-gray-900">Necessary Cookies</h4>
-                    <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">Required</span>
+                    <h4 className="font-semibold text-foreground">Necessary Cookies</h4>
+                    <span className="text-xs bg-muted text-foreground px-2 py-1 rounded">Required</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     Essential for the website to function. These cookies enable core functionality such as security, 
                     network management, and accessibility. Cannot be disabled.
                   </p>
@@ -186,8 +186,8 @@ export function GDPRConsentManager({ onConsentChange }: GDPRConsentManagerProps)
             <div className="space-y-2">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Analytics Cookies</h4>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h4 className="font-semibold text-foreground">Analytics Cookies</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Help us understand how visitors interact with our website by collecting and reporting information anonymously.
                     Used to improve user experience and site performance.
                   </p>
@@ -206,8 +206,8 @@ export function GDPRConsentManager({ onConsentChange }: GDPRConsentManagerProps)
             <div className="space-y-2">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Functional Cookies</h4>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h4 className="font-semibold text-foreground">Functional Cookies</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Enable enhanced functionality and personalization, such as remembering your preferences and settings.
                   </p>
                 </div>
@@ -225,8 +225,8 @@ export function GDPRConsentManager({ onConsentChange }: GDPRConsentManagerProps)
             <div className="space-y-2">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Marketing Cookies</h4>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h4 className="font-semibold text-foreground">Marketing Cookies</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Used to track visitors across websites to display relevant advertisements and measure campaign effectiveness.
                   </p>
                 </div>

@@ -27,11 +27,25 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 
 export const CSP_DIRECTIVES = {
   defaultSrc: ["'self'"],
-  scriptSrc: ["'self'", 'https://accounts.google.com', 'https://cdn.jsdelivr.net'],
-  styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+  // Hardened: scripts are 'self' external modules only — no 'unsafe-inline', no CDNs.
+  scriptSrc: ["'self'"],
+  // style-src keeps 'unsafe-inline' for React style={{}} attributes; fonts self-hosted.
+  styleSrc: ["'self'", "'unsafe-inline'"],
   imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
-  fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
-  connectSrc: ["'self'", 'wss://localhost:3002', 'https://accounts.google.com'],
+  fontSrc: ["'self'", 'data:'],
+  objectSrc: ["'none'"],
+  // Allow the shared API Gateway (https), video-service, LiveKit (wss), Cognito (ap-south-1),
+  // and the 3rd-party lookup APIs used by address/password utilities.
+  connectSrc: [
+    "'self'",
+    'https://*.execute-api.ap-south-1.amazonaws.com',
+    'https://cognito-idp.ap-south-1.amazonaws.com',
+    'wss://*.livekit.cloud',
+    'https://*.livekit.cloud',
+    'https://api.pwnedpasswords.com',
+    'https://api.zippopotam.us',
+    'https://api.postalpincode.in',
+  ],
   frameAncestors: ["'none'"],
   baseUri: ["'self'"],
   formAction: ["'self'"],

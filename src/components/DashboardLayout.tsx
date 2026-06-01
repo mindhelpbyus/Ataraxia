@@ -1,29 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Broadcast, Invoice, Ticket, Wallet } from '@phosphor-icons/react';
-import { CalendarContainer } from './CalendarContainer';
-import { HomeView } from './HomeView';
-import { TherapistHomeView } from './TherapistHomeView';
-import { AdminDashboardView } from './AdminDashboardView';
-import { SuperAdminDashboardView } from './SuperAdminDashboardView';
-import { OrganizationManagementView } from './OrganizationManagementView';
-import { ProfessionalClientsView } from './ProfessionalClientsView';
-import { LiveKitGuideView } from './LiveKitGuideView';
-import { TherapyVideoRoom } from './TherapyVideoRoom';
-
-import { EnhancedTherapistsTable } from './EnhancedTherapistsTable';
-import { VideoRoomsView } from './VideoRoomsView';
-import { QuickNotesView } from './QuickNotesView';
-import { TasksView } from './TasksView';
-import { MessagesView } from './MessagesView';
-import { SettingsView } from './SettingsView';
 import { SettingsSidebar } from './SettingsSidebar';
-import { ReportsView } from './ReportsView';
-import { InvoicesView } from './InvoicesView';
-import { BillingView } from './BillingView';
-import { ClientDashboardView } from './ClientDashboardView';
-import TherapistVerificationView from './TherapistVerificationView';
+import { SupportRequestView } from './SupportRequestView';
+
+// Heavy, tab-switched views are lazy-loaded so each loads only when its tab opens
+// (keeps the dashboard shell small — previously this file was a 1.69 MB chunk).
+const named = (p: Promise<Record<string, any>>, name: string) =>
+  p.then((m) => ({ default: m[name] as React.ComponentType<any> }));
+const CalendarContainer = lazy(() => named(import('./CalendarContainer'), 'CalendarContainer'));
+const HomeView = lazy(() => named(import('./HomeView'), 'HomeView'));
+const TherapistHomeView = lazy(() => named(import('./TherapistHomeView'), 'TherapistHomeView'));
+const AdminDashboardView = lazy(() => named(import('./AdminDashboardView'), 'AdminDashboardView'));
+const SuperAdminDashboardView = lazy(() => named(import('./SuperAdminDashboardView'), 'SuperAdminDashboardView'));
+const OrganizationManagementView = lazy(() => named(import('./OrganizationManagementView'), 'OrganizationManagementView'));
+const ProfessionalClientsView = lazy(() => named(import('./ProfessionalClientsView'), 'ProfessionalClientsView'));
+const TherapyVideoRoom = lazy(() => named(import('./TherapyVideoRoom'), 'TherapyVideoRoom'));
+const EnhancedTherapistsTable = lazy(() => named(import('./EnhancedTherapistsTable'), 'EnhancedTherapistsTable'));
+const VideoRoomsView = lazy(() => named(import('./VideoRoomsView'), 'VideoRoomsView'));
+const QuickNotesView = lazy(() => named(import('./QuickNotesView'), 'QuickNotesView'));
+const TasksView = lazy(() => named(import('./TasksView'), 'TasksView'));
+const MessagesView = lazy(() => named(import('./MessagesView'), 'MessagesView'));
+const SettingsView = lazy(() => named(import('./SettingsView'), 'SettingsView'));
+const ReportsView = lazy(() => named(import('./ReportsView'), 'ReportsView'));
+const InvoicesView = lazy(() => named(import('./InvoicesView'), 'InvoicesView'));
+const BillingView = lazy(() => named(import('./BillingView'), 'BillingView'));
+const ClientDashboardView = lazy(() => named(import('./ClientDashboardView'), 'ClientDashboardView'));
 import { VerificationBanner } from './VerificationBanner';
 import { BedrockLogo } from '../imports/BedrockLogo';
 import { UserRole, Notification } from '../types/appointment';
@@ -62,7 +65,12 @@ import {
   FileText,
   BarChart3,
   Shield,
-  Video
+  Video,
+  Activity,
+  History,
+  Inbox,
+  UserCheck,
+  CreditCard
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -94,7 +102,39 @@ interface DashboardLayoutProps {
   onNavigateToSessions?: () => void;
 }
 
-type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'therapist-verification' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance' | 'livekit';
+type TabType = 'dashboard' | 'calendar' | 'clients' | 'therapists' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings' | 'organizations' | 'video-rooms' | 'broadcast' | 'support-tickets' | 'billing' | 'invoices' | 'payments' | 'plans' | 'feature-flags' | 'integrations' | 'system-settings' | 'user-management' | 'email-templates' | 'compliance' | 'activity' | 'requests' | 'supervision' | 'notifications' | 'recently-viewed' | 'support';
+
+/** Display titles for settings leaf tabs — keep in sync with SettingsSidebar labels. */
+const SETTINGS_TITLES: Record<string, string> = {
+  account: 'Profile & security',
+  'clinical-info': 'Clinical info',
+  credentials: 'Professional Credentials & Specializations',
+  license: 'License & credentials',
+  notifications: 'Notification preferences',
+  'practice-details': 'Practice details',
+  'business-files': 'Business files',
+  'plan-info': 'Plan info',
+  'analytics-settings': 'Analytics',
+  'data-export': 'Data export',
+  'demo-client': 'Demo client',
+  team: 'Team',
+  insurance: 'Payment & Compliance',
+  'client-billing': 'Client billing',
+  'online-payments': 'Online payments',
+  autopay: 'AutoPay',
+  services: 'Services',
+  products: 'Products',
+  'client-portal': 'Client portal permissions',
+  availability: 'Calendar & availability',
+  caseload: 'Caseload management',
+  'contact-form': 'Contact form',
+  prescreener: 'Prescreener',
+  widgets: 'Widgets',
+  'template-library': 'Template library',
+  documents: 'Shareable documents',
+  'client-notifications': 'Client notifications',
+  messaging: 'Messaging',
+};
 
 export function DashboardLayout({ userRole, currentUserId, userEmail, userName, accountStatus, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead, onNavigateToSecurity, onNavigateToMFA, onNavigateToSessions }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -152,7 +192,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   useEffect(() => {
     const fetchSubscription = async () => {
       if (userRole !== 'therapist') {
-        if (userRole === 'super_admin' || userRole === 'org_admin') {
+        if (userRole === 'superadmin' || userRole === 'org_admin') {
           setSubscriptionInfo({
             status: 'active',
             tier: 'enterprise',
@@ -188,8 +228,8 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     if (currentUserId) fetchSubscription();
   }, [currentUserId, userRole]);
 
-  const handleTabChange = (tab: TabType, subTab?: string) => {
-    setActiveTab(tab);
+  const handleTabChange = (tab: string, subTab?: string) => {
+    setActiveTab(tab as TabType);
     if (tab === 'settings') {
       setShowSettingsNav(true);
       if (subTab) setActiveSettingsTab(subTab);
@@ -217,7 +257,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   const handleGlobalSearchResult = (result: any) => {
     switch (result.category) {
       case 'organizations':
-        if (userRole === 'superadmin' || userRole === 'super_admin') handleTabChange('organizations');
+        if (userRole === 'superadmin') handleTabChange('organizations');
         break;
       case 'therapists':
         handleTabChange('therapists');
@@ -226,7 +266,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         handleTabChange('clients');
         break;
       case 'users':
-        if (userRole === 'superadmin' || userRole === 'super_admin') handleTabChange('user-management');
+        if (userRole === 'superadmin') handleTabChange('user-management');
         break;
       default:
         if (result.category === 'messages') handleTabChange('messages');
@@ -291,10 +331,8 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
       items: [
         { id: 'organizations' as TabType, label: 'Organizations', icon: Building2 },
         { id: 'therapists' as TabType, label: 'Providers / Therapists', icon: UserCog },
-        { id: 'therapist-verification' as TabType, label: 'Therapist Verification', icon: ShieldCheck },
         { id: 'clients' as TabType, label: 'Clients', icon: Users },
         { id: 'video-rooms' as TabType, label: 'Video Sessions', icon: Video, badge: 'LIVE' },
-        { id: 'livekit' as TabType, label: 'LiveKit SDK', icon: Video },
       ]
     },
     {
@@ -325,32 +363,65 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         }
       ];
     }
+    const isOrg = userRole === 'admin' || userRole === 'org_admin';
     return [
+      // ── Practice (SimplePractice: Calendar / Clients / Requests) ──
       {
-        section: '',
+        section: 'Practice',
         items: [
           { id: 'dashboard' as TabType, label: 'Home', icon: LayoutDashboard },
-          { id: 'calendar' as TabType, label: 'Appointments', icon: Calendar },
+          { id: 'calendar' as TabType, label: 'Calendar', icon: Calendar },
           { id: 'clients' as TabType, label: 'Clients', icon: Users },
-          ...(userRole === 'admin' || userRole === 'org_admin' ? [
+          { id: 'requests' as TabType, label: 'Requests', icon: Inbox },
+          ...(isOrg ? [
             { id: 'therapists' as TabType, label: 'Therapists', icon: UserCog },
-            { id: 'organizations' as TabType, label: 'Organizations', icon: Building2 }
+            { id: 'organizations' as TabType, label: 'Organizations', icon: Building2 },
           ] : []),
-          { id: 'messages' as TabType, label: 'Messages', icon: MessageSquare, badge: unreadCount > 0 ? unreadCount : undefined },
-          { id: 'tasks' as TabType, label: 'Tasks', icon: CheckSquare },
-          { id: 'notes' as TabType, label: 'Notes', icon: FileText },
-          { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
-        ]
+        ],
       },
-      ...(userRole === 'therapist' || userRole === 'org_admin' || userRole === 'admin' ? [{
-        section: 'Billing',
+      // ── Clinical (notes, tasks, supervision[org]) ──
+      {
+        section: 'Clinical',
         items: [
-          { id: 'billing' as TabType, label: 'Billing & Subscriptions', icon: FileText },
+          { id: 'notes' as TabType, label: 'Notes', icon: FileText },
+          { id: 'tasks' as TabType, label: 'Tasks', icon: CheckSquare },
+          ...(isOrg ? [{ id: 'supervision' as TabType, label: 'Supervision', icon: UserCheck }] : []),
+        ],
+      },
+      // ── Communication ──
+      {
+        section: 'Communication',
+        items: [
+          { id: 'messages' as TabType, label: 'Messages', icon: MessageSquare, badge: unreadCount > 0 ? unreadCount : undefined },
+          { id: 'video-rooms' as TabType, label: 'Telehealth', icon: Video },
+          { id: 'notifications' as TabType, label: 'Notifications', icon: Bell, badge: unreadCount > 0 ? unreadCount : undefined },
+        ],
+      },
+      // ── Money (SimplePractice: Billing — Insurance is OUT for India) ──
+      {
+        section: 'Money',
+        items: [
+          { id: 'billing' as TabType, label: 'Billing', icon: CreditCard },
           { id: 'invoices' as TabType, label: 'Invoices', icon: Invoice },
           { id: 'payments' as TabType, label: 'Payments', icon: Wallet },
-          { id: 'plans' as TabType, label: 'Plans & Pricing', icon: FileText },
-        ]
-      }] : []),
+          { id: 'plans' as TabType, label: 'Plans', icon: FileText },
+        ],
+      },
+      // ── Insights (Analytics + Activity) ──
+      {
+        section: 'Insights',
+        items: [
+          { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
+          { id: 'activity' as TabType, label: 'Activity', icon: Activity },
+        ],
+      },
+      // ── Grow ──
+      {
+        section: 'Grow',
+        items: [
+          { id: 'recently-viewed' as TabType, label: 'Recently viewed', icon: History },
+        ],
+      },
     ];
   };
 
@@ -367,7 +438,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     },
   ];
 
-  const navigationSections = (userRole === 'superadmin' || userRole === 'super_admin')
+  const navigationSections = (userRole === 'superadmin')
     ? getSuperAdminNavigation()
     : userRole === 'client'
       ? getClientNavigation()
@@ -567,7 +638,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                                           </span>
                                         )}
                                         {item.badge && !sidebarCollapsed && (
-                                          <Badge className={`h-5 px-1.5 min-w-[20px] justify-center text-[10px] font-bold ${typeof item.badge === 'string' && item.badge === 'BETA' ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200' : isActive ? 'bg-white text-black' : 'bg-rose-500 text-white'}`}>
+                                          <Badge className={`h-5 px-1.5 min-w-[20px] justify-center text-[10px] font-bold ${typeof item.badge === 'string' && item.badge === 'BETA' ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200' : isActive ? 'bg-card text-black' : 'bg-rose-500 text-white'}`}>
                                             {item.badge}
                                           </Badge>
                                         )}
@@ -591,37 +662,16 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                 {/* Sidebar Footer */}
                 {!sidebarCollapsed && (
                   <div className="p-4 space-y-3">
-                    {userRole !== 'superadmin' && userRole !== 'super_admin' && (subscriptionInfo?.status === 'trial' || subscriptionInfo?.isOrgOwner) && (
-                      <div className="bg-card rounded-lg px-3 py-2 shadow-sm border border-border/50">
-                        <div className={`flex ${((subscriptionInfo?.trialDaysRemaining ?? 0) > 365 && subscriptionInfo?.status === 'trial') ? 'justify-center' : 'justify-between'} items-center ${(subscriptionInfo?.status === 'trial' && (subscriptionInfo?.trialDaysRemaining ?? 0) <= 365) ? 'mb-2' : ''}`}>
-                          <span className="text-xs font-semibold text-foreground">
-                            {subscriptionInfo?.status === 'trial' ? 'Free Trial Plan' : `${subscriptionInfo?.tier || 'Basic'} Plan`}
-                          </span>
-                          {((subscriptionInfo?.trialDaysRemaining ?? 0) <= 365 || subscriptionInfo?.status !== 'trial') && (
-                            <span className="text-xs text-muted-foreground">
-                              {subscriptionInfo?.status === 'trial' ? `${subscriptionInfo?.trialDaysRemaining ?? 30} days left` : subscriptionInfo?.organizationName || 'My Practice'}
-                            </span>
-                          )}
-                        </div>
-                        {subscriptionInfo?.status === 'trial' && (subscriptionInfo?.trialDaysRemaining ?? 0) <= 365 && (
-                          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                            <div className="bg-gradient-to-r from-action to-orange-600 h-full" style={{ width: `${Math.max(0, Math.min(100, ((subscriptionInfo?.trialDaysRemaining ?? 30) / 30) * 100))}%` }} />
-                          </div>
-                        )}
-                      </div>
-                    )}
-
                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
                       <Sparkles className="h-5 w-5 text-action" />
                       <span className="text-xs font-semibold text-action">AI Assistant</span>
                     </button>
-                    <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
+                    <button
+                      onClick={() => handleTabChange(userRole === 'superadmin' ? 'support-tickets' : 'support')}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group"
+                    >
                       <HelpCircle className="h-5 w-5 text-foreground" />
                       <span className="text-xs font-medium text-foreground">Help & Support</span>
-                    </button>
-                    <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
-                      <Gift className="h-5 w-5 text-foreground" />
-                      <span className="text-xs font-medium text-foreground">Refer & Earn $30</span>
                     </button>
 
                     <DropdownMenu>
@@ -665,19 +715,16 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                     </Tooltip>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-lg hover:bg-muted"
+                          onClick={() => handleTabChange(userRole === 'superadmin' ? 'support-tickets' : 'support')}
+                        >
                           <HelpCircle className="h-5 w-5 text-foreground" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="right"><p>Help & Support</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-muted">
-                          <Gift className="h-5 w-5 text-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right"><p>Refer & Earn $30</p></TooltipContent>
                     </Tooltip>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -715,11 +762,10 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                 <div className="flex items-center">
                   <h1 className="text-3xl font-bold text-foreground tracking-tight">
                     {activeTab === 'dashboard' ? '' :
+                      activeTab === 'support' ? 'Submit a request' :
                       activeTab === 'settings' ? (
-                        activeSettingsTab === 'credentials' ? 'Professional Credentials & Specializations' :
-                          activeSettingsTab === 'availability' ? 'Availability & Session' :
-                            activeSettingsTab === 'insurance' ? 'Payment & Compliance' :
-                              activeSettingsTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+                        SETTINGS_TITLES[activeSettingsTab] ??
+                          activeSettingsTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
                       ) :
                         activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                   </h1>
@@ -746,7 +792,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   <VerificationBanner
                     accountStatus={accountStatus || 'registered'}
                     userRole={userRole}
-                    className="mb-6 shadow-sm bg-white"
+                    className="mb-6 shadow-sm bg-card"
                     profileCompletion={10}
                     onCompleteProfile={() => handleTabChange('settings')}
                   />
@@ -760,16 +806,21 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                   className="h-full"
                 >
                   <ErrorBoundary key={`eb-${activeTab}`}>
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center py-24 text-muted-foreground">
+                        Loading…
+                      </div>
+                    }>
                     {activeTab === 'dashboard' && (
                       <>
                         {userRole === 'therapist' ? (
                           <TherapistHomeView userId={currentUserId} userEmail={userEmail} onNavigate={handleTabChange} accountStatus={accountStatus} />
-                        ) : (userRole === 'superadmin' || userRole === 'super_admin') ? (
+                        ) : (userRole === 'superadmin') ? (
                           <SuperAdminDashboardView userId={currentUserId} userEmail={userEmail} userName={userName} onNavigate={setActiveTab} />
                         ) : (userRole === 'admin' || userRole === 'org_admin') ? (
                           <AdminDashboardView userId={currentUserId} userEmail={userEmail} onNavigate={setActiveTab} />
                         ) : userRole === 'client' ? (
-                          <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab) => setActiveTab(tab as TabType)} />
+                          <ClientDashboardView userId={currentUserId} userEmail={userEmail} userName={userName || ''} onNavigate={(tab: string) => setActiveTab(tab as TabType)} />
                         ) : (
                           <HomeView userRole={userRole} userEmail={userEmail} onNavigate={setActiveTab} />
                         )}
@@ -778,16 +829,20 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                     {activeTab === 'calendar' && <CalendarContainer userRole={userRole} currentUserId={currentUserId} searchQuery={searchQuery} triggerNewAppointment={triggerNewAppointment} />}
                     {activeTab === 'clients' && <ProfessionalClientsView userRole={userRole} currentUserId={currentUserId} />}
                     {activeTab === 'therapists' && <EnhancedTherapistsTable userRole={userRole} currentUserId={currentUserId} />}
-                    {activeTab === 'therapist-verification' && <TherapistVerificationView />}
                     {activeTab === 'video-rooms' && <VideoRoomsView />}
                     {activeTab === 'organizations' && <OrganizationManagementView userId={currentUserId} userEmail={userEmail} onNavigate={() => setActiveTab('dashboard')} />}
                     {activeTab === 'messages' && <MessagesView currentUserId={currentUserId} currentUserName={userName || getUserName(userEmail)} currentUserEmail={userEmail} userRole={userRole} />}
+                    {activeTab === 'support' && <SupportRequestView userEmail={userEmail} />}
                     {activeTab === 'tasks' && <TasksView userRole={userRole} />}
                     {activeTab === 'notes' && <QuickNotesView />}
                     { activeTab === 'invoices' && <InvoicesView userRole={userRole} currentUserId={currentUserId} />}
-                    { activeTab === 'livekit' && <LiveKitGuideView />}
                     {['billing', 'payments', 'plans'].includes(activeTab) && <BillingView userRole={userRole} currentUserId={currentUserId} tab={activeTab as 'billing' | 'payments' | 'plans'} />}
                     {activeTab === 'analytics' && <ReportsView userRole={userRole} currentUserId={currentUserId} userEmail={userEmail} />}
+                    {activeTab === 'requests' && <SectionPlaceholder icon={Inbox} title="Requests" desc="Incoming appointment requests and client enquiries land here. Review, accept, or assign them." />}
+                    {activeTab === 'supervision' && <SectionPlaceholder icon={UserCheck} title="Supervision" desc="Review and co-sign notes from supervisees and interns; oversee clinical quality across your clinic." />}
+                    {activeTab === 'notifications' && <SectionPlaceholder icon={Bell} title="Notifications" desc="Your alerts — appointment reminders, messages, and account activity." />}
+                    {activeTab === 'activity' && <SectionPlaceholder icon={Activity} title="Activity" desc="A live feed of what's happening across your practice — sessions, notes, payments, and more." />}
+                    {activeTab === 'recently-viewed' && <SectionPlaceholder icon={History} title="Recently viewed" desc="Quickly jump back to the clients and records you opened most recently." />}
                     {activeTab === 'settings' && (
                       <SettingsView
                         userId={currentUserId}
@@ -799,6 +854,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
                         handleBackFromSettings={handleBackFromSettings}
                       />
                     )}
+                    </Suspense>
                   </ErrorBoundary>
                 </motion.div>
               </div>
@@ -824,5 +880,21 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
         </DialogContent>
       </Dialog>
     </DndProvider>
+  );
+}
+
+/** Clean, on-brand placeholder for sidebar sections not yet built (SimplePractice parity). */
+function SectionPlaceholder({ icon: Icon, title, desc }: { icon: React.ComponentType<{ className?: string }>; title: string; desc: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-24 px-6">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-5">
+        <Icon className="h-6 w-6 text-muted-foreground" />
+      </div>
+      <h2 className="text-xl font-semibold tracking-tight text-foreground">{title}</h2>
+      <p className="mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">{desc}</p>
+      <span className="mt-5 inline-flex items-center rounded-full border border-rule px-3 py-1 text-xs font-medium text-muted-foreground">
+        Coming soon
+      </span>
+    </div>
   );
 }

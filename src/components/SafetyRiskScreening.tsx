@@ -142,7 +142,7 @@ export function SafetyRiskScreening({ data, onChange, countryCode = 'US' }: Safe
 
             <div className="grid gap-3 sm:grid-cols-2">
               {resources.map((resource) => (
-                <div key={resource.id} className="bg-white border border-red-200 rounded-lg p-3 flex flex-col gap-2">
+                <div key={resource.id} className="bg-card border border-red-200 rounded-lg p-3 flex flex-col gap-2">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       {resource.type === 'emergency' && <AlertTriangle className="h-5 w-5 text-red-600" />}
@@ -157,8 +157,8 @@ export function SafetyRiskScreening({ data, onChange, countryCode = 'US' }: Safe
                     </Badge>
                   </div>
 
-                  <div className="text-lg font-bold text-gray-900">{resource.number}</div>
-                  <div className="text-xs text-gray-600">{resource.description}</div>
+                  <div className="text-lg font-bold text-foreground">{resource.number}</div>
+                  <div className="text-xs text-muted-foreground">{resource.description}</div>
 
                   <div className="flex gap-2 mt-1">
                     {resource.method.includes('call') && <Badge variant="secondary" className="text-[10px] h-5">Call</Badge>}

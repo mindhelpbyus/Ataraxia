@@ -11,7 +11,7 @@
  * 5. Other admin roles: assigned by super admin in database
  */
 
-export type UserRole = 'therapist' | 'client' | 'super_admin' | 'org_admin' | 'admin';
+export type UserRole = 'therapist' | 'client' | 'superadmin' | 'org_admin' | 'admin';
 
 export interface RoleConfig {
   defaultRole: UserRole;
@@ -108,7 +108,11 @@ export function detectRoleFromContext(): UserRole {
  * Get role configuration for current context
  */
 export function getCurrentRoleConfig(): RoleConfig {
-  const isDev = import.meta.env.DEV || import.meta.env.VITE_ENVIRONMENT === 'development';
+  // SECURITY: gate the permissive dev role-config ONLY on the build-time DEV flag
+  // (always false in production builds). Do NOT also key off a runtime env string —
+  // that could be misconfigured in prod and loosen the UI. (Backend JWT remains the
+  // real authorization gate regardless.)
+  const isDev = import.meta.env.DEV;
   
   // Development mode - allow manual selection
   if (isDev) {
@@ -165,7 +169,7 @@ export function getRoleDisplayName(role: UserRole): string {
   const displayNames: Record<UserRole, string> = {
     therapist: 'Therapist / Provider',
     client: 'Client / Patient',
-    super_admin: 'Super Administrator',
+    superadmin: 'Super Administrator',
     org_admin: 'Organization Administrator',
     admin: 'Administrator'
   };
@@ -179,7 +183,7 @@ export function getRoleDescription(role: UserRole): string {
   const descriptions: Record<UserRole, string> = {
     therapist: 'Mental health professionals providing therapy services',
     client: 'Individuals seeking therapy and mental health support',
-    super_admin: 'System administrators with full access',
+    superadmin: 'System administrators with full access',
     org_admin: 'Organization-level administrators',
     admin: 'Administrative users with elevated permissions'
   };
@@ -193,7 +197,7 @@ export function getPostRegistrationRedirect(role: UserRole): string {
   const redirects: Record<UserRole, string> = {
     therapist: '/therapist/home',
     client: '/client/dashboard',
-    super_admin: '/admin/dashboard',
+    superadmin: '/admin/dashboard',
     org_admin: '/org/dashboard',
     admin: '/admin/dashboard'
   };

@@ -39,11 +39,12 @@ export function useSession(sessionId?: string, pollInterval: number = 5000) {
   // Load session on mount
   useEffect(() => {
     if (!sessionId) return;
+    const id = sessionId; // narrowed to string for the nested closure
 
     async function loadSession() {
       try {
         setLoading(true);
-        const data = await getSession(sessionId);
+        const data = await getSession(id);
         setSession(data);
       } catch (err) {
         const apiError = err instanceof ApiException ? err : new ApiException({

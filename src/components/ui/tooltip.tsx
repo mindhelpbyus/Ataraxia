@@ -7,16 +7,13 @@ import { cn } from "./utils";
 
 const TooltipProvider = TooltipPrimitive.Provider;
 
-const Tooltip = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Root>
->(({ children, ...props }, ref) => (
+const Tooltip = ({ children, ...props }: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Root>) => (
   <TooltipProvider>
     <TooltipPrimitive.Root {...props}>
       {children}
     </TooltipPrimitive.Root>
   </TooltipProvider>
-));
+);
 Tooltip.displayName = "Tooltip";
 
 const TooltipTrigger = React.forwardRef<

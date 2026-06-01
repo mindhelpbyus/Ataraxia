@@ -53,11 +53,11 @@ export function EnhancedAppointmentCard({
   };
 
   const getStatusColor = () => {
-    if (appointment.type === 'break') return 'bg-gray-100 border-gray-300 text-gray-800';
+    if (appointment.type === 'break') return 'bg-muted border-border text-foreground';
     if (appointment.status === 'pending') return 'bg-yellow-50 border-yellow-200 text-yellow-800';
     if (appointment.type === 'internal') return 'bg-purple-50 border-purple-200 text-purple-900';
     if (appointment.type === 'external') return 'bg-teal-50 border-teal-200 text-teal-900';
-    return 'bg-white border-gray-200 text-gray-900';
+    return 'bg-card border-border text-foreground';
   };
 
   const isBreak = appointment.type === 'break';
@@ -72,7 +72,7 @@ export function EnhancedAppointmentCard({
   const getTypeBadgeColor = () => {
     switch (appointment.type) {
       case 'break':
-        return 'bg-gray-600 text-white';
+        return 'bg-[var(--muted-text)] text-white';
       case 'internal':
         return 'bg-[#9050e9] text-white';
       case 'external':
@@ -97,14 +97,14 @@ export function EnhancedAppointmentCard({
 
   return (
     <div
-      ref={drag}
+      ref={drag as unknown as React.Ref<HTMLDivElement>}
       onClick={onClick}
       style={{
         ...style,
         borderLeftWidth: '4px',
         borderLeftColor: getAccentColor(),
         opacity: isDragging ? 0.5 : 1,
-        backgroundColor: isBreak ? '#9CA3AF' : (appointment.status === 'tentative' ? '#DBEAFE' : undefined),
+        backgroundColor: isBreak ? '#9CA3AF' : ((appointment.status as string) === 'tentative' ? '#DBEAFE' : undefined),
       }}
       className={`
         ${getStatusColor()}

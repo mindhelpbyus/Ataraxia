@@ -251,7 +251,7 @@ export function ClientRegistrationForm({
 
     if (!otpVerified) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center p-4">
+            <div className="min-h-screen bg-card flex items-center justify-center p-4">
                 <div className="w-full max-w-xl">
                     <OTPVerificationStep
                         clientEmail={formData.email}
@@ -293,10 +293,10 @@ export function ClientRegistrationForm({
     };
 
     return (
-        <div className="min-h-screen bg-white py-8 px-4 font-sans">
+        <div className="min-h-screen bg-card py-8 px-4 font-sans">
             <div className="max-w-5xl mx-auto space-y-6">
                 {/* Progress Header */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="bg-card rounded-xl shadow-sm border border-border p-6">
                     <ProgressHeader
                         currentStep={currentStep}
                         totalSteps={STEPS.length}
@@ -305,7 +305,7 @@ export function ClientRegistrationForm({
                 </div>
 
                 {/* Step Content */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 min-h-[500px]">
+                <div className="bg-card rounded-xl shadow-sm border border-border p-6 md:p-8 min-h-[500px]">
                     {renderStepContent()}
                 </div>
 
@@ -329,7 +329,7 @@ export function ClientRegistrationForm({
                             logger.debug('Save and exit:', { ...formData });
                             alert('Your progress has been saved. You can continue later.');
                         }}
-                        className="text-sm text-gray-500 hover:text-gray-900 underline transition-colors"
+                        className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
                     >
                         Save & Exit (Continue Later)
                     </button>

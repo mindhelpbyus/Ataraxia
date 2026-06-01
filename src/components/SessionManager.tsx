@@ -28,7 +28,8 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getActiveSessions, invalidateAllSessions } from '../api/auth';
+import { cognitoGlobalSignOut } from '../lib/cognito';
+import { getCurrentUser } from '../api/auth';
 
 interface SessionInfo {
   id: string;
@@ -74,9 +75,23 @@ export const SessionManager: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await getActiveSessions();
-      setSessions(response.sessions || []);
-      setAnalytics(response.analytics || null);
+      // Cognito has no server-side "active sessions" list. We can only represent
+      // the current device's session. "Sign out everywhere" revokes all refresh
+      // tokens via globalSignOut (see handleLogoutAllOtherDevices).
+      await getCurrentUser(); // throws if not authenticated
+      const ua = navigator.userAgent;
+      const now = new Date().toISOString();
+      setSessions([
+        {
+          id: 'current',
+          deviceInfo: { userAgent: ua, ipAddress: '' },
+          createdAt: now,
+          lastAccessedAt: now,
+          isActive: true,
+          isCurrent: true,
+        },
+      ]);
+      setAnalytics(null);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -88,10 +103,11 @@ export const SessionManager: React.FC = () => {
     try {
       setLogoutLoading(true);
 
-      const result = await invalidateAllSessions(true);
+      // Revokes all refresh tokens for this user across every device.
+      await cognitoGlobalSignOut();
 
-      toast.success(`Logged out from ${result.invalidatedCount} other devices`);
-      await loadSessions(); // Refresh the list
+      toast.success('Signed out of all devices. Please sign in again.');
+      window.location.replace('/login?reason=signed-out-everywhere');
     } catch (err: any) {
       toast.error(err.message);
     } finally {

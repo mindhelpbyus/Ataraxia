@@ -85,7 +85,7 @@ const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass, d
   <motion.div
     variants={itemVariants}
     whileHover={{ y: -2 }}
-    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-card p-6 shadow-sm transition-all hover:shadow-md"
   >
     <div className="flex items-center justify-between">
       <div className={`rounded-xl p-2.5 ${colorClass} bg-opacity-10`}>
@@ -215,7 +215,7 @@ export function TherapistReports({ currentUserId, userEmail, dateRange }: Therap
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl">
+                <div className="flex items-center justify-between p-4 bg-card/10 backdrop-blur-sm border border-white/10 rounded-xl">
                   <div>
                     <p className="text-sm text-slate-300">Total Billed</p>
                     <p className="text-3xl font-bold text-white">$25,320</p>
@@ -230,7 +230,7 @@ export function TherapistReports({ currentUserId, userEmail, dateRange }: Therap
                     <span className="text-sm text-slate-300">Collected</span>
                     <span className="text-sm font-medium text-white">$23,150</span>
                   </div>
-                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-card/10 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-500 w-[91.4%]" />
                   </div>
                   <div className="flex items-center justify-between text-xs text-slate-400">
@@ -353,7 +353,7 @@ export function TherapistReports({ currentUserId, userEmail, dateRange }: Therap
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="font-mono text-xs bg-white">
+                        <Badge variant="outline" className="font-mono text-xs bg-card">
                           {cpt.code}
                         </Badge>
                         <span className="text-sm font-medium text-slate-900">{cpt.name}</span>

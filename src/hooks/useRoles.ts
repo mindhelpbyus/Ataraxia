@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllRoles, getProfessionalRoles, getUserRole, type Role } from '../api/roles';
+import { normalizeRole } from '../api/auth';
 
 /**
  * Hook to fetch all roles from the database
@@ -100,11 +101,11 @@ export function useUserRole(token: string | null) {
         allUserRoles,
         loading,
         error,
-        isClient: userRole?.name === 'client',
-        isProfessional: userRole?.name !== 'client',
-        isSuperAdmin: userRole?.name === 'super_admin',
-        isOrgAdmin: userRole?.name === 'org_admin',
-        isTherapist: userRole?.name === 'therapist',
+        isClient: normalizeRole(userRole?.name) === 'client',
+        isProfessional: !!userRole?.name && normalizeRole(userRole?.name) !== 'client',
+        isSuperAdmin: normalizeRole(userRole?.name) === 'superadmin',
+        isOrgAdmin: normalizeRole(userRole?.name) === 'org_admin',
+        isTherapist: normalizeRole(userRole?.name) === 'therapist',
         isDoctor: userRole?.name === 'doctor',
         isReceptionist: userRole?.name === 'org_receptionist'
     };

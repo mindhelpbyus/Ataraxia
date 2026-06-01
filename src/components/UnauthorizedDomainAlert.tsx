@@ -30,7 +30,7 @@ export function UnauthorizedDomainAlert({ currentDomain }: UnauthorizedDomainAle
             </p>
           </div>
 
-          <div className="bg-white/60 rounded-lg p-4 border border-red-200 space-y-3">
+          <div className="bg-card/60 rounded-lg p-4 border border-red-200 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1">
                 <p className="text-xs font-medium text-red-900 mb-1">Current Domain:</p>

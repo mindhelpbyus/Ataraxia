@@ -158,7 +158,7 @@ export function WeekView({
             <div className="sticky top-0 bg-background z-40 border-b border-border">
               {/* Time Label Row */}
               <div className="flex">
-                <div className="w-20 flex-shrink-0 border-r border-border bg-white flex items-center justify-center text-sm font-medium p-2 sticky left-0 z-50 border-b border-border">
+                <div className="w-20 flex-shrink-0 border-r border-border bg-card flex items-center justify-center text-sm font-medium p-2 sticky left-0 z-50 border-b border-border">
                   Time
                 </div>
                 {therapists.map(therapist => (
@@ -183,7 +183,7 @@ export function WeekView({
 
               {/* Days Row */}
               <div className="flex">
-                <div className="w-20 flex-shrink-0 border-r border-border sticky left-0 z-50 bg-white" />
+                <div className="w-20 flex-shrink-0 border-r border-border sticky left-0 z-50 bg-card" />
                 {therapists.map(therapist => (
                   <div
                     key={`days-${therapist.id}`}
@@ -203,7 +203,7 @@ export function WeekView({
                                 className={`
                                   flex-1 p-2 text-center border-r border-border bg-card text-xs cursor-help
                                   ${dayInfo.isToday ? 'bg-action-light text-action-dark font-semibold' : ''}
-                                  ${!isWorking ? 'bg-gray-50/30 opacity-60' : ''}
+                                  ${!isWorking ? 'bg-[var(--surface-warm)]/30 opacity-60' : ''}
                                 `}
                                 style={{ width: '120px' }}
                               >
@@ -232,7 +232,7 @@ export function WeekView({
                                     {availableSlots} available slot{availableSlots !== 1 ? 's' : ''}
                                   </div>
                                 ) : (
-                                  <div className="text-xs text-gray-300">Non-working day</div>
+                                  <div className="text-xs text-muted-foreground">Non-working day</div>
                                 )}
                               </div>
                             </TooltipContent>
@@ -312,7 +312,7 @@ export function WeekView({
         {/* Header Row */}
         <div className="sticky top-0 bg-background z-40 border-b border-border">
           <div className="flex">
-            <div className="w-16 border-r bg-white flex items-center justify-center text-sm font-medium p-2 sticky left-0 z-50 border-b border-border bg-[rgba(255,255,255,0.3)]">
+            <div className="w-16 border-r bg-card flex items-center justify-center text-sm font-medium p-2 sticky left-0 z-50 border-b border-border bg-[rgba(255,255,255,0.3)]">
               Time
             </div>
             {weekDays.map(date => {
@@ -325,7 +325,7 @@ export function WeekView({
                   className={`
                     flex-1 min-w-32 p-3 text-center border-r border-border bg-card
                     ${dayInfo.isToday ? 'bg-action-light text-action-dark font-semibold' : ''}
-                    ${!isWorking ? 'bg-gray-50/30' : ''}
+                    ${!isWorking ? 'bg-[var(--surface-warm)]/30' : ''}
                   `}
                 >
                   <div className="font-medium text-sm">{dayInfo.dayName}</div>
@@ -347,7 +347,7 @@ export function WeekView({
 
           return (
             <div key={slot.hour} className="flex border-b border-border">
-              <div className="w-16 border-r border-border bg-white flex items-center justify-center text-xs text-muted-foreground p-2 sticky left-0 z-30">
+              <div className="w-16 border-r border-border bg-card flex items-center justify-center text-xs text-muted-foreground p-2 sticky left-0 z-30">
                 {slot.displayTime}
               </div>
               {weekDays.map(date => {

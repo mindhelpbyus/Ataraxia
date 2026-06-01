@@ -34,7 +34,7 @@ export function VerificationStep({
     return (
         <Card className={cn(
             'transition-all duration-300 border',
-            isCurrent ? 'border-teal-500/40 shadow-[0_0_30px_-10px_rgba(20,184,166,0.3)] bg-white ring-1 ring-teal-500/20' : 'border-slate-200 bg-white/50 shadow-sm',
+            isCurrent ? 'border-teal-500/40 shadow-[0_0_30px_-10px_rgba(20,184,166,0.3)] bg-card ring-1 ring-teal-500/20' : 'border-slate-200 bg-card/50 shadow-sm',
             status === 'pending' && 'opacity-60 grayscale-[0.5]'
         )}>
             <CardContent className="p-8">

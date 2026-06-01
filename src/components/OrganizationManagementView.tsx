@@ -36,8 +36,7 @@ import {
 import { Card, CardContent } from './ui/card';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { toast } from 'sonner';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+import { get } from '../api/client';
 
 interface Organization {
   id: string;
@@ -66,27 +65,10 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
 
   const loadOrganizations = async () => {
     try {
-      if (USE_LOCAL_DB) {
-        const orgs = await localDb.organizations.findMany();
-        setOrganizations(orgs.map(o => ({
-          id: o.id,
-          organizationName: o.name,
-          organizationType: o.plan === 'enterprise' ? 'large-enterprise' : o.plan === 'professional' ? 'mid-size' : 'small-group',
-          numberOfClinicians: o.therapistCount || 0,
-          numberOfClients: o.clientCount || 0,
-          subscriptionPlan: o.plan || 'starter',
-          status: o.status || 'active',
-          createdAt: new Date(o.createdAt || new Date()),
-          primaryContactEmail: o.email || '',
-          hipaaCompliant: true
-        })));
-      } else {
-        const res = await fetch('/api/v1/organizations');
-        if (res.ok) {
-          const data = await res.json();
-          setOrganizations(data);
-        }
-      }
+      // TODO(backend): no `/organizations` route exists on backend-initial or
+      // billing_payment yet. When added, call it here. Until then, render empty.
+      const data = await get<any[]>('/organizations').catch(() => []);
+      setOrganizations(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error('Failed to load organizations', e);
       toast.error('Failed to load organizations');
@@ -96,14 +78,6 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
   useEffect(() => {
     loadOrganizations();
   }, []);
-
-  const handleResetDb = async () => {
-    if (confirm('Are you sure you want to reset the demo database? This will revert all changes to the original mock data.')) {
-      localDb.reset();
-      await loadOrganizations();
-      toast.success('Database Reset', { description: 'The demo data has been restored.' });
-    }
-  };
 
   const handleCreateOrganization = () => {
     setEditingOrg(null);
@@ -248,10 +222,6 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
         className="mb-8"
       >
         <div className="flex items-center justify-end gap-3 mb-6">
-          <Button variant="outline" onClick={handleResetDb} className="border-border hover:bg-muted text-muted-foreground">
-            <Activity className="h-4 w-4 mr-2" />
-            Reset Demo Data
-          </Button>
           <Button onClick={handleCreateOrganization} className="bg-primary hover:bg-primary/90 shadow-sm transition-colors font-medium">
             <Plus className="h-4 w-4 mr-2" />
             Add Organization

@@ -8,8 +8,7 @@ import {
   Palette,
   HelpCircle
 } from 'lucide-react';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+import { get } from '../api/client';
 
 // Types
 type NoteColor = 'yellow' | 'blue' | 'green' | 'pink' | 'purple' | 'orange';
@@ -26,12 +25,12 @@ interface Note {
 
 // Color configurations matching the image
 const noteColors: { [key in NoteColor]: { bg: string; border: string; text: string } } = {
-  yellow: { bg: 'bg-yellow-100', border: 'border-l-yellow-400', text: 'text-gray-700' },
-  blue: { bg: 'bg-blue-100', border: 'border-l-blue-400', text: 'text-gray-700' },
-  green: { bg: 'bg-green-100', border: 'border-l-green-400', text: 'text-gray-700' },
-  pink: { bg: 'bg-pink-100', border: 'border-l-pink-400', text: 'text-gray-700' },
-  purple: { bg: 'bg-purple-100', border: 'border-l-purple-400', text: 'text-gray-700' },
-  orange: { bg: 'bg-action-light', border: 'border-l-orange-400', text: 'text-gray-700' }
+  yellow: { bg: 'bg-yellow-100', border: 'border-l-yellow-400', text: 'text-foreground' },
+  blue: { bg: 'bg-blue-100', border: 'border-l-blue-400', text: 'text-foreground' },
+  green: { bg: 'bg-green-100', border: 'border-l-green-400', text: 'text-foreground' },
+  pink: { bg: 'bg-pink-100', border: 'border-l-pink-400', text: 'text-foreground' },
+  purple: { bg: 'bg-purple-100', border: 'border-l-purple-400', text: 'text-foreground' },
+  orange: { bg: 'bg-action-light', border: 'border-l-orange-400', text: 'text-foreground' }
 };
 
 const STORAGE_KEY = 'medicalAppStickyNotes';
@@ -42,34 +41,39 @@ export function QuickNotesView() {
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Load notes from localDb or localStorage
+  // Load notes from the backend (/quick-notes), with localStorage as offline cache
   useEffect(() => {
     const load = async () => {
-      if (USE_LOCAL_DB) {
-        const dbNotes = await localDb.notes.findMany();
-        const mapped = dbNotes.slice(0, 15).map((n, i) => {
-          // Map DB color to NoteColor
-          let c: NoteColor = 'yellow';
-          if (n.color?.includes('BLUE')) c = 'blue';
-          if (n.color?.includes('GREEN')) c = 'green';
-          if (n.color?.includes('PINK') || n.color?.includes('FCE7F3')) c = 'pink';
-          if (n.color?.includes('PURPLE') || n.color?.includes('EDE9FE')) c = 'purple';
-          if (n.color?.includes('ORANGE')) c = 'orange';
+      // backend-initial: GET /quick-notes (DynamoDB-backed, community-stack)
+      try {
+        const dbNotes = await get<any[]>('/quick-notes');
+        if (Array.isArray(dbNotes) && dbNotes.length > 0) {
+          const mapped = dbNotes.slice(0, 15).map((n, i) => {
+            let c: NoteColor = 'yellow';
+            if (n.color?.includes('BLUE')) c = 'blue';
+            if (n.color?.includes('GREEN')) c = 'green';
+            if (n.color?.includes('PINK') || n.color?.includes('FCE7F3')) c = 'pink';
+            if (n.color?.includes('PURPLE') || n.color?.includes('EDE9FE')) c = 'purple';
+            if (n.color?.includes('ORANGE')) c = 'orange';
 
-          return {
-            id: n.id,
-            content: `${n.title ? n.title + '\n\n' : ''}${n.content || ''}`,
-            color: c,
-            isPinned: n.isPinned,
-            position: { x: 50 + (i * 40) % 600, y: 100 + (i * 40) % 400 },
-            size: { width: 280, height: 200 },
-            createdAt: new Date(n.createdAt),
-          };
-        });
-        setNotes(mapped);
-        return;
+            return {
+              id: n.id,
+              content: `${n.title ? n.title + '\n\n' : ''}${n.content || ''}`,
+              color: c,
+              isPinned: n.isPinned,
+              position: { x: 50 + (i * 40) % 600, y: 100 + (i * 40) % 400 },
+              size: { width: 280, height: 200 },
+              createdAt: new Date(n.createdAt),
+            };
+          });
+          setNotes(mapped);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to load quick notes from backend; falling back to local cache', e);
       }
 
+      // Offline cache fallback (legitimate — not demo data)
       const savedNotes = localStorage.getItem(STORAGE_KEY);
       if (savedNotes) {
         try {
@@ -200,21 +204,21 @@ export function QuickNotesView() {
 
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--surface-warm)] overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between z-10 sticky top-0 shadow-sm">
+      <div className="bg-card border-b border-border px-8 py-4 flex items-center justify-between z-10 sticky top-0 shadow-sm">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Sticky Notes Board</h2>
-          <p className="text-sm text-gray-500 mt-1">Drag to move, resize corners, double-click to edit</p>
+          <h2 className="text-2xl font-bold text-foreground">Sticky Notes Board</h2>
+          <p className="text-sm text-muted-foreground mt-1">Drag to move, resize corners, double-click to edit</p>
         </div>
 
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-500">{notes.length} notes</span>
+          <span className="text-sm font-medium text-muted-foreground">{notes.length} notes</span>
           <Button
             variant="outline"
             onClick={handleClearAll}
             disabled={notes.length === 0}
-            className="text-gray-700 hover:bg-gray-50 border-gray-300"
+            className="text-foreground hover:bg-[var(--surface-warm)] border-border"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Clear All
@@ -231,9 +235,9 @@ export function QuickNotesView() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-8 h-full overflow-y-auto pb-32">
         {notes.length === 0 && (
-          <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-300 select-none">
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground select-none">
             <div className="bg-yellow-100 border-l-4 border-yellow-400 rounded-lg shadow-md p-8 w-80 mb-6 flex flex-col items-center">
-              <p className="text-gray-700 text-center font-medium">
+              <p className="text-foreground text-center font-medium">
                 Click "New Note" to create your first sticky note!
               </p>
             </div>
@@ -262,7 +266,7 @@ export function QuickNotesView() {
                   {/* Pin button */}
                   <div
                     onClick={(e) => { e.stopPropagation(); handleTogglePin(note.id); }}
-                    className={`p-1.5 rounded-full hover:bg-white/60 transition-colors cursor-pointer ${note.isPinned ? 'text-[#1E7048] bg-white/50' : 'text-gray-500'
+                    className={`p-1.5 rounded-full hover:bg-card/60 transition-colors cursor-pointer ${note.isPinned ? 'text-[#1E7048] bg-card/50' : 'text-muted-foreground'
                       }`}
                     title={note.isPinned ? 'Unpin note' : 'Pin note'}
                   >
@@ -273,7 +277,7 @@ export function QuickNotesView() {
                   <div className="relative">
                     <div
                       onClick={(e) => { e.stopPropagation(); setShowColorPicker(showColorPicker === note.id ? null : note.id); }}
-                      className="p-1.5 rounded-full hover:bg-white/60 transition-colors cursor-pointer text-gray-500"
+                      className="p-1.5 rounded-full hover:bg-card/60 transition-colors cursor-pointer text-muted-foreground"
                       title="Change color"
                     >
                       <Palette className="w-4 h-4" />
@@ -281,12 +285,12 @@ export function QuickNotesView() {
 
                     {/* Color picker dropdown */}
                     {showColorPicker === note.id && (
-                      <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 p-2 flex flex-nowrap gap-1.5 z-30 min-w-max animate-in fade-in zoom-in-95 duration-200">
+                      <div className="absolute top-full right-0 mt-1 bg-card rounded-lg shadow-xl border border-border p-2 flex flex-nowrap gap-1.5 z-30 min-w-max animate-in fade-in zoom-in-95 duration-200">
                         {(Object.keys(noteColors) as NoteColor[]).map((color) => (
                           <div
                             key={color}
                             onClick={(e) => { e.stopPropagation(); handleChangeColor(note.id, color); }}
-                            className={`w-6 h-6 rounded-md ${noteColors[color].bg} border ${note.color === color ? 'border-[#1E7048] ring-1 ring-[#1E7048]' : 'border-gray-300'
+                            className={`w-6 h-6 rounded-md ${noteColors[color].bg} border ${note.color === color ? 'border-[#1E7048] ring-1 ring-[#1E7048]' : 'border-border'
                               } hover:scale-110 transition-transform cursor-pointer shadow-sm`}
                             title={color}
                           />
@@ -298,7 +302,7 @@ export function QuickNotesView() {
                   {/* Delete button */}
                   <div
                     onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                    className="p-1.5 rounded-full hover:bg-white/60 transition-colors cursor-pointer text-red-400 hover:text-red-600"
+                    className="p-1.5 rounded-full hover:bg-card/60 transition-colors cursor-pointer text-red-400 hover:text-red-600"
                     title="Delete note"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -321,7 +325,7 @@ export function QuickNotesView() {
                     <div className={`w-full h-full ${colors.text} text-base font-medium leading-relaxed whitespace-pre-wrap break-words overflow-y-auto`}>
                       {note.content || (
                         <div className="h-full flex items-center justify-center">
-                          <span className="text-gray-400/80 italic text-sm">Double-click to edit</span>
+                          <span className="text-muted-foreground/80 italic text-sm">Double-click to edit</span>
                         </div>
                       )}
                     </div>
@@ -334,13 +338,13 @@ export function QuickNotesView() {
         </div>
 
       {/* Footer */}
-      <div className="bg-white border-t border-gray-200 px-6 py-2 flex items-center justify-between z-10 sticky bottom-0">
-        <div className="flex items-center gap-2 text-xs text-gray-500">
+      <div className="bg-card border-t border-border px-6 py-2 flex items-center justify-between z-10 sticky bottom-0">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="text-[#1E7048]">●</span>
           <span>© 2026 Ataraxia Health. All rights reserved.</span>
         </div>
-        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <HelpCircle className="w-4 h-4 text-gray-400" />
+        <button className="p-2 hover:bg-muted rounded-full transition-colors">
+          <HelpCircle className="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
 
@@ -348,15 +352,15 @@ export function QuickNotesView() {
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-xs overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100"
+            className="bg-card rounded-xl shadow-xl w-full max-w-xs overflow-hidden animate-in zoom-in-95 duration-200 border border-border"
             style={{ maxWidth: '320px' }}
           >
             <div className="p-5 text-center">
               <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Trash2 className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">Clear all notes?</h3>
-              <p className="text-gray-500 mb-5 text-sm">
+              <h3 className="text-base font-semibold text-foreground mb-1">Clear all notes?</h3>
+              <p className="text-muted-foreground mb-5 text-sm">
                 This will permanently delete all {notes.length} sticky notes.
               </p>
 
@@ -365,7 +369,7 @@ export function QuickNotesView() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowClearConfirm(false)}
-                  className="flex-1 border-gray-300 hover:bg-gray-50 h-9 text-sm"
+                  className="flex-1 border-border hover:bg-[var(--surface-warm)] h-9 text-sm"
                 >
                   Cancel
                 </Button>

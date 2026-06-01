@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Country, State, City } from 'country-state-city';
+import { Country, State, City } from '../../lib/location';
 import Select from 'react-select';
 import { MapPin } from 'lucide-react';
 import * as ct from 'countries-and-timezones';
-import zipcodes from 'zipcodes';
+import { zipcodesShim as zipcodes } from '../../lib/location';
 import { ComprehensiveClientData } from './types';
 
 interface AddressSectionProps {
@@ -55,7 +55,7 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
         const allTimezones = ct.getAllTimezones();
         return Object.keys(allTimezones).map(tz => ({
             value: tz,
-            label: `${tz} (UTC${allTimezones[tz].utcOffsetStr})`,
+            label: `${tz} (UTC${allTimezones[tz as keyof typeof allTimezones].utcOffsetStr})`,
         }));
     }, []);
 
@@ -234,15 +234,15 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
         <div className="space-y-6">
             {/* Address Header */}
             <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-gray-500" />
-                <label className="text-sm font-medium text-gray-700">
+                <MapPin className="w-4 h-4 text-muted-foreground" />
+                <label className="text-sm font-medium text-foreground">
                     Address <span className="text-red-500">*</span>
                 </label>
             </div>
 
             {/* Street Address Line 1 */}
             <div>
-                <label className="block text-xs text-gray-600 mb-2">
+                <label className="block text-xs text-muted-foreground mb-2">
                     Street Address Line 1 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -250,13 +250,13 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
                     value={formData.address1}
                     onChange={(e) => updateFormData('address1', e.target.value)}
                     placeholder="123 Main Street, Building Name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
                 />
             </div>
 
             {/* Street Address Line 2 */}
             <div>
-                <label className="block text-xs text-gray-600 mb-2">
+                <label className="block text-xs text-muted-foreground mb-2">
                     Street Address Line 2 (Optional)
                 </label>
                 <input
@@ -264,14 +264,14 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
                     value={formData.address2 || ''}
                     onChange={(e) => updateFormData('address2', e.target.value)}
                     placeholder="Apartment, Suite, Floor, Locality (e.g., T. Nagar, Adyar)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
                 />
             </div>
 
             {/* Country and State */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm mb-2 text-gray-700">Country <span className="text-red-500">*</span></label>
+                    <label className="block text-sm mb-2 text-foreground">Country <span className="text-red-500">*</span></label>
                     <Select
                         value={selectedCountryObj}
                         onChange={handleCountryChange}
@@ -283,7 +283,7 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
                 </div>
 
                 <div>
-                    <label className="block text-sm mb-2 text-gray-700">State <span className="text-red-500">*</span></label>
+                    <label className="block text-sm mb-2 text-foreground">State <span className="text-red-500">*</span></label>
                     <Select
                         value={selectedStateObj}
                         onChange={(state) => {
@@ -301,7 +301,7 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
 
                 {/* District and City */}
                 <div>
-                    <label className="block text-sm mb-2 text-gray-700">District</label>
+                    <label className="block text-sm mb-2 text-foreground">District</label>
                     <Select
                         value={selectedDistrictObj}
                         onChange={(district) => {
@@ -317,7 +317,7 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
                 </div>
 
                 <div>
-                    <label className="block text-sm mb-2 text-gray-700">City <span className="text-red-500">*</span></label>
+                    <label className="block text-sm mb-2 text-foreground">City <span className="text-red-500">*</span></label>
                     <Select
                         value={selectedCityObj}
                         onChange={(city) => {
@@ -334,7 +334,7 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
 
                 {/* Postal Code */}
                 <div className="md:col-span-2">
-                    <label className="block text-sm mb-2 text-gray-700">
+                    <label className="block text-sm mb-2 text-foreground">
                         {formData.country === 'US' ? 'ZIP Code' :
                             formData.country === 'IN' ? 'PIN Code' :
                                 'Postal Code'} <span className="text-red-500">*</span>
@@ -356,7 +356,7 @@ export function AddressSection({ formData, updateFormData }: AddressSectionProps
             {/* Timezone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm mb-2 text-gray-700">Timezone</label>
+                    <label className="block text-sm mb-2 text-foreground">Timezone</label>
                     <Select
                         value={selectedTimezoneObj}
                         onChange={(tz) => updateFormData('timezone', tz?.value || '')}

@@ -14,4 +14,4 @@
 export { InputField, type InputFieldProps } from './input-field';
 export { SearchBar, type SearchBarProps } from './search-bar';
 export { TextareaField, type TextareaFieldProps } from './textarea-field';
-export { PhoneInput, COUNTRY_CODES, validatePhoneNumber, formatPhoneForDisplay } from '../PhoneInput';
+export { PhoneInput, COUNTRY_CODES, validatePhoneNumber, formatPhoneNumberUtil } from '../PhoneInput';

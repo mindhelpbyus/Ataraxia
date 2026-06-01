@@ -116,7 +116,7 @@ export function NavigationExamples() {
     <div className="min-h-screen bg-[var(--background-secondary,#F7F9FB)] p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Navigation */}
-        <div className="bg-white rounded-lg border border-[var(--border-primary,#E8ECF3)] p-6">
+        <div className="bg-card rounded-lg border border-[var(--border-primary,#E8ECF3)] p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-[var(--content-dark-primary,#000000)]">
@@ -166,7 +166,7 @@ export function NavigationExamples() {
                 <input
                   type="text"
                   placeholder="Search clients..."
-                  className="w-full pl-10 pr-4 py-2 rounded border border-[var(--border-primary,#E8ECF3)] bg-white text-sm"
+                  className="w-full pl-10 pr-4 py-2 rounded border border-[var(--border-primary,#E8ECF3)] bg-card text-sm"
                 />
               </div>
               <Button variant="outline" size="sm">

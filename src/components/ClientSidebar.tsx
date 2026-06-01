@@ -39,7 +39,7 @@ export function ClientSidebar({
     onLogout
 }: ClientSidebarProps) {
     return (
-        <div className="w-72 h-screen bg-gradient-to-b from-white to-action-light/30 border-r border-gray-200 flex flex-col">
+        <div className="w-72 h-screen bg-gradient-to-b from-white to-action-light/30 border-r border-border flex flex-col">
 
             {/* Logo */}
             <div className="p-6">
@@ -74,7 +74,7 @@ export function ClientSidebar({
                                 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all
                                 ${isActive
                                     ? 'bg-gradient-to-r from-action to-action-dark text-white shadow-lg shadow-action/30'
-                                    : 'text-gray-600 hover:bg-action-light hover:text-action'
+                                    : 'text-muted-foreground hover:bg-action-light hover:text-action'
                                 }
                             `}
                         >
@@ -83,7 +83,7 @@ export function ClientSidebar({
                                 <div className={`font-semibold text-sm ${isActive ? 'text-white' : ''}`}>
                                     {item.label}
                                 </div>
-                                <div className={`text-xs ${isActive ? 'text-action-light' : 'text-gray-500'}`}>
+                                <div className={`text-xs ${isActive ? 'text-action-light' : 'text-muted-foreground'}`}>
                                     {item.description}
                                 </div>
                             </div>
@@ -111,7 +111,7 @@ export function ClientSidebar({
 
                 <Button
                     variant="outline"
-                    className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50 hover:border-red-200"
+                    className="w-full justify-start text-muted-foreground hover:text-red-600 hover:bg-red-50 hover:border-red-200"
                     onClick={onLogout}
                 >
                     <LogOut className="w-4 h-4 mr-2" />

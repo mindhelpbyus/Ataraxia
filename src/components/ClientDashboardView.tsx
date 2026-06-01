@@ -23,8 +23,7 @@ import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+import { get } from '../api/client';
 
 interface ClientDashboardViewProps {
     userId: string;
@@ -64,38 +63,20 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
 
     React.useEffect(() => {
         const load = async () => {
-            if (USE_LOCAL_DB) {
-                const appts = await localDb.appointments.findMany(a => a.clientId === userId && new Date(a.startTime) >= new Date());
-                const sorted = appts.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-                if (sorted.length > 0) {
-                    const next = sorted[0];
-                    const therapists = await localDb.therapists.findMany();
-                    const therapist = therapists.find(t => t.id === next.therapistId);
-                    setUpcomingSession({
-                        therapist: therapist ? therapist.name : 'Your Therapist',
-                        therapistImage: `https://api.dicebear.com/7.x/avataaars/svg?seed=${therapist?.name || 'therapist'}`,
-                        date: new Date(next.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                        time: new Date(next.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                        type: next.type === 'video' ? 'Video Session' : 'In-person Session',
-                        duration: '50 min'
-                    });
-                }
-            } else {
+            {
+                // backend-initial: GET /appointments/client/{clientId} (upcoming)
                 try {
-                    const res = await fetch('/api/v1/appointments?upcoming=true&limit=1');
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.length > 0) {
-                            const next = data[0];
-                            setUpcomingSession({
-                                therapist: next.therapistName || 'Your Therapist',
-                                therapistImage: `https://api.dicebear.com/7.x/avataaars/svg?seed=${next.therapistName || 'therapist'}`,
-                                date: new Date(next.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                                time: new Date(next.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                                type: next.type === 'video' ? 'Video Session' : 'In-person Session',
-                                duration: '50 min'
-                            });
-                        }
+                    const data = await get<any[]>(`/appointments/client/${userId}?upcoming=true&limit=1`);
+                    if (data && data.length > 0) {
+                        const next = data[0];
+                        setUpcomingSession({
+                            therapist: next.therapistName || 'Your Therapist',
+                            therapistImage: `https://api.dicebear.com/7.x/avataaars/svg?seed=${next.therapistName || 'therapist'}`,
+                            date: new Date(next.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                            time: new Date(next.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                            type: next.type === 'video' ? 'Video Session' : 'In-person Session',
+                            duration: '50 min'
+                        });
                     }
                 } catch (e) {
                     console.error('Failed to load upcoming session', e);
@@ -112,7 +93,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
             case 'happy': return <Smile className="w-6 h-6 text-green-500" />;
             case 'neutral': return <Meh className="w-6 h-6 text-yellow-500" />;
             case 'sad': return <Frown className="w-6 h-6 text-action" />;
-            default: return <Meh className="w-6 h-6 text-gray-400" />;
+            default: return <Meh className="w-6 h-6 text-muted-foreground" />;
         }
     };
 
@@ -174,7 +155,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                             flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all
                                             ${selectedMood === item.mood
                                                 ? `bg-gradient-to-br ${item.color} text-white border-transparent shadow-lg`
-                                                : 'bg-white border-gray-200 hover:border-action-border text-gray-600'
+                                                : 'bg-card border-border hover:border-action-border text-muted-foreground'
                                             }
                                         `}
                                     >
@@ -214,7 +195,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-4 flex-1">
                                             <div className="flex items-center gap-2">
-                                                <Badge className="bg-white/20 text-white border-white/30">
+                                                <Badge className="bg-card/20 text-white border-white/30">
                                                     <Video className="w-3 h-3 mr-1" />
                                                     Upcoming
                                                 </Badge>
@@ -236,7 +217,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                         </div>
                                         <Button
                                             size="lg"
-                                            className="bg-white text-action hover:bg-action-light shadow-xl"
+                                            className="bg-card text-action hover:bg-action-light shadow-xl"
                                         >
                                             Join Session
                                             <ChevronRight className="w-5 h-5 ml-2" />
@@ -252,7 +233,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
                         >
-                            <Card className="shadow-lg border-gray-200">
+                            <Card className="shadow-lg border-border">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <MessageSquare className="w-5 h-5 text-action" />
@@ -264,11 +245,11 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                         <motion.button
                                             key={index}
                                             whileHover={{ x: 4 }}
-                                            className="w-full text-left p-4 rounded-xl bg-gradient-to-r from-gray-50 to-action-light/30 border border-gray-200 hover:border-action-border transition-all group"
+                                            className="w-full text-left p-4 rounded-xl bg-gradient-to-r from-gray-50 to-action-light/30 border border-border hover:border-action-border transition-all group"
                                         >
                                             <div className="flex items-center justify-between">
-                                                <p className="text-gray-700 font-medium">{prompt}</p>
-                                                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-action transition-colors" />
+                                                <p className="text-foreground font-medium">{prompt}</p>
+                                                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-action transition-colors" />
                                             </div>
                                         </motion.button>
                                     ))}
@@ -289,7 +270,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 }}
                         >
-                            <Card className="shadow-lg border-gray-200">
+                            <Card className="shadow-lg border-border">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <TrendingUp className="w-5 h-5 text-action" />
@@ -300,7 +281,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                     <div className="grid grid-cols-7 gap-3">
                                         {moodHistory.map((day, index) => (
                                             <div key={index} className="flex flex-col items-center gap-2">
-                                                <div className="text-xs text-gray-500 font-medium">{day.date}</div>
+                                                <div className="text-xs text-muted-foreground font-medium">{day.date}</div>
                                                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-action-light to-action-light flex items-center justify-center border-2 border-action-light">
                                                     {getMoodIcon(day.mood)}
                                                 </div>
@@ -327,7 +308,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <Card className="shadow-lg border-gray-200">
+                            <Card className="shadow-lg border-border">
                                 <CardHeader>
                                     <CardTitle className="text-lg">Quick Actions</CardTitle>
                                 </CardHeader>
@@ -374,7 +355,7 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
                         >
-                            <Card className="shadow-lg border-gray-200 bg-gradient-to-br from-green-50 to-emerald-50/30">
+                            <Card className="shadow-lg border-border bg-gradient-to-br from-green-50 to-emerald-50/30">
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
                                         <Sparkles className="w-5 h-5 text-green-600" />
@@ -384,20 +365,20 @@ export function ClientDashboardView({ userId, userEmail, userName, onNavigate }:
                                 <CardContent className="space-y-4">
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
-                                            <span className="text-gray-600">Sessions Completed</span>
+                                            <span className="text-muted-foreground">Sessions Completed</span>
                                             <span className="font-bold text-green-600">8/12</span>
                                         </div>
                                         <Progress value={67} className="h-2" />
                                     </div>
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
-                                            <span className="text-gray-600">Journal Entries</span>
+                                            <span className="text-muted-foreground">Journal Entries</span>
                                             <span className="font-bold text-green-600">24</span>
                                         </div>
                                         <Progress value={80} className="h-2" />
                                     </div>
                                     <div className="pt-4 border-t">
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-muted-foreground">
                                             🎉 You're making great progress! Keep it up.
                                         </p>
                                     </div>

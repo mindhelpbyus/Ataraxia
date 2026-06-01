@@ -203,7 +203,7 @@ export function SignatureCapture({
                   ref={canvasRef}
                   width={600}
                   height={150}
-                  className="border-2 border-gray-300 rounded-lg w-full cursor-crosshair bg-white touch-none"
+                  className="border-2 border-border rounded-lg w-full cursor-crosshair bg-card touch-none"
                   onMouseDown={startDrawing}
                   onMouseMove={draw}
                   onMouseUp={stopDrawing}
@@ -272,7 +272,7 @@ export function SignatureCapture({
               </div>
 
               {typedName && (
-                <div className="border-2 border-gray-300 rounded-lg p-6 bg-white">
+                <div className="border-2 border-border rounded-lg p-6 bg-card">
                   <div 
                     className="text-center font-serif italic text-4xl"
                     style={{ fontFamily: '"Brush Script MT", cursive' }}
@@ -311,7 +311,7 @@ export function SignatureCapture({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="bg-white border border-green-200 rounded-lg p-4">
+            <div className="bg-card border border-green-200 rounded-lg p-4">
               {signature.type === 'drawn' ? (
                 <img src={signature.data} alt="Signature" className="h-20 mx-auto" />
               ) : (

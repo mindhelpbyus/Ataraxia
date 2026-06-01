@@ -78,14 +78,14 @@ function Stepper({
                                         ? 'bg-emerald-500 border-emerald-500'
                                         : index === currentStep
                                             ? 'bg-blue-500 border-blue-500'
-                                            : 'bg-white border-gray-300'
+                                            : 'bg-card border-border'
                                         }`}
                                 >
                                     {index < currentStep ? (
                                         <Check className="w-6 h-6 text-white" />
                                     ) : (
                                         <span
-                                            className={`font-bold ${index === currentStep ? 'text-white' : 'text-gray-400'
+                                            className={`font-bold ${index === currentStep ? 'text-white' : 'text-muted-foreground'
                                                 }`}
                                         >
                                             {index + 1}
@@ -94,7 +94,7 @@ function Stepper({
                                 </div>
                                 <div className="mt-2 text-center">
                                     <div
-                                        className={`text-sm font-semibold ${index <= currentStep ? 'text-gray-900' : 'text-gray-400'
+                                        className={`text-sm font-semibold ${index <= currentStep ? 'text-foreground' : 'text-muted-foreground'
                                             }`}
                                     >
                                         Step {index + 1}
@@ -127,12 +127,12 @@ function Stepper({
 
             {/* Navigation Buttons (if enabled) */}
             {!hideNavigation && (
-                <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
+                <div className="flex justify-between mt-8 pt-6 border-t border-border">
                     <button
                         onClick={() => onStepChange(Math.max(0, currentStep - 1))}
                         disabled={isFirstStep}
                         className={`px-6 py-2 rounded-lg font-medium transition-colors ${isFirstStep
-                            ? 'text-gray-300 cursor-not-allowed'
+                            ? 'text-muted-foreground cursor-not-allowed'
                             : 'text-action hover:bg-action-light border border-action-light'
                             }`}
                     >
@@ -219,7 +219,7 @@ function VerificationSheet({
         }
     };
 
-    const handleViewDocument = (documentUrl: string, documentName: string) => {
+    const handleViewDocument = (documentUrl: string | undefined, documentName: string) => {
         if (!documentUrl) {
             toast.error('Document not available');
             return;
@@ -269,7 +269,7 @@ function VerificationSheet({
                         </Avatar>
                         <div className="pt-1">
                             <div className="flex items-center gap-3 mb-2">
-                                <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+                                <h2 className="text-2xl font-bold tracking-tight text-foreground">
                                     {therapist.first_name} {therapist.last_name}
                                 </h2>
                                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${isActive ? 'bg-green-100 text-green-700' :
@@ -279,11 +279,11 @@ function VerificationSheet({
                                     {isActive ? 'Active' : therapist.registration_status?.replace('_', ' ')}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
+                            <div className="flex items-center gap-4 text-sm font-medium text-muted-foreground">
                                 <span>{therapist.email}</span>
-                                <span className="text-gray-400">•</span>
+                                <span className="text-muted-foreground">•</span>
                                 <span>{therapist.phone_number || 'No phone'}</span>
-                                <span className="text-gray-400">•</span>
+                                <span className="text-muted-foreground">•</span>
                                 <span className="capitalize">
                                     {therapist.workflow_stage?.replace('_', ' ')}
                                 </span>
@@ -428,8 +428,8 @@ function VerificationSheet({
                                                         <FileText className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">Professional License</p>
-                                                        <p className="text-sm text-gray-500">Click to view document</p>
+                                                        <p className="font-medium text-foreground">Professional License</p>
+                                                        <p className="text-sm text-muted-foreground">Click to view document</p>
                                                     </div>
                                                 </div>
                                                 <ExternalLink className="w-4 h-4 text-action" />
@@ -447,8 +447,8 @@ function VerificationSheet({
                                                         <Award className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">Degree Certificate</p>
-                                                        <p className="text-sm text-gray-500">Click to view document</p>
+                                                        <p className="font-medium text-foreground">Degree Certificate</p>
+                                                        <p className="text-sm text-muted-foreground">Click to view document</p>
                                                     </div>
                                                 </div>
                                                 <ExternalLink className="w-4 h-4 text-action" />
@@ -466,8 +466,8 @@ function VerificationSheet({
                                                         <Shield className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">Malpractice Insurance</p>
-                                                        <p className="text-sm text-gray-500">Click to view document</p>
+                                                        <p className="font-medium text-foreground">Malpractice Insurance</p>
+                                                        <p className="text-sm text-muted-foreground">Click to view document</p>
                                                     </div>
                                                 </div>
                                                 <ExternalLink className="w-4 h-4 text-action" />
@@ -485,8 +485,8 @@ function VerificationSheet({
                                                         <User className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">Photo ID</p>
-                                                        <p className="text-sm text-gray-500">Click to view document</p>
+                                                        <p className="font-medium text-foreground">Photo ID</p>
+                                                        <p className="text-sm text-muted-foreground">Click to view document</p>
                                                     </div>
                                                 </div>
                                                 <ExternalLink className="w-4 h-4 text-action" />
@@ -504,8 +504,8 @@ function VerificationSheet({
                                                         <User className="w-5 h-5 text-action" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">Professional Headshot</p>
-                                                        <p className="text-sm text-gray-500">Click to view image</p>
+                                                        <p className="font-medium text-foreground">Professional Headshot</p>
+                                                        <p className="text-sm text-muted-foreground">Click to view image</p>
                                                     </div>
                                                 </div>
                                                 <ExternalLink className="w-4 h-4 text-action" />
@@ -516,9 +516,9 @@ function VerificationSheet({
                                     {/* No Documents Message */}
                                     {!therapist.license_document_url && !therapist.degree_certificate_url &&
                                         !therapist.malpractice_document_url && !therapist.photo_id_url && !therapist.headshot_url && (
-                                            <div className="col-span-2 p-6 border border-gray-200 rounded-xl bg-gray-50 text-center">
-                                                <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                                <p className="text-gray-500">No documents uploaded yet</p>
+                                            <div className="col-span-2 p-6 border border-border rounded-xl bg-[var(--surface-warm)] text-center">
+                                                <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                                                <p className="text-muted-foreground">No documents uploaded yet</p>
                                             </div>
                                         )}
                                 </div>
@@ -743,7 +743,7 @@ export default function TherapistVerificationView() {
     return (
         <div className="min-h-screen bg-background font-sans">
             {/* Header Section */}
-            <div className="bg-white">
+            <div className="bg-card">
                 <div className="max-w-[1600px] mx-auto px-6 py-6">
                     {/* Action Buttons Row - Top Right */}
                     <div className="flex items-center justify-end gap-3 mb-6">

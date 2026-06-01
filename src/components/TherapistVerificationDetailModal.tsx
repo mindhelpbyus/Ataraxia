@@ -6,6 +6,7 @@ import { Textarea } from './ui/textarea';
 import { CheckCircle2, FileText, Shield, UserCheck, Clock, Check, X, ArrowRight, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { dataService } from '../api';
+import { post } from '../api/client';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Separator } from './ui/separator';
 import { motion } from 'framer-motion';
@@ -33,7 +34,8 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
     const loadTherapist = async () => {
         setLoading(true);
         try {
-            const data = await dataService.get('therapists', therapistId!);
+            // backend-initial: GET /admin/therapists/{id}
+            const data = await dataService.get('/admin/therapists', therapistId!);
             setTherapist(data);
             if (data.verification_notes) setNotes(data.verification_notes);
         } catch (error) {
@@ -47,15 +49,11 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
     const handleStageUpdate = async (stage: string, status: string) => {
         setActionLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_THERAPIST_SERVICE_URL || 'http://localhost:3004/api'}/therapists/${therapistId}/verification`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stage, status, notes })
-            });
+            // backend-initial: POST /therapists/{id}/approve | /therapists/{id}/reject
+            const action = status === 'approved' || status === 'verified' ? 'approve' : 'reject';
+            await post<void>(`/therapists/${therapistId}/${action}`, { stage, notes });
 
-            if (!response.ok) throw new Error('Failed to update stage');
-
-            toast.success(`Stage updated successfully`);
+            toast.success('Stage updated successfully');
             loadTherapist();
         } catch (error) {
             console.error('Update failed:', error);
@@ -86,7 +84,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="!max-w-6xl w-[95vw] p-0 overflow-hidden bg-white dark:bg-zinc-950 border-0 shadow-2xl sm:rounded-3xl ring-1 ring-zinc-200 dark:ring-zinc-800 outline-none">
+            <DialogContent className="!max-w-6xl w-[95vw] p-0 overflow-hidden bg-card dark:bg-zinc-950 border-0 shadow-2xl sm:rounded-3xl ring-1 ring-zinc-200 dark:ring-zinc-800 outline-none">
 
                 {/* Modern Header - Clean & Spacious */}
                 <div className="relative bg-zinc-50/80 dark:bg-zinc-900/50 pt-10 px-8 pb-8 border-b border-zinc-100 dark:border-zinc-800/50">
@@ -103,7 +101,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                             animate={{ scale: 1, opacity: 1 }}
                             className="relative"
                         >
-                            <Avatar className="h-28 w-28 ring-8 ring-white dark:ring-zinc-950 shadow-2xl bg-white dark:bg-zinc-900">
+                            <Avatar className="h-28 w-28 ring-8 ring-white dark:ring-zinc-950 shadow-2xl bg-card dark:bg-zinc-900">
                                 <AvatarImage src={therapist.profile_image_url} className="object-cover" />
                                 <AvatarFallback className="text-4xl font-bold bg-gradient-to-br from-action-light to-action-light text-action dark:from-orange-900/30 dark:to-orange-900/10 dark:text-action">
                                     {therapist.first_name?.[0]}{therapist.last_name?.[0]}
@@ -121,11 +119,11 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                                 {therapist.first_name} {therapist.last_name}
                             </h2>
                             <div className="flex flex-wrap justify-center md:justify-start gap-3 text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                                <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 px-3 py-1 rounded-full shadow-sm border border-zinc-200/50 dark:border-zinc-800">
+                                <div className="flex items-center gap-1.5 bg-card dark:bg-zinc-900 px-3 py-1 rounded-full shadow-sm border border-zinc-200/50 dark:border-zinc-800">
                                     <Mail className="w-3.5 h-3.5" />
                                     {therapist.email}
                                 </div>
-                                <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 px-3 py-1 rounded-full shadow-sm border border-zinc-200/50 dark:border-zinc-800">
+                                <div className="flex items-center gap-1.5 bg-card dark:bg-zinc-900 px-3 py-1 rounded-full shadow-sm border border-zinc-200/50 dark:border-zinc-800">
                                     <Shield className="w-3.5 h-3.5" />
                                     License: {therapist.license_number || 'Pending'}
                                 </div>
@@ -134,7 +132,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row min-h-[600px] bg-white dark:bg-zinc-950">
+                <div className="flex flex-col md:flex-row min-h-[600px] bg-card dark:bg-zinc-950">
 
                     {/* Left: Workflow Timeline */}
                     <div className="flex-1 p-8 md:p-12 space-y-12">
@@ -168,7 +166,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                                     <div className={cn("w-14 h-14 rounded-full flex items-center justify-center border-2 shadow-sm z-10 transition-all duration-300",
                                         isDocVerified
                                             ? "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-600"
-                                            : "bg-white dark:bg-zinc-900 border-action text-action ring-4 ring-action dark:ring-action/20"
+                                            : "bg-card dark:bg-zinc-900 border-action text-action ring-4 ring-action dark:ring-action/20"
                                     )}>
                                         {isDocVerified ? <Check className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                                     </div>
@@ -183,11 +181,11 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4 mb-6">
-                                        <div className="p-3 bg-white dark:bg-zinc-950 rounded-xl border border-zinc-200/50 dark:border-zinc-800">
+                                        <div className="p-3 bg-card dark:bg-zinc-950 rounded-xl border border-zinc-200/50 dark:border-zinc-800">
                                             <div className="text-[10px] uppercase font-bold text-zinc-400 mb-1">State</div>
                                             <div className="font-semibold text-zinc-800 dark:text-zinc-200">{therapist.license_state || 'N/A'}</div>
                                         </div>
-                                        <div className="p-3 bg-white dark:bg-zinc-950 rounded-xl border border-zinc-200/50 dark:border-zinc-800">
+                                        <div className="p-3 bg-card dark:bg-zinc-950 rounded-xl border border-zinc-200/50 dark:border-zinc-800">
                                             <div className="text-[10px] uppercase font-bold text-zinc-400 mb-1">Number</div>
                                             <div className="font-mono font-medium text-zinc-800 dark:text-zinc-200">{therapist.license_number || 'N/A'}</div>
                                         </div>
@@ -205,7 +203,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                             {/* Step 3: Background Check */}
                             <div className={cn("relative grid grid-cols-[50px_1fr] gap-6 group transition-opacity duration-300", !isDocVerified && "opacity-50 grayscale")}>
                                 <div className="flex flex-col items-center">
-                                    <div className={cn("w-14 h-14 rounded-full flex items-center justify-center border-2 z-10 bg-white dark:bg-zinc-900",
+                                    <div className={cn("w-14 h-14 rounded-full flex items-center justify-center border-2 z-10 bg-card dark:bg-zinc-900",
                                         isBgCheckPassed
                                             ? "border-green-500 text-green-600 bg-green-50 dark:bg-green-900/20"
                                             : "border-zinc-200 dark:border-zinc-700 text-zinc-300"
@@ -230,7 +228,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                             {/* Step 4: Final Activation */}
                             <div className={cn("relative grid grid-cols-[50px_1fr] gap-6 group transition-opacity duration-300", !isBgCheckPassed && "opacity-50 grayscale")}>
                                 <div className="flex flex-col items-center">
-                                    <div className={cn("w-14 h-14 rounded-full flex items-center justify-center border-2 z-10 bg-white dark:bg-zinc-900",
+                                    <div className={cn("w-14 h-14 rounded-full flex items-center justify-center border-2 z-10 bg-card dark:bg-zinc-900",
                                         isActive
                                             ? "border-green-500 text-green-600 bg-green-50 dark:bg-green-900/20"
                                             : "border-zinc-200 dark:border-zinc-700 text-zinc-300"
@@ -260,7 +258,7 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                             <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
                                 <FileText className="w-4 h-4" /> Internal Notes
                             </h4>
-                            <div className="bg-white dark:bg-zinc-950 p-1 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-action/20 transition-all">
+                            <div className="bg-card dark:bg-zinc-950 p-1 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-action/20 transition-all">
                                 <Textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
@@ -277,13 +275,13 @@ export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose 
                         <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">Quick Actions</h4>
                             <div className="space-y-3">
-                                <button className="w-full flex items-center gap-3 p-3 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition-all text-left text-sm font-medium text-zinc-700 dark:text-zinc-300 group">
+                                <button className="w-full flex items-center gap-3 p-3 bg-card dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition-all text-left text-sm font-medium text-zinc-700 dark:text-zinc-300 group">
                                     <div className="p-2 bg-zinc-50 dark:bg-zinc-900 rounded-lg group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition-colors">
                                         <Mail className="w-4 h-4 text-zinc-500" />
                                     </div>
                                     Send Email
                                 </button>
-                                <button className="w-full flex items-center gap-3 p-3 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition-all text-left text-sm font-medium text-zinc-700 dark:text-zinc-300 group">
+                                <button className="w-full flex items-center gap-3 p-3 bg-card dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-sm transition-all text-left text-sm font-medium text-zinc-700 dark:text-zinc-300 group">
                                     <div className="p-2 bg-zinc-50 dark:bg-zinc-900 rounded-lg group-hover:bg-zinc-100 dark:group-hover:bg-zinc-800 transition-colors">
                                         <FileText className="w-4 h-4 text-zinc-500" />
                                     </div>

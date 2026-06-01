@@ -162,7 +162,7 @@ export function SimpleRegistrationForm() {
                 minLength={8}
                 required
               />
-              <p className="text-sm text-gray-500">Minimum 8 characters</p>
+              <p className="text-sm text-muted-foreground">Minimum 8 characters</p>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
@@ -229,7 +229,7 @@ export function SimpleRegistrationForm() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <button
                 onClick={() => navigate('/login')}

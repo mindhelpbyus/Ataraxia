@@ -16,8 +16,7 @@ import {
 } from 'lucide-react';
 import { UserRole } from '../types/appointment';
 import { BedrockLogo } from '../imports/BedrockLogo';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+import { get } from '../api/client';
 
 const CITIES_SAMPLE = ['San Francisco, CA','Austin, TX','New York, NY','Chicago, IL','Seattle, WA','Boston, MA','Denver, CO','Portland, OR'];
 function pick<T>(arr: T[], n: number): T { return arr[Math.abs(n) % arr.length]; }
@@ -39,10 +38,10 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
   const userName = getUserName(userEmail);
 
   const [statsData, setStatsData] = useState([
-    { icon: <CalendarDays className="h-6 w-6" />, label: 'Sessions Completed', value: '— Sessions', bgColor: 'bg-[#f2f2f2]' },
-    { icon: <Users className="h-6 w-6" />, label: 'Active Clients', value: '— Clients', bgColor: 'bg-[#f2f2f2]' },
-    { icon: <ClipboardList className="h-6 w-6" />, label: 'Total Appointments', value: '— Scheduled', bgColor: 'bg-[#f2f2f2]' },
-    { icon: <FileText className="h-6 w-6" />, label: 'Pending Notes', value: '— Notes', bgColor: 'bg-[#f2f2f2]' },
+    { icon: <CalendarDays className="h-6 w-6" />, label: 'Sessions Completed', value: '— Sessions', bgColor: 'bg-[var(--surface-warm)]' },
+    { icon: <Users className="h-6 w-6" />, label: 'Active Clients', value: '— Clients', bgColor: 'bg-[var(--surface-warm)]' },
+    { icon: <ClipboardList className="h-6 w-6" />, label: 'Total Appointments', value: '— Scheduled', bgColor: 'bg-[var(--surface-warm)]' },
+    { icon: <FileText className="h-6 w-6" />, label: 'Pending Notes', value: '— Notes', bgColor: 'bg-[var(--surface-warm)]' },
   ]);
   const [upcomingAgenda, setUpcomingAgenda] = useState<any[]>([]);
   const [chartData, setChartData] = useState<{ month: string; rate: number }[]>([]);
@@ -50,36 +49,32 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
   const [therapistsData, setTherapistsData] = useState<any[]>([]);
   const [categoryData] = useState([
     { name: 'Individual Therapy', color: 'black', percentage: 35 },
-    { name: 'Group Therapy', color: '#4B4B4B', percentage: 25 },
-    { name: 'Family Therapy', color: '#727272', percentage: 20 },
-    { name: 'EMDR Sessions', color: '#AFAFAF', percentage: 12 },
-    { name: 'Art Therapy', color: '#D8D8D8', percentage: 8 },
+    { name: 'Group Therapy', color: 'var(--muted-text)', percentage: 25 },
+    { name: 'Family Therapy', color: 'var(--muted-text)', percentage: 20 },
+    { name: 'EMDR Sessions', color: 'var(--dim)', percentage: 12 },
+    { name: 'Art Therapy', color: 'var(--rule)', percentage: 8 },
   ]);
 
   useEffect(() => {
     const load = async () => {
       try {
-        // ─── Dashboard Stats ───────────────────────────────────────────
-        const stats = USE_LOCAL_DB
-          ? await localDb.getDashboardStats()
-          : await fetch('/api/v1/dashboard/stats', { credentials: 'include' }).then(r => r.json());
+        // ─── Dashboard Stats ── backend-initial: GET /admin/dashboard/counts ──
+        const stats = await get<any>('/admin/dashboard/counts');
 
         if (stats) {
           setStatsData([
-            { icon: <CalendarDays className="h-6 w-6" />, label: 'Sessions Completed', value: `${stats.sessionsCompleted ?? '—'} Sessions`, bgColor: 'bg-[#f2f2f2]' },
-            { icon: <Users className="h-6 w-6" />, label: 'Active Clients', value: `${stats.activeClients ?? '—'} Clients`, bgColor: 'bg-[#f2f2f2]' },
-            { icon: <ClipboardList className="h-6 w-6" />, label: 'Total Appointments', value: `${stats.totalAppointments ?? '—'} Scheduled`, bgColor: 'bg-[#f2f2f2]' },
-            { icon: <FileText className="h-6 w-6" />, label: 'Pending Notes', value: `${stats.pendingNotes ?? '—'} Notes`, bgColor: 'bg-[#f2f2f2]' },
+            { icon: <CalendarDays className="h-6 w-6" />, label: 'Sessions Completed', value: `${stats.sessionsCompleted ?? '—'} Sessions`, bgColor: 'bg-[var(--surface-warm)]' },
+            { icon: <Users className="h-6 w-6" />, label: 'Active Clients', value: `${stats.activeClients ?? '—'} Clients`, bgColor: 'bg-[var(--surface-warm)]' },
+            { icon: <ClipboardList className="h-6 w-6" />, label: 'Total Appointments', value: `${stats.totalAppointments ?? '—'} Scheduled`, bgColor: 'bg-[var(--surface-warm)]' },
+            { icon: <FileText className="h-6 w-6" />, label: 'Pending Notes', value: `${stats.pendingNotes ?? '—'} Notes`, bgColor: 'bg-[var(--surface-warm)]' },
           ]);
           if (stats.completionRateByMonth) setChartData(stats.completionRateByMonth);
         }
 
-        // ─── Upcoming Appointments ─────────────────────────────────────
-        const appts = USE_LOCAL_DB
-          ? await localDb.appointments.findMany(a => a.status === 'scheduled' || a.status === 'confirmed')
-          : await fetch('/api/v1/appointments?upcoming=true&limit=4', { credentials: 'include' }).then(r => r.json());
+        // ─── Upcoming Appointments ── backend-initial: GET /appointments ──
+        const appts = await get<any[]>('/appointments?upcoming=true&limit=4');
 
-        const colors = ['bg-[#1E7048]', 'bg-[#4B4B4B]', 'bg-[#727272]', 'bg-[#AFAFAF]'];
+        const colors = ['bg-[#1E7048]', 'bg-[var(--muted-text)]', 'bg-[var(--muted-text)]', 'bg-[var(--dim)]'];
         setUpcomingAgenda((appts ?? []).slice(0, 4).map((a: any, i: number) => ({
           id: a.id,
           time: `${new Date(a.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} — ${new Date(a.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
@@ -88,10 +83,8 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
           color: colors[i % colors.length],
         })));
 
-        // ─── People ────────────────────────────────────────────────────
-        const usersData = USE_LOCAL_DB
-          ? await localDb.users.findMany(u => u.role === 'therapist' || u.role === 'client')
-          : await fetch('/api/v1/users?limit=5', { credentials: 'include' }).then(r => r.json());
+        // ─── People ── backend-initial: GET /clients ──
+        const usersData = await get<any[]>('/clients?limit=5');
 
         const catColors: Record<string, string> = {
           therapist: 'bg-[#F8E7F0] text-[#C13584]',
@@ -104,15 +97,13 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
           email: u.email,
           phone: u.phone || '—',
           category: u.role?.charAt(0).toUpperCase() + u.role?.slice(1) || 'User',
-          categoryColor: catColors[u.role] || 'bg-gray-100 text-gray-700',
+          categoryColor: catColors[u.role] || 'bg-muted text-foreground',
           location: u.location || pick(CITIES_SAMPLE, u.id.charCodeAt(5) || 0),
           gender: u.gender || '—',
         })));
 
-        // ─── Therapists ────────────────────────────────────────────────
-        const therapistsRaw = USE_LOCAL_DB
-          ? await localDb.therapists.findMany()
-          : await fetch('/api/v1/therapists?limit=5', { credentials: 'include' }).then(r => r.json());
+        // ─── Therapists ── backend-initial: GET /therapists ──
+        const therapistsRaw = await get<any[]>('/therapists?limit=5');
 
         setTherapistsData((therapistsRaw ?? []).slice(0, 6).map((t: any) => ({
           id: t.id,
@@ -129,11 +120,11 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
   }, [userEmail]);
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F9F9F9]">
+    <div className="h-full overflow-y-auto bg-[var(--surface)]">
       {/* Main Content */}
       <div className="flex flex-col">
         {/* Top Header */}
-        <div className="bg-white border-b border-[#e4e4e4] px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="bg-card border-b border-[var(--rule)] px-8 py-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-4 flex-1">
             <div className="flex-1 max-w-md">
               <SearchBar
@@ -141,7 +132,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                 value={searchQuery}
                 onSearch={setSearchQuery}
                 showKeyboardShortcut
-                className="border-[#e4e4e4] rounded-full"
+                className="border-[var(--rule)] rounded-full"
               />
             </div>
           </div>
@@ -157,13 +148,13 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                 </AvatarFallback>
               </Avatar>
               <span className="font-medium text-sm">{userName}</span>
-              <ChevronDown className="h-4 w-4 text-[#AFAFAF]" />
+              <ChevronDown className="h-4 w-4 text-[var(--dim)]" />
             </div>
           </div>
         </div>
 
         {/* Section Header */}
-        <div className="bg-white border-b border-[#e4e4e4] px-8 py-4">
+        <div className="bg-card border-b border-[var(--rule)] px-8 py-4">
           <h1 className="text-black">Dashboard</h1>
         </div>
 
@@ -172,16 +163,16 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
           {/* Stats Cards */}
           <div className="grid grid-cols-4 gap-5">
             {statsData.map((stat, index) => (
-              <Card key={index} className="border border-[#e4e4e4] rounded bg-white">
+              <Card key={index} className="border border-[var(--rule)] rounded bg-card">
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className={`${stat.bgColor} p-1 rounded`}>
                       {stat.icon}
                     </div>
-                    <ChevronRight className="h-4 w-4 text-[#AFAFAF]" />
+                    <ChevronRight className="h-4 w-4 text-[var(--dim)]" />
                   </div>
                   <div>
-                    <p className="text-sm text-[#727272] mb-1">{stat.label}</p>
+                    <p className="text-sm text-[var(--muted-text)] mb-1">{stat.label}</p>
                     <p className="text-black">{stat.value}</p>
                   </div>
                 </CardContent>
@@ -192,7 +183,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
           {/* Upcoming Agenda & Chart */}
           <div className="grid grid-cols-[264px_1fr] gap-6">
             {/* Upcoming Agenda */}
-            <Card className="border border-[#e4e4e4] rounded bg-white">
+            <Card className="border border-[var(--rule)] rounded bg-card">
               <CardContent className="p-5 space-y-4">
                 <h3 className="text-black">Upcoming Agenda</h3>
                 <div className="space-y-4">
@@ -200,7 +191,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                     <div key={item.id} className="py-1 space-y-2">
                       <div className={`${item.color} h-1.5 w-16 rounded-full`}></div>
                       <p className="font-medium text-sm text-black">{item.title}</p>
-                      <p className="text-xs text-[#727272]">{item.description}</p>
+                      <p className="text-xs text-[var(--muted-text)]">{item.description}</p>
                     </div>
                   ))}
                 </div>
@@ -208,7 +199,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
             </Card>
 
             {/* Average Session Completion Rate Chart */}
-            <Card className="border border-[#e4e4e4] rounded-lg bg-white">
+            <Card className="border border-[var(--rule)] rounded-lg bg-card">
               <CardContent className="p-5 space-y-4">
                 <h3 className="text-black">Average Session Completion Rate</h3>
                 <div className="flex items-start justify-between">
@@ -220,13 +211,13 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                         +18%
                       </Badge>
                     </div>
-                    <p className="text-sm text-[#727272]">Average Completion Rate</p>
+                    <p className="text-sm text-[var(--muted-text)]">Average Completion Rate</p>
                   </div>
                   <div className="flex gap-4">
-                    <Button variant="outline" size="sm" className="rounded border-[#e4e4e4]">
+                    <Button variant="outline" size="sm" className="rounded border-[var(--rule)]">
                       January, 2023 - December, 2023
                     </Button>
-                    <Button variant="outline" size="sm" className="rounded border-[#e4e4e4]">
+                    <Button variant="outline" size="sm" className="rounded border-[var(--rule)]">
                       Month
                     </Button>
                   </div>
@@ -237,7 +228,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                   {[100, 75, 50, 25, 0].map((value) => (
                     <div key={value} className="flex items-center gap-8">
                       <span className="text-black w-10 text-right">{value}%</span>
-                      <div className="flex-1 border-t border-dashed border-[#AFAFAF]"></div>
+                      <div className="flex-1 border-t border-dashed border-[var(--dim)]"></div>
                     </div>
                   ))}
 
@@ -246,7 +237,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                     {chartData.map((data, index) => (
                       <div key={data.month} className="flex flex-col items-center gap-4" style={{ height: '100%', justifyContent: 'flex-end' }}>
                         <div
-                          className={`w-8 rounded ${index === 6 ? 'bg-black' : 'bg-[#d8d8d8]'}`}
+                          className={`w-8 rounded ${index === 6 ? 'bg-black' : 'bg-[var(--rule)]'}`}
                           style={{ height: `${data.rate}%` }}
                         ></div>
                         <span className="text-black">{data.month}</span>
@@ -259,26 +250,26 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
           </div>
 
           {/* People Table */}
-          <Card className="border border-[#e4e4e4] rounded-lg bg-white">
+          <Card className="border border-[var(--rule)] rounded-lg bg-card">
             <CardContent className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-black">People</h3>
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AFAFAF]" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--dim)]" />
                     <Input
                       placeholder="Search"
-                      className="pl-10 w-64 border-[#e4e4e4] rounded"
+                      className="pl-10 w-64 border-[var(--rule)] rounded"
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-[#AFAFAF]">
-                      <span className="px-1 border border-[#e4e4e4] rounded text-[10px]">⌘</span>
-                      <span className="px-1 border border-[#e4e4e4] rounded text-[10px]">F</span>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-[var(--dim)]">
+                      <span className="px-1 border border-[var(--rule)] rounded text-[10px]">⌘</span>
+                      <span className="px-1 border border-[var(--rule)] rounded text-[10px]">F</span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="rounded border-[#e4e4e4]">
+                  <Button variant="outline" size="sm" className="rounded border-[var(--rule)]">
                     Sort By
                   </Button>
-                  <Button variant="outline" size="sm" className="rounded border-[#e4e4e4]">
+                  <Button variant="outline" size="sm" className="rounded border-[var(--rule)]">
                     Filter
                   </Button>
                 </div>
@@ -287,17 +278,17 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
               {/* Table */}
               <div className="space-y-3">
                 {/* Table Header */}
-                <div className="flex items-center gap-4 pb-3 border-b border-[#e4e4e4]">
+                <div className="flex items-center gap-4 pb-3 border-b border-[var(--rule)]">
                   <div className="w-5">
                     <Checkbox />
                   </div>
-                  <div className="flex-1 text-sm text-[#AFAFAF] font-normal">NAME</div>
-                  <div className="w-48 text-sm text-[#AFAFAF] font-normal">EMAIL</div>
-                  <div className="w-32 text-sm text-[#AFAFAF] font-normal">PHONE</div>
-                  <div className="w-32 text-sm text-[#AFAFAF] font-normal">CATEGORY</div>
-                  <div className="w-32 text-sm text-[#AFAFAF] font-normal">LOCATION</div>
-                  <div className="w-24 text-sm text-[#AFAFAF] font-normal">GENDER</div>
-                  <div className="w-32 text-sm text-[#AFAFAF] font-normal">ACTION</div>
+                  <div className="flex-1 text-sm text-[var(--dim)] font-normal">NAME</div>
+                  <div className="w-48 text-sm text-[var(--dim)] font-normal">EMAIL</div>
+                  <div className="w-32 text-sm text-[var(--dim)] font-normal">PHONE</div>
+                  <div className="w-32 text-sm text-[var(--dim)] font-normal">CATEGORY</div>
+                  <div className="w-32 text-sm text-[var(--dim)] font-normal">LOCATION</div>
+                  <div className="w-24 text-sm text-[var(--dim)] font-normal">GENDER</div>
+                  <div className="w-32 text-sm text-[var(--dim)] font-normal">ACTION</div>
                 </div>
 
                 {/* Table Rows */}
@@ -317,11 +308,11 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                       </Avatar>
                       <span className="text-sm text-black font-medium">{person.name}</span>
                     </div>
-                    <div className="w-48 text-sm text-[#727272] flex items-center gap-2">
+                    <div className="w-48 text-sm text-[var(--muted-text)] flex items-center gap-2">
                       <Mail className="h-4 w-4" />
                       {person.email}
                     </div>
-                    <div className="w-32 text-sm text-[#727272] flex items-center gap-2">
+                    <div className="w-32 text-sm text-[var(--muted-text)] flex items-center gap-2">
                       <Phone className="h-4 w-4" />
                       {person.phone}
                     </div>
@@ -340,19 +331,19 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                         {person.category}
                       </Badge>
                     </div>
-                    <div className="w-32 text-sm text-[#727272] flex items-center gap-2">
+                    <div className="w-32 text-sm text-[var(--muted-text)] flex items-center gap-2">
                       <MapPin className="h-4 w-4" />
                       {person.location}
                     </div>
-                    <div className="w-24 text-sm text-[#727272] flex items-center gap-2">
+                    <div className="w-24 text-sm text-[var(--muted-text)] flex items-center gap-2">
                       <UserIcon className="h-4 w-4" />
                       {person.gender}
                     </div>
                     <div className="w-32 flex items-center gap-2">
-                      <Button variant="outline" size="sm" className="rounded-full border-[#e4e4e4] text-xs">
+                      <Button variant="outline" size="sm" className="rounded-full border-[var(--rule)] text-xs">
                         Call
                       </Button>
-                      <Button variant="outline" size="sm" className="rounded-full border-[#e4e4e4] text-xs">
+                      <Button variant="outline" size="sm" className="rounded-full border-[var(--rule)] text-xs">
                         Message
                       </Button>
                     </div>
@@ -365,26 +356,26 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
           {/* Therapists & Session Categories */}
           <div className="grid grid-cols-[1fr_264px] gap-6">
             {/* Therapists Table */}
-            <Card className="border border-[#e4e4e4] rounded-lg bg-white">
+            <Card className="border border-[var(--rule)] rounded-lg bg-card">
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-black">Therapists</h3>
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#AFAFAF]" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--dim)]" />
                       <Input
                         placeholder="Search"
-                        className="pl-10 w-48 border-[#e4e4e4] rounded"
+                        className="pl-10 w-48 border-[var(--rule)] rounded"
                       />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-[#AFAFAF]">
-                        <span className="px-1 border border-[#e4e4e4] rounded text-[10px]">⌘</span>
-                        <span className="px-1 border border-[#e4e4e4] rounded text-[10px]">F</span>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-[var(--dim)]">
+                        <span className="px-1 border border-[var(--rule)] rounded text-[10px]">⌘</span>
+                        <span className="px-1 border border-[var(--rule)] rounded text-[10px]">F</span>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" className="rounded border-[#e4e4e4]">
+                    <Button variant="outline" size="sm" className="rounded border-[var(--rule)]">
                       Sort By
                     </Button>
-                    <Button variant="outline" size="sm" className="rounded border-[#e4e4e4]">
+                    <Button variant="outline" size="sm" className="rounded border-[var(--rule)]">
                       Filter
                     </Button>
                   </div>
@@ -393,14 +384,14 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                 {/* Table */}
                 <div className="space-y-3">
                   {/* Table Header */}
-                  <div className="flex items-center gap-4 pb-3 border-b border-[#e4e4e4]">
+                  <div className="flex items-center gap-4 pb-3 border-b border-[var(--rule)]">
                     <div className="w-5">
                       <Checkbox />
                     </div>
-                    <div className="flex-1 text-sm text-[#AFAFAF] font-normal">THERAPIST NAME</div>
-                    <div className="w-48 text-sm text-[#AFAFAF] font-normal">SPECIALTY</div>
-                    <div className="w-48 text-sm text-[#AFAFAF] font-normal">LOCATION</div>
-                    <div className="w-24 text-sm text-[#AFAFAF] font-normal">STATUS</div>
+                    <div className="flex-1 text-sm text-[var(--dim)] font-normal">THERAPIST NAME</div>
+                    <div className="w-48 text-sm text-[var(--dim)] font-normal">SPECIALTY</div>
+                    <div className="w-48 text-sm text-[var(--dim)] font-normal">LOCATION</div>
+                    <div className="w-24 text-sm text-[var(--dim)] font-normal">STATUS</div>
                   </div>
 
                   {/* Table Rows */}
@@ -420,8 +411,8 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                         </Avatar>
                         <span className="text-sm text-black font-medium">{therapist.name}</span>
                       </div>
-                      <div className="w-48 text-sm text-[#727272]">{therapist.specialty}</div>
-                      <div className="w-48 text-sm text-[#727272] flex items-center gap-2">
+                      <div className="w-48 text-sm text-[var(--muted-text)]">{therapist.specialty}</div>
+                      <div className="w-48 text-sm text-[var(--muted-text)] flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
                         {therapist.location}
                       </div>
@@ -441,7 +432,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
             </Card>
 
             {/* Session Categories Pie Chart */}
-            <Card className="border border-[#e4e4e4] rounded-lg bg-white">
+            <Card className="border border-[var(--rule)] rounded-lg bg-card">
               <CardContent className="p-5 space-y-4">
                 <h3 className="text-black">Session Categories</h3>
 
@@ -449,18 +440,18 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                 <div className="relative h-[216px] w-[216px] mx-auto">
                   <svg viewBox="0 0 216 216" className="transform -rotate-90">
                     {/* Background circle */}
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#D8D8D8" strokeWidth="40" opacity="0.1" />
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="var(--rule)" strokeWidth="40" opacity="0.1" />
 
                     {/* Pie segments */}
                     <circle cx="108" cy="108" r="86.176" fill="none" stroke="black" strokeWidth="40"
                       strokeDasharray={`${35 * 5.41} ${100 * 5.41}`} strokeDashoffset="0" />
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#4B4B4B" strokeWidth="40"
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="var(--muted-text)" strokeWidth="40"
                       strokeDasharray={`${25 * 5.41} ${100 * 5.41}`} strokeDashoffset={`${-35 * 5.41}`} />
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#727272" strokeWidth="40"
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="var(--muted-text)" strokeWidth="40"
                       strokeDasharray={`${20 * 5.41} ${100 * 5.41}`} strokeDashoffset={`${-(35 + 25) * 5.41}`} />
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#AFAFAF" strokeWidth="40"
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="var(--dim)" strokeWidth="40"
                       strokeDasharray={`${12 * 5.41} ${100 * 5.41}`} strokeDashoffset={`${-(35 + 25 + 20) * 5.41}`} />
-                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="#D8D8D8" strokeWidth="40"
+                    <circle cx="108" cy="108" r="86.176" fill="none" stroke="var(--rule)" strokeWidth="40"
                       strokeDasharray={`${8 * 5.41} ${100 * 5.41}`} strokeDashoffset={`${-(35 + 25 + 20 + 12) * 5.41}`} />
 
                     {/* Center white circle */}
@@ -479,7 +470,7 @@ export function DashboardView({ userRole, userEmail, onNavigate }: DashboardView
                 {/* Legend */}
                 <div className="space-y-1">
                   {categoryData.map((category, index) => (
-                    <div key={index} className="flex items-center gap-4 px-3 py-1 rounded hover:bg-gray-50">
+                    <div key={index} className="flex items-center gap-4 px-3 py-1 rounded hover:bg-[var(--surface-warm)]">
                       <div
                         className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: category.color }}

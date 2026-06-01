@@ -32,13 +32,13 @@ const CONCERN_OPTIONS = [
   { id: 'stress', label: 'Stress / Burnout', icon: Activity, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
   { id: 'eating', label: 'Eating Concerns', icon: Utensils, color: 'text-teal-600', bgColor: 'bg-teal-50', borderColor: 'border-teal-200' },
   { id: 'substance', label: 'Substance Use', icon: Wine, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-200' },
-  { id: 'grief', label: 'Grief or Loss', icon: Heart, color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' },
+  { id: 'grief', label: 'Grief or Loss', icon: Heart, color: 'text-muted-foreground', bgColor: 'bg-[var(--surface-warm)]', borderColor: 'border-border' },
   { id: 'anger', label: 'Anger / Emotional Regulation', icon: Zap, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
   { id: 'lgbtq', label: 'LGBTQ+ Identity Support', icon: Palette, color: 'text-rainbow-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-200' },
   { id: 'pain', label: 'Chronic Pain', icon: Activity, color: 'text-action', bgColor: 'bg-action-light', borderColor: 'border-action-light' },
   { id: 'sleep', label: 'Sleep Issues', icon: Moon, color: 'text-indigo-600', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-200' },
   { id: 'work', label: 'Work-Related Concerns', icon: Briefcase, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' },
-  { id: 'other', label: 'Other', icon: Plus, color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' },
+  { id: 'other', label: 'Other', icon: Plus, color: 'text-muted-foreground', bgColor: 'bg-[var(--surface-warm)]', borderColor: 'border-border' },
 ];
 
 export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) {
@@ -124,7 +124,7 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
                     relative flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all
                     ${isSelected 
                       ? `${concern.borderColor} ${concern.bgColor} shadow-sm` 
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      : 'border-border bg-card hover:border-border'
                     }
                   `}
                   onClick={() => toggleConcern(concern.id)}
@@ -136,9 +136,9 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <Icon className={`h-5 w-5 ${isSelected ? concern.color : 'text-gray-400'} flex-shrink-0`} />
+                      <Icon className={`h-5 w-5 ${isSelected ? concern.color : 'text-muted-foreground'} flex-shrink-0`} />
                       <Label 
-                        className={`cursor-pointer font-medium ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}
+                        className={`cursor-pointer font-medium ${isSelected ? 'text-foreground' : 'text-foreground'}`}
                       >
                         {concern.label}
                       </Label>
@@ -185,7 +185,7 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
             <div 
               className={`
                 flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all
-                ${data.severityLevel === 'mild' ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'}
+                ${data.severityLevel === 'mild' ? 'border-green-300 bg-green-50' : 'border-border bg-card hover:border-border'}
               `}
             >
               <RadioGroupItem value="mild" id="severity-mild" className="mt-1" />
@@ -202,7 +202,7 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
             <div 
               className={`
                 flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all
-                ${data.severityLevel === 'moderate' ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200 bg-white hover:border-gray-300'}
+                ${data.severityLevel === 'moderate' ? 'border-yellow-300 bg-yellow-50' : 'border-border bg-card hover:border-border'}
               `}
             >
               <RadioGroupItem value="moderate" id="severity-moderate" className="mt-1" />
@@ -219,7 +219,7 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
             <div 
               className={`
                 flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all
-                ${data.severityLevel === 'severe' ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}
+                ${data.severityLevel === 'severe' ? 'border-red-300 bg-red-50' : 'border-border bg-card hover:border-border'}
               `}
             >
               <RadioGroupItem value="severe" id="severity-severe" className="mt-1" />
@@ -236,7 +236,7 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
             <div 
               className={`
                 flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all
-                ${data.severityLevel === 'unsure' ? 'border-gray-300 bg-gray-50' : 'border-gray-200 bg-white hover:border-gray-300'}
+                ${data.severityLevel === 'unsure' ? 'border-border bg-[var(--surface-warm)]' : 'border-border bg-card hover:border-border'}
               `}
             >
               <RadioGroupItem value="unsure" id="severity-unsure" className="mt-1" />
@@ -264,7 +264,7 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <div className="text-sm font-medium text-gray-700 mb-1">Selected Concerns:</div>
+              <div className="text-sm font-medium text-foreground mb-1">Selected Concerns:</div>
               <div className="flex flex-wrap gap-2">
                 {data.primaryConcerns.map(concernId => {
                   const concern = CONCERN_OPTIONS.find(c => c.id === concernId);
@@ -281,21 +281,21 @@ export function PresentingConcerns({ data, onChange }: PresentingConcernsProps) 
             </div>
             
             <div>
-              <div className="text-sm font-medium text-gray-700 mb-1">Impact Level:</div>
+              <div className="text-sm font-medium text-foreground mb-1">Impact Level:</div>
               <Badge 
                 variant="secondary"
                 className={`
                   ${data.severityLevel === 'mild' ? 'bg-green-100 text-green-800' : ''}
                   ${data.severityLevel === 'moderate' ? 'bg-yellow-100 text-yellow-800' : ''}
                   ${data.severityLevel === 'severe' ? 'bg-red-100 text-red-800' : ''}
-                  ${data.severityLevel === 'unsure' ? 'bg-gray-100 text-gray-800' : ''}
+                  ${data.severityLevel === 'unsure' ? 'bg-muted text-foreground' : ''}
                 `}
               >
                 {data.severityLevel.charAt(0).toUpperCase() + data.severityLevel.slice(1)}
               </Badge>
             </div>
 
-            <p className="text-sm text-gray-700 mt-3">
+            <p className="text-sm text-foreground mt-3">
               Based on your input, we'll match you with a therapist who specializes in these areas and can provide 
               the appropriate level of support.
             </p>

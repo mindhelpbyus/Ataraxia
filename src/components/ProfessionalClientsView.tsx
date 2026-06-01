@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { get } from '../api/client';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+import { dataService } from '../api';
 import { Search, Filter, Plus, MoreVertical, Phone, Mail, Calendar, User, MapPin, AlertCircle, TrendingUp, AlertTriangle, Shield, Brain, CheckCircle2, Stethoscope, Clock, FileText, ChevronRight, Eye, Send, Sparkles, ShieldAlert, Files, MessageSquare, Activity, Target, Upload, XCircle, Download, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -227,59 +226,14 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
 
   const loadClients = async () => {
     try {
-      if (USE_LOCAL_DB) {
-        let dbClients = await localDb.clients.findMany();
-        
-        // Apply RBAC filtering
-        if (userRole === 'therapist') {
-          // Therapist only sees their own assigned clients
-          const therapist = (await localDb.therapists.findMany(t => t.userId === currentUserId))[0];
-          if (therapist) {
-            dbClients = dbClients.filter(c => c.assignedTherapistId === therapist.id);
-          } else {
-            dbClients = [];
-          }
-        } else if (userRole === 'admin' || userRole === 'org_admin') {
-          // Org Admin sees all clients in their organization
-          const user = (await localDb.users.findMany(u => u.id === currentUserId))[0];
-          if (user?.organizationId) {
-            dbClients = dbClients.filter(c => c.organizationId === user.organizationId);
-          }
-        }
-        
-        const dbAppointments = await localDb.appointments.findMany();
-        const dbTherapists = await localDb.therapists.findMany();
+      // backend-initial: therapists see only their clients; admins see all.
+      //   therapist → GET /therapist/{therapistId}/clients
+      //   admin     → GET /clients
+      const endpoint = userRole === 'therapist'
+        ? `/therapist/${currentUserId}/clients`
+        : '/clients';
+      const data = await get<any[]>(endpoint);
 
-        const transformedClients: Client[] = dbClients.map(client => {
-          const therapist = dbTherapists.find(t => t.id === client.assignedTherapistId);
-          const clientAppts = dbAppointments.filter(a => a.clientId === client.userId).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-          
-          const pastAppts = clientAppts.filter(a => new Date(a.startTime) < new Date());
-          const futureAppts = clientAppts.filter(a => new Date(a.startTime) >= new Date());
-
-          return {
-            id: client.userId,
-            name: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email,
-            email: client.email,
-            phone: client.phone || 'N/A',
-            status: client.status === 'active' ? 'active' : 'inactive',
-            lastVisit: pastAppts.length > 0 ? pastAppts[pastAppts.length - 1].startTime.split('T')[0] : 'N/A',
-            nextAppointment: futureAppts.length > 0 ? futureAppts[0].startTime.split('T')[0] : null,
-            therapist: therapist ? therapist.name : 'Unassigned',
-            totalSessions: pastAppts.length,
-            condition: client.condition || 'General Therapy',
-            safetyRisk: client.safetyRisk || 'low',
-            safetyFlags: [] 
-          };
-        });
-        setClients(transformedClients);
-        return;
-      }
-
-      // Use the secure API client with HTTP-only cookies
-      const baseUrl = import.meta.env.VITE_CLIENT_SERVICE_URL || 'http://localhost:3003/api';
-      const data = await get<any[]>(`${baseUrl}/clients`);
-      
       // Transform backend data to frontend format
       const transformedClients: Client[] = data.map((client: any) => ({
         id: client.id,
@@ -691,13 +645,13 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
       <AnimatePresence>
         {selectedClient && (
           <Sheet open={!!selectedClient} onOpenChange={(open) => !open && setSelectedClient(null)}>
-            <SheetContent side="right" className="sm:max-w-6xl w-[90vw] p-0 border-l border-zinc-200 shadow-2xl bg-white overflow-hidden flex flex-col">
+            <SheetContent side="right" className="sm:max-w-6xl w-[90vw] p-0 border-l border-zinc-200 shadow-2xl bg-card overflow-hidden flex flex-col">
               {(() => {
                 const detailData = mapClientToDetailData(selectedClient);
                 return (
                   <>
                     {/* 1. Top Header (Identity + Safety Banner) */}
-                    <div className="bg-white border-b border-zinc-200 px-8 py-6 flex-shrink-0 z-10 shadow-sm">
+                    <div className="bg-card border-b border-zinc-200 px-8 py-6 flex-shrink-0 z-10 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-6">
                           <Button
@@ -782,13 +736,13 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                           </p>
                           <div className="space-y-3">
                             {detailData.aiInsights.documentationAlerts.map((alert, i) => (
-                              <div key={`doc-${i}`} className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                              <div key={`doc-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-blue-100/50">
                                 <AlertTriangle className="h-4 w-4 text-action flex-shrink-0 mt-0.5" />
                                 <span className="text-sm text-zinc-700">{alert}</span>
                               </div>
                             ))}
                             {detailData.aiInsights.trendAlerts.map((alert, i) => (
-                              <div key={`trend-${i}`} className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                              <div key={`trend-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-blue-100/50">
                                 <TrendingUp className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
                                 <span className="text-sm text-zinc-700">
                                   <span className="font-semibold text-zinc-900">{alert.type}:</span> {alert.message}
@@ -803,7 +757,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       <div className="grid grid-cols-4 gap-6">
                         {/* Tile 1: Next Session */}
                         {/* Tile 1: Next Session */}
-                        <div className="bg-white p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48 relative overflow-hidden">
+                        <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48 relative overflow-hidden">
                           <div>
                             <div className="flex items-center gap-2 text-zinc-500 mb-3">
                               <Calendar className="h-4 w-4" />
@@ -864,7 +818,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                         </div>
 
                         {/* Tile 2: Last Session */}
-                        <div className="bg-white p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
+                        <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
                           <div>
                             <div className="flex items-center gap-2 text-zinc-500 mb-3">
                               <Clock className="h-4 w-4" />
@@ -891,7 +845,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                         </div>
 
                         {/* Tile 3: Assessments Overview */}
-                        <div className="bg-white p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
+                        <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
                           <div>
                             <div className="flex items-center gap-2 text-zinc-500 mb-3">
                               <Activity className="h-4 w-4" />
@@ -901,28 +855,28 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                               <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium text-zinc-700">PHQ-9</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-lg font-bold text-zinc-900">{detailData.assessments.latest.PHQ9.score}</span>
-                                  <span className={`text-xs ${detailData.assessments.latest.PHQ9.trend === 'increasing' ? 'text-red-500' : 'text-emerald-500'}`}>
-                                    {detailData.assessments.latest.PHQ9.trend === 'increasing' ? '↑' : '↓'}
+                                  <span className="text-lg font-bold text-zinc-900">{detailData.assessments.latest.PHQ9?.score ?? '—'}</span>
+                                  <span className={`text-xs ${detailData.assessments.latest.PHQ9?.trend === 'increasing' ? 'text-red-500' : 'text-emerald-500'}`}>
+                                    {detailData.assessments.latest.PHQ9?.trend === 'increasing' ? '↑' : '↓'}
                                   </span>
                                 </div>
                               </div>
                               <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium text-zinc-700">GAD-7</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-lg font-bold text-zinc-900">{detailData.assessments.latest.GAD7.score}</span>
+                                  <span className="text-lg font-bold text-zinc-900">{detailData.assessments.latest.GAD7?.score ?? '—'}</span>
                                   <span className="text-xs text-zinc-400">→</span>
                                 </div>
                               </div>
                             </div>
                           </div>
                           <div className="text-xs text-zinc-400 mt-auto text-center">
-                            Last updated: {detailData.assessments.latest.PHQ9.lastUpdated}
+                            Last updated: {detailData.assessments.latest.PHQ9?.lastUpdated ?? '—'}
                           </div>
                         </div>
 
                         {/* Tile 4: Treatment Plan Snapshot */}
-                        <div className="bg-white p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
+                        <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
                           <div>
                             <div className="flex items-center gap-2 text-zinc-500 mb-3">
                               <Target className="h-4 w-4" />
@@ -961,7 +915,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       </div>
 
                       {/* 3. Clinical Overview Panel */}
-                      <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+                      <section className="bg-card rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
                         <div className="px-6 py-4 border-b border-zinc-100 bg-zinc-50/50 flex justify-between items-center">
                           <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
                             <Brain className="h-4 w-4 text-zinc-500" />
@@ -1054,7 +1008,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       </section>
 
                       {/* 4. Client Background */}
-                      <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
+                      <section className="bg-card rounded-2xl border border-zinc-200 shadow-sm p-6">
                         <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider mb-4 flex items-center gap-2">
                           <User className="h-4 w-4 text-zinc-500" />
                           Client Background
@@ -1104,23 +1058,23 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       </section>
 
                       {/* 5. Communication & Documents Area (Tabs) */}
-                      <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden min-h-[500px]">
+                      <section className="bg-card rounded-2xl border border-zinc-200 shadow-sm overflow-hidden min-h-[500px]">
                         <Tabs defaultValue="notes" className="w-full">
                           <div className="px-6 py-3 border-b border-zinc-100 bg-zinc-50/50">
                             <TabsList className="bg-zinc-100/50 p-1">
-                              <TabsTrigger value="notes" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                              <TabsTrigger value="notes" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">
                                 <FileText className="h-4 w-4 mr-2" />
                                 Notes
                               </TabsTrigger>
-                              <TabsTrigger value="documents" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                              <TabsTrigger value="documents" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">
                                 <Files className="h-4 w-4 mr-2" />
                                 Documents
                               </TabsTrigger>
-                              <TabsTrigger value="assessments" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                              <TabsTrigger value="assessments" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">
                                 <Activity className="h-4 w-4 mr-2" />
                                 Assessments
                               </TabsTrigger>
-                              <TabsTrigger value="messages" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                              <TabsTrigger value="messages" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">
                                 <MessageSquare className="h-4 w-4 mr-2" />
                                 Messages
                               </TabsTrigger>
@@ -1157,7 +1111,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                               <div className="grid grid-cols-3 gap-4">
                                 {['Intake Assessment', 'Safety Plan', 'Consent to Treat', 'Release of Information'].map((doc, i) => (
                                   <div key={i} className="border border-zinc-100 rounded-lg p-4 flex items-center gap-3 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all cursor-pointer group">
-                                    <div className="h-10 w-10 bg-zinc-100 rounded-lg flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                                    <div className="h-10 w-10 bg-zinc-100 rounded-lg flex items-center justify-center group-hover:bg-card group-hover:shadow-sm transition-all">
                                       <FileText className="h-5 w-5 text-zinc-400 group-hover:text-indigo-500" />
                                     </div>
                                     <div>
@@ -1317,7 +1271,6 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       className="h-8 text-xs"
                       onClick={() => {
                         const params = new URLSearchParams({
-                          view: 'client-registration',
                           email: newClient.email,
                           firstName: newClient.firstName,
                           lastName: newClient.lastName,
@@ -1325,7 +1278,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                           countryCode: newClient.countryCode,
                           token: 'preview-token-' + Date.now()
                         });
-                        window.open(`${window.location.origin}/?${params.toString()}`, '_blank');
+                        window.open(`${window.location.origin}/client-registration?${params.toString()}`, '_blank');
                       }}
                     >
                       <Eye className="h-3 w-3 mr-2" />
@@ -1393,8 +1346,8 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
           initialData={mapClientToDetailData(selectedClient)}
           onSave={async (data) => {
             try {
-              // Update the client data in the dataService
-              await dataService.update('clients', selectedClient.id, {
+              // backend-initial: PUT /clients/{id}
+              await dataService.update('/clients', selectedClient.id, {
                 ...selectedClient,
                 // Map the detailed data back to the client format
                 // You can expand this mapping as needed
@@ -1437,7 +1390,7 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
               <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-200 uppercase tracking-widest text-[10px]">
                 Active Plan
               </Badge>
-              <Badge variant="outline" className="bg-white text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
+              <Badge variant="outline" className="bg-card text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
                 Review: {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}
               </Badge>
             </div>
@@ -1459,7 +1412,7 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-white">
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-card">
           {/* 1. Primary Goal */}
           <section>
             <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2 mb-3">
@@ -1469,8 +1422,8 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
             <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100">
               <p className="text-lg font-medium text-zinc-900 mb-2">{plan.mainGoal}</p>
               <div className="flex gap-2">
-                <Badge variant="secondary" className="bg-white border-zinc-200">{plan.modality}</Badge>
-                <Badge variant="secondary" className="bg-white border-zinc-200">Weekly Sessions</Badge>
+                <Badge variant="secondary" className="bg-card border-zinc-200">{plan.modality}</Badge>
+                <Badge variant="secondary" className="bg-card border-zinc-200">Weekly Sessions</Badge>
               </div>
             </div>
           </section>
@@ -1514,7 +1467,7 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
               <TrendingUp className="h-4 w-4 text-zinc-500" />
               Progress Tracking
             </h3>
-            <div className="bg-white rounded-xl border border-zinc-200 p-5">
+            <div className="bg-card rounded-xl border border-zinc-200 p-5">
               <div className="flex justify-between items-end mb-2">
                 <span className="text-sm font-medium text-zinc-600">Overall Progress</span>
                 <span className="text-2xl font-bold text-emerald-600">{plan.progressPercent}%</span>
@@ -1529,7 +1482,7 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
           </section>
         </div>
 
-        <div className="p-6 bg-white border-t border-zinc-200 flex justify-end gap-3 flex-shrink-0">
+        <div className="p-6 bg-card border-t border-zinc-200 flex justify-end gap-3 flex-shrink-0">
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Export Plan
@@ -1558,7 +1511,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
               <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 uppercase tracking-widest text-[10px]">
                 Legal Record
               </Badge>
-              <Badge variant="outline" className="bg-white text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
+              <Badge variant="outline" className="bg-card text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
                 Established: {new Date().toLocaleDateString()}
               </Badge>
             </div>
@@ -1583,7 +1536,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
         <div className="p-6 flex-1 overflow-y-auto space-y-8 bg-zinc-50/50">
 
           {/* 1. Risk Overview */}
-          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
                 <Activity className="h-4 w-4 text-zinc-500" />
@@ -1608,7 +1561,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 2. Warning Signs */}
-          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-zinc-500" />
@@ -1624,7 +1577,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 3. Internal Coping Strategies */}
-          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
                 <Brain className="h-4 w-4 text-zinc-500" />
@@ -1640,7 +1593,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 4. Social Distractions */}
-          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
                 <User className="h-4 w-4 text-zinc-500" />
@@ -1655,7 +1608,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 5. Contacts in Crisis */}
-          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
                 <Phone className="h-4 w-4 text-zinc-500" />
@@ -1671,7 +1624,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
                 </div>
                 <div className="flex items-center gap-2">
                   {showEmergencyContact ? (
-                    <span className="text-sm font-mono text-zinc-900 bg-white px-2 py-1 rounded border border-zinc-200">{clientData.profile.contact.emergencyContact.phone || 'N/A'}</span>
+                    <span className="text-sm font-mono text-zinc-900 bg-card px-2 py-1 rounded border border-zinc-200">{clientData.profile.contact.emergencyContact.phone || 'N/A'}</span>
                   ) : (
                     <span className="text-sm text-zinc-400 italic">Hidden for privacy</span>
                   )}
@@ -1689,7 +1642,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 6. Professional Support */}
-          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
                 <Stethoscope className="h-4 w-4 text-zinc-500" />
@@ -1707,7 +1660,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 7. Safe Environment Steps */}
-          <section className="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
                 <Shield className="h-4 w-4 text-zinc-500" />
@@ -1744,7 +1697,7 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
         </div>
-        <div className="p-6 bg-white border-t border-zinc-200 flex justify-between items-center flex-shrink-0">
+        <div className="p-6 bg-card border-t border-zinc-200 flex justify-between items-center flex-shrink-0">
           <div className="text-xs text-zinc-500">
             Document ID: SP-{new Date().getFullYear()}-{clientData.clientId.substring(0, 4)} • Version 1.0
           </div>

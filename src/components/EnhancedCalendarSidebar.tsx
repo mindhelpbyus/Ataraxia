@@ -59,7 +59,7 @@ export function EnhancedCalendarSidebar({
       >
         <div className={`w-80 flex flex-col h-full ${isExpanded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>
           {/* Step Indicator */}
-          <div className="p-4 border-b border-sidebar-border bg-white">
+          <div className="p-4 border-b border-sidebar-border bg-card">
             <div className="flex items-start justify-between">
               {steps.map((step, index) => {
                 const Icon = step.icon;
@@ -81,7 +81,7 @@ export function EnhancedCalendarSidebar({
                             ? 'shadow-md font-bold'
                             : isCompleted
                               ? 'bg-[#fff7ed] border-[#1E7048] text-[#145C34]'
-                              : 'bg-white border-[#dddbda] text-muted-foreground group-hover:border-action-dark'
+                              : 'bg-card border-[#dddbda] text-muted-foreground group-hover:border-action-dark'
                           }
                         `}
                         style={isActive ? { backgroundColor: '#1E7048', borderColor: '#145C34', color: 'white' } : {}}
@@ -143,7 +143,7 @@ export function EnhancedCalendarSidebar({
           </div>
 
           {/* Quick Info Footer */}
-          <div className="p-4 border-t border-sidebar-border bg-white">
+          <div className="p-4 border-t border-sidebar-border bg-card">
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Selected Date:</span>
@@ -172,8 +172,8 @@ export function EnhancedCalendarSidebar({
         }}
         className={`
           absolute top-20 z-[9999]
-          bg-white border border-sidebar-border rounded-r-md
-          hover:bg-gray-50 transition-all duration-200
+          bg-card border border-sidebar-border rounded-r-md
+          hover:bg-[var(--surface-warm)] transition-all duration-200
           flex items-center justify-center
           shadow-sm hover:shadow-md
           group

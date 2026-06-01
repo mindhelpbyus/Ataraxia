@@ -20,10 +20,10 @@ export default function FormInputsShowcase() {
       <div className="max-w-7xl mx-auto space-y-16">
         {/* Header */}
         <div className="space-y-4">
-          <h1 className="text-4xl font-semibold text-gray-900">
+          <h1 className="text-4xl font-semibold text-foreground">
             Ataraxia Form Input Components
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             Centralized, reusable input components following the Ataraxia Design System.
             All components support multiple states, accessibility features, and consistent styling.
           </p>
@@ -32,8 +32,8 @@ export default function FormInputsShowcase() {
         {/* InputField Component */}
         <section className="space-y-8">
           <div className="space-y-2">
-            <h2 className="text-3xl font-semibold text-gray-900">InputField</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-semibold text-foreground">InputField</h2>
+            <p className="text-muted-foreground">
               Standard text input with support for icons, character counting, and all states.
             </p>
           </div>
@@ -41,8 +41,8 @@ export default function FormInputsShowcase() {
           {/* States Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Base State */}
-            <div className="space-y-3 bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700">Base State</h3>
+            <div className="space-y-3 bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-sm font-medium text-foreground">Base State</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -53,8 +53,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* With Value */}
-            <div className="space-y-3 bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700">With Value (Filled)</h3>
+            <div className="space-y-3 bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-sm font-medium text-foreground">With Value (Filled)</h3>
               <InputField
                 label="Input Label"
                 value="Enter your title here"
@@ -65,8 +65,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Error State */}
-            <div className="space-y-3 bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700">Error State</h3>
+            <div className="space-y-3 bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-sm font-medium text-foreground">Error State</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -78,8 +78,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Success State */}
-            <div className="space-y-3 bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700">Success State</h3>
+            <div className="space-y-3 bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-sm font-medium text-foreground">Success State</h3>
               <InputField
                 label="Input Label"
                 value="valid@email.com"
@@ -91,8 +91,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Disabled State */}
-            <div className="space-y-3 bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+            <div className="space-y-3 bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -104,8 +104,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Required Field */}
-            <div className="space-y-3 bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700">Required Field</h3>
+            <div className="space-y-3 bg-card p-6 rounded-lg border border-border">
+              <h3 className="text-sm font-medium text-foreground">Required Field</h3>
               <InputField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -119,10 +119,10 @@ export default function FormInputsShowcase() {
 
           {/* With Icons */}
           <div className="space-y-4">
-            <h3 className="text-xl font-medium text-gray-900">With Icons</h3>
+            <h3 className="text-xl font-medium text-foreground">With Icons</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Icon */}
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <div className="bg-card p-6 rounded-lg border border-border">
                 <InputField
                   label="Email Address"
                   type="email"
@@ -135,7 +135,7 @@ export default function FormInputsShowcase() {
               </div>
 
               {/* Right Icon */}
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <div className="bg-card p-6 rounded-lg border border-border">
                 <InputField
                   label="Amount"
                   type="number"
@@ -146,7 +146,7 @@ export default function FormInputsShowcase() {
               </div>
 
               {/* Both Icons */}
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <div className="bg-card p-6 rounded-lg border border-border">
                 <InputField
                   label="Full Name"
                   placeholder="John Doe"
@@ -158,7 +158,7 @@ export default function FormInputsShowcase() {
               </div>
 
               {/* Password with Toggle */}
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <div className="bg-card p-6 rounded-lg border border-border">
                 <InputField
                   label="Password"
                   type="password"
@@ -177,16 +177,16 @@ export default function FormInputsShowcase() {
         {/* SearchBar Component */}
         <section className="space-y-8">
           <div className="space-y-2">
-            <h2 className="text-3xl font-semibold text-gray-900">SearchBar</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-semibold text-foreground">SearchBar</h2>
+            <p className="text-muted-foreground">
               Search input with magnifying glass icon and keyboard shortcuts (⌘/Ctrl + F).
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Base State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Base State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Base State</h3>
               <SearchBar
                 placeholder="Search"
                 value={searchValue}
@@ -195,14 +195,14 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* With Value */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Value</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">With Value</h3>
               <SearchBar placeholder="Search" value="Search term" />
             </div>
 
             {/* Without Shortcuts */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Without Shortcuts</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Without Shortcuts</h3>
               <SearchBar
                 placeholder="Search clients..."
                 showKeyboardShortcut={false}
@@ -210,8 +210,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Disabled */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Disabled</h3>
               <SearchBar placeholder="Search" disabled />
             </div>
           </div>
@@ -220,16 +220,16 @@ export default function FormInputsShowcase() {
         {/* TextareaField Component */}
         <section className="space-y-8">
           <div className="space-y-2">
-            <h2 className="text-3xl font-semibold text-gray-900">TextareaField</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-semibold text-foreground">TextareaField</h2>
+            <p className="text-muted-foreground">
               Multi-line text input for longer content with character counting and all states.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Base State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Base State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Base State</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -241,8 +241,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* With Value */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">With Value</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">With Value</h3>
               <TextareaField
                 label="Input Label"
                 value="This is some sample text that the user has entered into the textarea field."
@@ -254,8 +254,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Error State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Error State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Error State</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -268,8 +268,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Success State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Success State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Success State</h3>
               <TextareaField
                 label="Input Label"
                 value="This feedback looks great!"
@@ -282,8 +282,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Disabled State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <TextareaField
                 label="Input Label"
                 placeholder="Enter your title here"
@@ -296,8 +296,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Real Use Case */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Session Notes (Real Use Case)</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Session Notes (Real Use Case)</h3>
               <TextareaField
                 label="Session Notes"
                 placeholder="Document what happened during the session, client's presentation, topics discussed..."
@@ -316,16 +316,16 @@ export default function FormInputsShowcase() {
         {/* PhoneInput Component */}
         <section className="space-y-8">
           <div className="space-y-2">
-            <h2 className="text-3xl font-semibold text-gray-900">PhoneInput</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-semibold text-foreground">PhoneInput</h2>
+            <p className="text-muted-foreground">
               International phone number input with country code selector, auto-formatting, and validation.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Base State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Base State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Base State</h3>
               <PhoneInput
                 label="Phone Number"
                 value={phoneValue}
@@ -340,8 +340,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Error State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Error State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Error State</h3>
               <PhoneInput
                 label="Phone Number"
                 value="123"
@@ -352,8 +352,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Success State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Success State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Success State</h3>
               <PhoneInput
                 label="Phone Number"
                 value="5551234567"
@@ -363,8 +363,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* Disabled State */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Disabled State</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Disabled State</h3>
               <PhoneInput
                 label="Phone Number"
                 value="5551234567"
@@ -374,8 +374,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* India Number */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">India Number</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">India Number</h3>
               <PhoneInput
                 label="Phone Number"
                 value="9876543210"
@@ -385,8 +385,8 @@ export default function FormInputsShowcase() {
             </div>
 
             {/* UK Number */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">UK Number</h3>
+            <div className="bg-card p-6 rounded-lg border border-border space-y-3">
+              <h3 className="text-sm font-medium text-foreground">UK Number</h3>
               <PhoneInput
                 label="Phone Number"
                 value="7123456789"
@@ -400,14 +400,14 @@ export default function FormInputsShowcase() {
         {/* Real-World Form Example */}
         <section className="space-y-8">
           <div className="space-y-2">
-            <h2 className="text-3xl font-semibold text-gray-900">Real-World Example</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-semibold text-foreground">Real-World Example</h2>
+            <p className="text-muted-foreground">
               Complete form using all centralized input components together.
             </p>
           </div>
 
-          <div className="bg-white p-8 rounded-lg border border-gray-200 max-w-2xl">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Client Intake Form</h3>
+          <div className="bg-card p-8 rounded-lg border border-border max-w-2xl">
+            <h3 className="text-xl font-semibold text-foreground mb-6">Client Intake Form</h3>
 
             <div className="space-y-6">
               <InputField
@@ -460,7 +460,7 @@ export default function FormInputsShowcase() {
               />
 
               <div className="flex justify-end gap-3 pt-4">
-                <button className="px-6 py-2.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">
+                <button className="px-6 py-2.5 rounded border border-border text-foreground hover:bg-[var(--surface-warm)]">
                   Cancel
                 </button>
                 <button className="px-6 py-2.5 rounded bg-[#1E7048] text-white hover:bg-[#145C34]">
@@ -473,18 +473,18 @@ export default function FormInputsShowcase() {
 
         {/* Usage Guidelines */}
         <section className="space-y-6 bg-blue-50 p-8 rounded-lg border border-blue-200">
-          <h2 className="text-2xl font-semibold text-gray-900">Usage Guidelines</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Usage Guidelines</h2>
 
-          <div className="space-y-4 text-gray-700">
+          <div className="space-y-4 text-foreground">
             <div>
-              <h3 className="font-medium text-gray-900 mb-2">Import</h3>
-              <pre className="bg-white p-4 rounded border border-gray-200 overflow-x-auto">
+              <h3 className="font-medium text-foreground mb-2">Import</h3>
+              <pre className="bg-card p-4 rounded border border-border overflow-x-auto">
                 <code>{`import { InputField, SearchBar, TextareaField, PhoneInput } from './components/ui/form-inputs';`}</code>
               </pre>
             </div>
 
             <div>
-              <h3 className="font-medium text-gray-900 mb-2">When to Use Each Component</h3>
+              <h3 className="font-medium text-foreground mb-2">When to Use Each Component</h3>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li><strong>InputField:</strong> Single-line text, email, password, numbers, dates, etc.</li>
                 <li><strong>SearchBar:</strong> Search functionality with keyboard shortcuts</li>
@@ -494,7 +494,7 @@ export default function FormInputsShowcase() {
             </div>
 
             <div>
-              <h3 className="font-medium text-gray-900 mb-2">Best Practices</h3>
+              <h3 className="font-medium text-foreground mb-2">Best Practices</h3>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Always provide a <code>label</code> for accessibility</li>
                 <li>Use <code>helperText</code> to guide users</li>

@@ -2,16 +2,21 @@
  * api/client.ts — Ataraxia HTTP API Client
  *
  * ✅ SECURITY ARCHITECTURE:
- * - Auth tokens travel in HTTP-only cookies (set by backend, never touched by JS)
- * - credentials: 'include' sends cookies on every cross-origin request
- * - Zero localStorage / sessionStorage token storage
- * - Zero console.log of response data (PHI-safe)
- * - X-Request-ID on every request for backend trace correlation
- * - Automatic 401 handling → redirect to /login (session expired)
+ * - Auth is AWS Cognito. The access token is attached as `Authorization: Bearer`
+ *   on every request (token comes from the Cognito SDK session — see lib/cognito.ts).
+ * - The shared API Gateway validates the JWT (HttpJwtAuthorizer, default-deny).
+ * - Zero console.log of response data (PHI-safe).
+ * - X-Request-ID on every request for backend trace correlation.
+ * - 401 → clear session + redirect to /login (token expired / invalid).
  */
 
 import { logger } from '../utils/secureLogger';
+import { getAccessToken as getCognitoAccessToken } from '../lib/cognito';
+
+/** Shared HTTP API Gateway — backend-initial (no /api prefix) + billing_payment (/api/*). */
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+/** Separate video-service backend (LiveKit rooms/tokens/transcripts). */
+export const VIDEO_API_BASE_URL = import.meta.env.VITE_VIDEO_API_BASE_URL || '';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,30 +46,31 @@ export interface ApiRequestOptions {
   headers?: Record<string, string>;
   body?: unknown;
   isFormData?: boolean;
+  /** Override the base URL (e.g. video-service). Defaults to the shared gateway. */
+  baseUrl?: string;
 }
 
 // ─── Core Request ─────────────────────────────────────────────────────────────
-
-const getCsrfToken = (): string => {
-  const match = document.cookie.match(/csrf_token=([^;]+)/);
-  return match ? match[1] : '';
-};
 
 export async function apiRequest<T>(
   endpoint: string,
   options: ApiRequestOptions = {}
 ): Promise<T> {
-  const { method = 'GET', headers = {}, body, isFormData = false } = options;
+  const { method = 'GET', headers = {}, body, isFormData = false, baseUrl = API_BASE_URL } = options;
 
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+  const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
 
   const requestHeaders: Record<string, string> = {
     // ✅ X-Request-ID for backend trace correlation (HIPAA audit)
     'X-Request-ID': crypto.randomUUID(),
-    // ✅ CSRF protection (HIPAA / PCI-DSS)
-    'X-CSRF-Token': getCsrfToken(),
     ...headers,
   };
+
+  // ✅ Attach the Cognito access token (the API Gateway validates this JWT).
+  const accessToken = await getCognitoAccessToken();
+  if (accessToken) {
+    requestHeaders['Authorization'] = `Bearer ${accessToken}`;
+  }
 
   if (!isFormData) {
     requestHeaders['Content-Type'] = 'application/json';
@@ -73,9 +79,6 @@ export async function apiRequest<T>(
   const fetchOptions: RequestInit = {
     method,
     headers: requestHeaders,
-    // ✅ 'include' sends HTTP-only auth cookies on every request
-    // This is required for the cookie-based session model
-    credentials: 'include',
   };
 
   if (body !== undefined) {
@@ -160,39 +163,39 @@ export function patch<T>(endpoint: string, body?: unknown): Promise<T> {
   return apiRequest<T>(endpoint, { method: 'PATCH', body });
 }
 
+// ─── video-service helpers (separate backend; same Bearer token) ────────────────
+export function videoGet<T>(endpoint: string): Promise<T> {
+  return apiRequest<T>(endpoint, { method: 'GET', baseUrl: VIDEO_API_BASE_URL });
+}
+export function videoPost<T>(endpoint: string, body?: unknown): Promise<T> {
+  return apiRequest<T>(endpoint, { method: 'POST', body, baseUrl: VIDEO_API_BASE_URL });
+}
+
 export function del<T>(endpoint: string): Promise<T> {
   return apiRequest<T>(endpoint, { method: 'DELETE' });
 }
 
-// ─── Legacy shims (keep build passing during incremental migration) ────────────
-// These were used by old files that stored tokens in localStorage.
-// With HTTP-only cookies, the frontend never stores or reads tokens.
+// ─── Legacy compatibility shims ─────────────────────────────────────────────────
+// Auth is now Cognito (lib/cognito.ts). The frontend does not manually store tokens;
+// the SDK manages them. These remain only so older imports keep compiling.
 
-/** @deprecated Tokens are in HTTP-only cookies. This is a no-op. */
-export function setAuthTokens(_access: string, _refresh?: string): void {
-  // No-op: tokens are managed by the backend via Set-Cookie headers.
-  // The frontend never stores, reads, or transmits tokens directly.
-}
+/** @deprecated The Cognito SDK manages tokens. No-op. */
+export function setAuthTokens(_access: string, _refresh?: string): void {}
 
-/** @deprecated Always returns null. Token is in HTTP-only cookie. */
+/** @deprecated Use the async Cognito session instead. Returns null synchronously. */
 export function getAccessToken(): string | null {
   return null;
 }
 
-/** @deprecated Always returns null. Refresh token is in HTTP-only cookie. */
+/** @deprecated The Cognito SDK manages the refresh token. Returns null. */
 export function getRefreshToken(): string | null {
   return null;
 }
 
-/** @deprecated No-op. Tokens cleared by backend on POST /auth/logout. */
-export function clearAuthTokens(): void {
-  // The backend clears the Set-Cookie on logout response.
-  // Nothing to do on the frontend.
-}
+/** @deprecated Use auth.logout() (Cognito sign-out). No-op. */
+export function clearAuthTokens(): void {}
 
-/** @deprecated Don't use. Auth state comes from GET /api/v1/auth/me. */
+/** @deprecated Use the auth store / getCurrentUser(). Intentionally unreliable. */
 export function isAuthenticated(): boolean {
-  // Can't check HTTP-only cookies from JS. Use the auth store instead.
-  // This is intentionally unreliable.
   return false;
 }

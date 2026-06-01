@@ -32,7 +32,7 @@ import 'react-circular-progressbar/dist/styles.css';
 interface TherapistHomeViewProps {
   userId: string;
   userEmail: string;
-  onNavigate: (tab: 'dashboard' | 'calendar' | 'clients' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings', subTab?: string) => void;
+  onNavigate: (tab: string, subTab?: string) => void;
   accountStatus?: string;
 }
 
@@ -71,9 +71,9 @@ const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, coun
       animate={{ opacity: 1, y: 0 }}
       className={`relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br ${bgGradient} shadow-2xl shadow-ink/10 mb-10`}
     >
-      <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-card/5 backdrop-blur-[2px]" />
       {/* Organic Shapes */}
-      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-white/20 rounded-full blur-3xl" />
+      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-card/20 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 -mb-32 -ml-20 w-80 h-80 bg-black/10 rounded-full blur-3xl" />
 
       <div className="relative z-10 p-10 flex items-center justify-between">
@@ -173,7 +173,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
 
   return (
     <div className="col-span-12 mb-12 animate-in slide-in-from-bottom-4 duration-700 fade-in">
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-card border border-slate-100 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
         {/* Subtle Background Decor */}
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-action-light/30 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-50/50 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none" />

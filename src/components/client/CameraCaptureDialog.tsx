@@ -145,7 +145,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
 
                 <div className="space-y-4">
                     {/* Camera View / Captured Image */}
-                    <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                    <div className="relative bg-[var(--ink)] rounded-lg overflow-hidden aspect-video">
                         {!capturedImage ? (
                             <>
                                 <video
@@ -156,7 +156,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
                                     className="w-full h-full object-cover"
                                 />
                                 {!isCameraReady && !cameraError && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                                    <div className="absolute inset-0 flex items-center justify-center bg-[var(--ink)]">
                                         <div className="text-center text-white">
                                             <Camera className="h-12 w-12 mx-auto mb-2 animate-pulse" />
                                             <p>Starting camera...</p>
@@ -164,7 +164,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
                                     </div>
                                 )}
                                 {cameraError && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-900 p-6">
+                                    <div className="absolute inset-0 flex items-center justify-center bg-[var(--ink)] p-6">
                                         <div className="text-center text-white max-w-md">
                                             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" />
                                             <h3 className="text-lg font-semibold mb-2">
@@ -194,7 +194,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
                                                 <Button
                                                     onClick={handleClose}
                                                     variant="outline"
-                                                    className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
+                                                    className="bg-[var(--ink)] border-gray-600 text-white hover:bg-[var(--ink)]"
                                                     size="sm"
                                                 >
                                                     Cancel
@@ -232,7 +232,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
                                         type="button"
                                         variant="outline"
                                         onClick={handleClose}
-                                        className="border-gray-300"
+                                        className="border-border"
                                     >
                                         Cancel
                                     </Button>
@@ -252,7 +252,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
                                         type="button"
                                         variant="outline"
                                         onClick={retakePhoto}
-                                        className="border-gray-300"
+                                        className="border-border"
                                     >
                                         <RotateCcw className="h-4 w-4 mr-2" />
                                         Retake

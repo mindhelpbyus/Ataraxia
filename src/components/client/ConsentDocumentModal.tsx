@@ -133,9 +133,9 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
         <>
             {/* Main Document Modal */}
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+                <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
                     {/* Header */}
-                    <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                    <div className="p-4 border-b border-border flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <h2 className="text-lg font-semibold">{document.title}</h2>
                             {documentSigned && (
@@ -148,24 +148,24 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleZoomOut}
-                                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                className="p-2 hover:bg-muted rounded-md transition-colors"
                                 title="Zoom Out"
                             >
                                 <ZoomOut className="w-4 h-4" />
                             </button>
-                            <span className="text-sm text-gray-600 min-w-[50px] text-center">
+                            <span className="text-sm text-muted-foreground min-w-[50px] text-center">
                                 {zoom}%
                             </span>
                             <button
                                 onClick={handleZoomIn}
-                                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                className="p-2 hover:bg-muted rounded-md transition-colors"
                                 title="Zoom In"
                             >
                                 <ZoomIn className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={onClose}
-                                className="p-2 hover:bg-gray-100 rounded-md transition-colors ml-2"
+                                className="p-2 hover:bg-muted rounded-md transition-colors ml-2"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -181,18 +181,18 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                             }}
                             className="prose max-w-none"
                         >
-                            <div className="whitespace-pre-wrap leading-relaxed text-gray-800">
+                            <div className="whitespace-pre-wrap leading-relaxed text-foreground">
                                 {document.content}
                             </div>
                         </div>
 
                         {/* Signature Fields */}
-                        <div className="mt-8 pt-6 border-t border-gray-200">
+                        <div className="mt-8 pt-6 border-t border-border">
                             <h3 className="text-base font-semibold mb-4">Signature Required</h3>
                             <div className="space-y-4">
                                 {document.signatureFields.map((field) => (
                                     <div key={field.id}>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-foreground mb-2">
                                             {field.label}
                                             {field.required && (
                                                 <span className="text-red-500 ml-1">*</span>
@@ -208,12 +208,12 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                                                         [field.id]: e.target.value,
                                                     }))
                                                 }
-                                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
+                                                className="px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E7048]"
                                             />
                                         ) : (
                                             <div className="relative">
                                                 {signatures[field.id] ? (
-                                                    <div className="border border-gray-300 rounded-md p-4 bg-gray-50">
+                                                    <div className="border border-border rounded-md p-4 bg-[var(--surface-warm)]">
                                                         <img
                                                             src={signatures[field.id]}
                                                             alt="Signature"
@@ -229,7 +229,7 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                                                 ) : (
                                                     <button
                                                         onClick={() => handleOpenSignatureModal(field.id)}
-                                                        className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-md hover:border-[#1E7048] transition-colors flex flex-col items-center justify-center gap-2 text-gray-600"
+                                                        className="w-full px-4 py-6 border-2 border-dashed border-border rounded-md hover:border-[#1E7048] transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground"
                                                     >
                                                         <PenTool className="w-5 h-5" />
                                                         <span className="text-sm">Click to sign</span>
@@ -266,8 +266,8 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
             {/* Signature Canvas Modal */}
             {showSignatureModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full">
+                        <div className="p-6 border-b border-border">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-semibold">Draw Your Signature</h2>
                                 <button
@@ -275,7 +275,7 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                                         setShowSignatureModal(false);
                                         setCurrentSignatureField(null);
                                     }}
-                                    className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                                    className="p-2 hover:bg-muted rounded-md transition-colors"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -283,11 +283,11 @@ export function ConsentDocumentModal({ document, isOpen, onClose, onSigned }: Co
                         </div>
 
                         <div className="p-6">
-                            <div className="bg-gray-50 mb-6 rounded-lg overflow-hidden shadow-inner">
+                            <div className="bg-[var(--surface-warm)] mb-6 rounded-lg overflow-hidden shadow-inner">
                                 <SignatureCanvas
                                     ref={signatureCanvasRef}
                                     canvasProps={{
-                                        className: 'w-full h-[400px] border-2 border-gray-200 rounded-lg cursor-crosshair',
+                                        className: 'w-full h-[400px] border-2 border-border rounded-lg cursor-crosshair',
                                     }}
                                     backgroundColor="rgb(249, 250, 251)"
                                 />

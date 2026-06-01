@@ -44,7 +44,7 @@ function DropdownMenuContent({
         className={cn(
           // Base styles matching design system
           "z-50 min-w-[8rem] rounded",
-          "bg-white",
+          "bg-card",
           "text-[var(--content-dark-primary,#000000)]",
           
           // Shadow from design system
@@ -104,7 +104,7 @@ function DropdownMenuItem({
         "px-3 py-1.5",
         "text-sm",
         "text-[var(--content-dark-primary,#000000)]",
-        "bg-white",
+        "bg-card",
         "select-none outline-none",
         
         // Hover/Focus state

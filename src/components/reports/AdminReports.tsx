@@ -101,7 +101,7 @@ const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass }:
   <motion.div
     variants={itemVariants}
     whileHover={{ y: -2 }}
-    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-card p-6 shadow-sm transition-all hover:shadow-md"
   >
     <div className="flex items-center justify-between">
       <div className={`rounded-xl p-2.5 ${colorClass} bg-opacity-10`}>
@@ -212,7 +212,7 @@ export function AdminReports({ dateRange }: AdminReportsProps) {
                       <span className="font-medium text-emerald-900">{outcome.metric}</span>
                       <Badge
                         variant="secondary"
-                        className="bg-white text-emerald-700 hover:bg-white"
+                        className="bg-card text-emerald-700 hover:bg-card"
                       >
                         {outcome.change > 0 ? '+' : ''}{outcome.change}
                       </Badge>

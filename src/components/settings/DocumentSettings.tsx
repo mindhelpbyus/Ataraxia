@@ -111,7 +111,7 @@ export const DocumentSettings = () => {
                 );
             case 'acknowledged':
                 return (
-                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
+                    <span className="px-3 py-1 text-xs rounded-full bg-muted text-foreground">
                         Acknowledged
                     </span>
                 );
@@ -399,7 +399,7 @@ Therapists must provide services without discrimination based on:
                     {documents.map((doc) => (
                         <div
                             key={doc.id}
-                            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                            className="bg-card rounded-lg border border-border p-6 hover:shadow-md transition-shadow"
                         >
                             <div className="flex items-start gap-4">
                                 {/* Icon */}
@@ -408,11 +408,11 @@ Therapists must provide services without discrimination based on:
                                 {/* Content */}
                                 <div className="flex-1">
                                     <div className="flex items-start justify-between mb-2">
-                                        <h2 className="text-lg font-semibold text-gray-900">
+                                        <h2 className="text-lg font-semibold text-foreground">
                                             {doc.title}
                                         </h2>
                                         {signedDocuments.has(doc.id) && !doc.date ? (
-                                            <span className="text-sm text-gray-500">
+                                            <span className="text-sm text-muted-foreground">
                                                 {new Date().toLocaleDateString('en-US', {
                                                     month: 'short',
                                                     day: '2-digit',
@@ -420,13 +420,13 @@ Therapists must provide services without discrimination based on:
                                                 })}
                                             </span>
                                         ) : doc.date ? (
-                                            <span className="text-sm text-gray-500">{doc.date}</span>
+                                            <span className="text-sm text-muted-foreground">{doc.date}</span>
                                         ) : doc.version ? (
-                                            <span className="text-sm text-gray-500">{doc.version}</span>
+                                            <span className="text-sm text-muted-foreground">{doc.version}</span>
                                         ) : null}
                                     </div>
 
-                                    <p className="text-sm text-gray-600 mb-4">{doc.description}</p>
+                                    <p className="text-sm text-muted-foreground mb-4">{doc.description}</p>
 
                                     {/* Tags */}
                                     <div className="flex items-center gap-2 mb-6">
@@ -434,7 +434,7 @@ Therapists must provide services without discrimination based on:
                                         {doc.tags.map((tag, index) => (
                                             <span
                                                 key={index}
-                                                className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600"
+                                                className="px-3 py-1 text-xs rounded-full bg-muted text-muted-foreground"
                                             >
                                                 {tag}
                                             </span>
@@ -445,7 +445,7 @@ Therapists must provide services without discrimination based on:
                                     <div className="flex items-center gap-4">
                                         <button
                                             onClick={() => handleViewDocument(doc.id)}
-                                            className="flex-1 py-2 px-4 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm"
+                                            className="flex-1 py-2 px-4 bg-card border border-border rounded-md hover:bg-[var(--surface-warm)] transition-colors flex items-center justify-center gap-2 text-sm"
                                         >
                                             <FileCheck className="w-4 h-4" />
                                             View
@@ -454,8 +454,8 @@ Therapists must provide services without discrimination based on:
                                             onClick={() => handleDownloadDocument(doc.id, doc.title)}
                                             disabled={!signedDocuments.has(doc.id)}
                                             className={`text-sm transition-colors flex items-center gap-2 ${signedDocuments.has(doc.id)
-                                                ? 'text-gray-600 hover:text-gray-900 cursor-pointer'
-                                                : 'text-gray-300 cursor-not-allowed'
+                                                ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                                                : 'text-muted-foreground cursor-not-allowed'
                                                 }`}
                                             title={!signedDocuments.has(doc.id) ? 'Sign document to enable download' : 'Download signed document'}
                                         >

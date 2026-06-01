@@ -4,8 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { CreditCard, Wallet, Calendar, ShieldCheck, CheckCircle2, FileSearch, X } from 'lucide-react';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
+import { dataService } from '../api';
 import { UserRole } from '../types/appointment';
 import { Dialog, DialogContent, DialogTitle, DialogHeader } from './ui/dialog';
 import { TherapyInvoice, InvoiceData } from './TherapyInvoice';
@@ -86,38 +85,18 @@ export function BillingView({ userRole, currentUserId, tab }: BillingViewProps) 
     const loadData = async () => {
       setLoading(true);
       try {
-        if (USE_LOCAL_DB) {
-          let userSubs = await localDb.subscriptions.findMany();
-          let userInvoices = await localDb.invoices.findMany();
-
-          if (userRole === 'admin' || userRole === 'org_admin') {
-            const user = (await localDb.users.findMany((u: any) => u.id === currentUserId))[0];
-            if (user?.organizationId) {
-              userSubs = userSubs.filter((s: any) => s.organizationId === user.organizationId);
-              userInvoices = userInvoices.filter(
-                (i: any) => i.organizationId === user.organizationId && i.status === 'paid'
-              );
-            }
-          } else if (userRole === 'therapist') {
-            userSubs = userSubs.filter((s: any) => s.userId === currentUserId);
-            const therapist = (
-              await localDb.therapists.findMany((t: any) => t.userId === currentUserId)
-            )[0];
-            userInvoices = therapist
-              ? (await localDb.getTherapistInvoices(therapist.id)).filter(
-                (i: any) => i.status === 'paid'
-              )
-              : [];
-          } else if (userRole === 'client') {
-            userSubs = [];
-            userInvoices = userInvoices.filter(
-              (i: any) => i.userId === currentUserId && i.status === 'paid'
-            );
-          }
-
-          setSubscriptions(userSubs);
-          setPayments(userInvoices);
-        }
+        // Invoices come from billing_payment (`/api/invoices`, served behind the shared
+        // gateway). Filters are passed as query params; the backend scopes by the
+        // authenticated Cognito identity, so client-side role filtering is minimal.
+        // NOTE: "subscriptions/plans" is a CRM concept with no backend route yet —
+        // left empty until a plans endpoint exists.
+        const invoiceFilters: Record<string, string> =
+          userRole === 'client' || userRole === 'therapist'
+            ? { status: 'paid' }
+            : { status: 'paid' };
+        const userInvoices = await dataService.list('/api/invoices', invoiceFilters);
+        setSubscriptions([]);
+        setPayments(userInvoices);
       } catch (err) {
         console.error('Failed to load billing data', err);
       } finally {

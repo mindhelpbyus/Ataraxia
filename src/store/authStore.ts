@@ -1,14 +1,18 @@
 /**
  * store/authStore.ts — Centralized Auth State (Chief Architect Prescribed)
  *
- * ✅ ARCHITECTURE (FRONTEND_ARCHITECTURE.md §2.2):
+ * ✅ ARCHITECTURE:
  * - Zustand store replaces useState prop-drilling in App.tsx
- * - Backend owns real auth (HTTP-only cookies, JWT); this is the UI mirror
+ * - Identity is AWS Cognito (lib/cognito.ts). The SDK owns the token lifecycle;
+ *   this store is the UI mirror of the current user.
  * - Only user.id + user.role persisted to sessionStorage (min necessary PII)
  * - sessionStorage cleared on tab close (safer than localStorage for PHI)
  * - queryClient.clear() on logout wipes all cached PHI from React Query
  *
- * ✅ HIPAA: Minimum necessary principle. No tokens, no passwords ever stored.
+ * ✅ HIPAA: Minimum necessary principle. No tokens, no passwords ever stored here.
+ *
+ * NOTE: this store's `login` is the non-MFA convenience path. MFA-gated sign-in
+ * is handled in LoginPage (it catches MfaRequiredError and calls _setUser).
  */
 
 import { create } from 'zustand';
@@ -28,7 +32,7 @@ interface AuthState {
     isLoading: boolean;
 
     // ─── Actions ─────────────────────────────────────────────────────────────
-    /** Called on mount – validates the HTTP-only cookie with the backend */
+    /** Called on mount – restores the user from the active Cognito session */
     refreshUser: () => Promise<void>;
     /** Email + password login */
     login: (email: string, password: string) => Promise<AuthUser>;
@@ -40,7 +44,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set, get) => ({
+        (set) => ({
             user: null,
             isAuthenticated: false,
             isLoading: false,
@@ -50,7 +54,7 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     const user = await getCurrentUser();
                     set({ user, isAuthenticated: true });
-                    logger.info('Session restored from cookie');
+                    logger.info('Session restored from Cognito');
                 } catch {
                     // No valid session — stay logged out
                     set({ user: null, isAuthenticated: false });
@@ -62,7 +66,8 @@ export const useAuthStore = create<AuthState>()(
             login: async (email, password) => {
                 set({ isLoading: true });
                 try {
-                    // Backend sets access token in HTTP-only cookie
+                    // Cognito SRP sign-in (throws MfaRequiredError if MFA is on —
+                    // use LoginPage for MFA-gated accounts).
                     const user = await apiLogin(email, password);
                     set({ user, isAuthenticated: true });
                     logger.info('Login successful');
@@ -77,7 +82,9 @@ export const useAuthStore = create<AuthState>()(
                     await apiLogout();
                 } catch (err) {
                     // Best-effort — clear local state regardless of network failure
-                    logger.warn('Logout API call failed, clearing local state anyway', err);
+                    logger.warn('Logout API call failed, clearing local state anyway', {
+                        message: err instanceof Error ? err.message : String(err),
+                    });
                 } finally {
                     set({ user: null, isAuthenticated: false });
                     // ✅ HIPAA: wipe all React Query cached PHI from memory

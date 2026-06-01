@@ -39,18 +39,17 @@ export { ClientJournalView } from '../ClientJournalView';
 export { ClientSidebar } from '../ClientSidebar';
 export { EditClientProfileForm } from '../EditClientProfileForm';
 export { EnhancedTherapistsTable } from '../EnhancedTherapistsTable';
-export { PatientIntakeForm } from '../PatientIntakeForm';
+export { ClientIntakeForm } from '../PatientIntakeForm';
 export { PresentingConcerns } from '../PresentingConcerns';
 export { SafetyRiskScreening } from '../SafetyRiskScreening';
 
-// ─── Video ────────────────────────────────────────────────────────────────────
+// ─── Video (LiveKit; Zoom SDK planned) ─────────────────────────────────────────
 export { VideoRoomsView } from '../VideoRoomsView';
 export { VideoCallRoom } from '../VideoCallRoom';
-export { JitsiVideoRoom } from '../JitsiVideoRoom';
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
 export { OrganizationManagementView } from '../OrganizationManagementView';
-export { TherapistVerificationView } from '../TherapistVerificationView';
+export { default as TherapistVerificationView } from '../TherapistVerificationView';
 export { TherapistVerificationDetailModal } from '../TherapistVerificationDetailModal';
 
 // ─── Misc Panels ──────────────────────────────────────────────────────────────

@@ -78,10 +78,10 @@ export function VerificationBanner({ accountStatus, userRole, className = '', on
       default:
         return {
           icon: Clock,
-          bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200',
-          iconColor: 'text-gray-500',
-          textColor: 'text-gray-900',
+          bgColor: 'bg-[var(--surface-warm)]',
+          borderColor: 'border-border',
+          iconColor: 'text-muted-foreground',
+          textColor: 'text-foreground',
           title: 'Account Status Update',
           message: 'Your account status is being updated. Please contact support if you have questions.',
           action: false
@@ -96,7 +96,7 @@ export function VerificationBanner({ accountStatus, userRole, className = '', on
     <div className={`${config.bgColor} border ${config.borderColor} rounded-xl p-6 ${className} shadow-sm transition-all duration-300`}>
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
-          <div className={`p-3 rounded-full bg-white/60 backdrop-blur-sm ${config.iconColor} shadow-sm shrink-0`}>
+          <div className={`p-3 rounded-full bg-card/60 backdrop-blur-sm ${config.iconColor} shadow-sm shrink-0`}>
             <IconComponent className="h-6 w-6" />
           </div>
           <div className="space-y-1">

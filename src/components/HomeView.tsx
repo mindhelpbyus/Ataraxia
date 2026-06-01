@@ -28,6 +28,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { UserRole } from '../types/appointment';
+import { get } from '../api/client';
 
 
 interface HomeViewProps {
@@ -52,9 +53,8 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
   const widgets = { stats: true, agenda: true, categories: true, completionRate: true, people: true, companies: true };
 
   useEffect(() => {
-    // Fetch dashboard stats
-    fetch('/api/v1/dashboard/stats', { credentials: 'include' })
-      .then(r => r.json())
+    // Dashboard stats — backend-initial: GET /admin/dashboard/counts
+    get<any>('/admin/dashboard/counts')
       .then(data => {
         if (!data) return;
         setStatsData([
@@ -67,9 +67,8 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
       })
       .catch(() => { });
 
-    // Fetch upcoming agenda
-    fetch('/api/v1/appointments?upcoming=true&limit=4', { credentials: 'include' })
-      .then(r => r.json())
+    // Upcoming agenda — backend-initial: GET /appointments
+    get<any[]>('/appointments?upcoming=true&limit=4')
       .then(data => {
         const colors = ['bg-[#FED7AA] text-[#1E7048]', 'bg-[#BFDBFE] text-[#3B82F6]', 'bg-[#DDD6FE] text-[#8B5CF6]', 'bg-[#FECACA] text-[#EF4444]'];
         setUpcomingAgenda((data ?? []).map((a: any, i: number) => ({
@@ -82,9 +81,8 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
       })
       .catch(() => { });
 
-    // Fetch recent people (clients + therapists)
-    fetch('/api/v1/users?limit=5', { credentials: 'include' })
-      .then(r => r.json())
+    // Recent people — backend-initial: GET /clients
+    get<any[]>('/clients?limit=5')
       .then(data => {
         const catColors: Record<string, string> = {
           therapist: 'bg-[#DDD6FE] text-[#8B5CF6]',
@@ -97,34 +95,21 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
           email: u.email,
           phone: u.phone || '—',
           category: u.role?.charAt(0).toUpperCase() + u.role?.slice(1) || 'User',
-          categoryColor: catColors[u.role] || 'bg-gray-100 text-gray-700',
+          categoryColor: catColors[u.role] || 'bg-muted text-foreground',
           location: u.location || '—',
           gender: u.gender || '—',
         })));
       })
       .catch(() => { });
 
-    // Fetch organizations
-    fetch('/api/v1/organizations?limit=5', { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        setCompaniesData((data ?? []).map((o: any) => ({
-          id: o.id,
-          name: o.name,
-          industry: o.specialty || o.type || 'Healthcare',
-          location: o.location || '—',
-          status: o.status || 'Active',
-          statusColor: o.status === 'Active' ? 'bg-[#BFDBFE] text-[#3B82F6]' : 'bg-[#FED7AA] text-[#1E7048]',
-          logo: '🏥',
-        })));
-      })
-      .catch(() => { });
+    // Organizations — TODO(backend): no /organizations route on either backend yet.
+    setCompaniesData([]);
   }, [userEmail]);
 
   const maxChartValue = chartData.length > 0 ? Math.max(...chartData.map(d => d.value)) : 100;
 
   return (
-    <div className="h-full overflow-y-auto bg-white">
+    <div className="h-full overflow-y-auto bg-card">
       {/* Main Content */}
       <div className="p-8 space-y-6">
         {/* Stats Cards */}
@@ -425,14 +410,14 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
                   {peopleData.map((person, index) => (
                     <div
                       key={person.id}
-                      className={`w-full bg-white ${index !== peopleData.length - 1 ? 'border-b border-[#dddbda]' : ''} flex justify-start items-start gap-x-4 hover:bg-gray-50 transition-colors`}
+                      className={`w-full bg-card ${index !== peopleData.length - 1 ? 'border-b border-[#dddbda]' : ''} flex justify-start items-start gap-x-4 hover:bg-[var(--surface-warm)] transition-colors`}
                     >
                       <div className="min-w-[240px] flex-[3.5] flex-shrink-0 px-6 py-2.5 flex items-center gap-3 overflow-hidden">
                         <Checkbox />
                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                           <Avatar className="w-6 h-6 flex-shrink-0">
                             <AvatarFallback className="text-xs bg-[#1E7048] text-white">
-                              {person.name.split(' ').map(n => n[0]).join('')}
+                              {person.name.split(' ').map((n: string) => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 inline-flex flex-col justify-center items-start overflow-hidden">
@@ -498,7 +483,7 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded transition-colors">
+                            <button className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded transition-colors">
                               <MoreVertical className="h-4 w-4 text-muted-foreground" />
                             </button>
                           </DropdownMenuTrigger>
@@ -578,7 +563,7 @@ export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
                   {companiesData.map((company, index) => (
                     <div
                       key={company.id}
-                      className={`w-full bg-white ${index !== companiesData.length - 1 ? 'border-b border-[#dddbda]' : ''} flex justify-start items-start gap-x-4 hover:bg-gray-50 transition-colors`}
+                      className={`w-full bg-card ${index !== companiesData.length - 1 ? 'border-b border-[#dddbda]' : ''} flex justify-start items-start gap-x-4 hover:bg-[var(--surface-warm)] transition-colors`}
                     >
                       <div className="min-w-[320px] flex-[4] flex-shrink-0 px-6 py-2.5 flex items-center gap-3 overflow-hidden">
                         <div className="w-7 h-7 bg-muted rounded flex items-center justify-center text-lg flex-shrink-0">

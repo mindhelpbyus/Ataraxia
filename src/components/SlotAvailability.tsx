@@ -383,7 +383,7 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                                 <TooltipContent side="top">
                                   <div className="text-xs text-white">
                                     <div className="font-medium">{data.name}</div>
-                                    <div className="text-gray-300">{data.count} available slot{data.count !== 1 ? 's' : ''}</div>
+                                    <div className="text-muted-foreground">{data.count} available slot{data.count !== 1 ? 's' : ''}</div>
                                   </div>
                                 </TooltipContent>
                               </Tooltip>
@@ -477,14 +477,14 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
                                               />
                                               <span className="text-white">{data.name}</span>
                                             </div>
-                                            <span className="text-gray-300">{data.count} slots</span>
+                                            <span className="text-muted-foreground">{data.count} slots</span>
                                           </div>
                                         ))}
                                       </div>
                                     )}
                                   </>
                                 ) : (
-                                  <div className="text-xs text-gray-300">No slots available</div>
+                                  <div className="text-xs text-muted-foreground">No slots available</div>
                                 )}
                               </div>
                             </TooltipContent>

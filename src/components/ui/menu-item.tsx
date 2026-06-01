@@ -61,7 +61,7 @@ const MenuItem = React.forwardRef<HTMLDivElement, MenuItemProps>(
           "flex w-full items-center gap-2 px-3 py-1.5",
           "text-sm",
           "text-[var(--content-dark-primary,#000000)]",
-          "bg-white",
+          "bg-card",
           "cursor-pointer select-none",
           "transition-colors duration-150",
           
@@ -124,7 +124,7 @@ const MenuItem = React.forwardRef<HTMLDivElement, MenuItemProps>(
 
         {/* Icon variant */}
         {variant === "with-icon" && icon && (
-          <div className="flex size-10 items-center justify-center rounded-[5px] bg-gray-100">
+          <div className="flex size-10 items-center justify-center rounded-[5px] bg-muted">
             {icon}
           </div>
         )}

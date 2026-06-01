@@ -3,15 +3,15 @@ import svgPaths from "./svg-1hvaykagsf";
 function NavigationSideabarSetting({ className }: { className?: string }) {
   return (
     <div className={className} data-name="Navigation / Sideabar Setting">
-      <div aria-hidden="true" className="absolute border-[#e4e4e4] border-[0px_1px_0px_0px] border-solid inset-0 pointer-events-none" />
+      <div aria-hidden="true" className="absolute border-[var(--rule)] border-[0px_1px_0px_0px] border-solid inset-0 pointer-events-none" />
       <div className="relative shrink-0 w-full" data-name="Content">
         <div className="size-full">
           <div className="box-border content-stretch flex flex-col gap-[12px] items-start px-[16px] py-0 relative w-full">
             <div className="box-border content-stretch flex gap-[12px] items-center px-0 py-[4px] relative shrink-0 w-full">
-              <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.4] not-italic relative shrink-0 text-[#727272] text-[12px] text-nowrap whitespace-pre">GENERAL SETTINGS</p>
+              <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.4] not-italic relative shrink-0 text-[var(--muted-text)] text-[12px] text-nowrap whitespace-pre">GENERAL SETTINGS</p>
             </div>
             <div className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0 w-full">
-              <div className="bg-[#f2f2f2] h-[36px] relative rounded-[4px] shrink-0 w-full" data-name="Navigation / Sidebar / Menu">
+              <div className="bg-[var(--surface-warm)] h-[36px] relative rounded-[4px] shrink-0 w-full" data-name="Navigation / Sidebar / Menu">
                 <div className="flex flex-row items-center size-full">
                   <div className="box-border content-stretch flex h-[36px] items-center justify-between p-[8px] relative w-full">
                     <div className="basis-0 content-stretch flex gap-[12px] grow items-center min-h-px min-w-px relative shrink-0" data-name="Content">
@@ -111,7 +111,7 @@ function NavigationSideabarSetting({ className }: { className?: string }) {
                           </div>
                         </div>
                       </div>
-                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[#727272] text-[14px] text-nowrap whitespace-pre">Title</p>
+                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[var(--muted-text)] text-[14px] text-nowrap whitespace-pre">Title</p>
                     </div>
                   </div>
                 </div>
@@ -153,7 +153,7 @@ function NavigationSideabarSetting({ className }: { className?: string }) {
                           </div>
                         </div>
                       </div>
-                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[#727272] text-[14px] text-nowrap whitespace-pre">Title</p>
+                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[var(--muted-text)] text-[14px] text-nowrap whitespace-pre">Title</p>
                     </div>
                   </div>
                 </div>
@@ -195,7 +195,7 @@ function NavigationSideabarSetting({ className }: { className?: string }) {
                           </div>
                         </div>
                       </div>
-                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[#727272] text-[14px] text-nowrap whitespace-pre">Title</p>
+                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[var(--muted-text)] text-[14px] text-nowrap whitespace-pre">Title</p>
                     </div>
                   </div>
                 </div>
@@ -207,7 +207,7 @@ function NavigationSideabarSetting({ className }: { className?: string }) {
       <div className="h-0 relative shrink-0 w-[248px]" data-name="Separator">
         <div className="absolute bottom-[-0.5px] left-0 right-0 top-[-0.5px]" style={{ "--stroke-0": "rgba(228, 228, 228, 1)" } as React.CSSProperties}>
           <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 248 1">
-            <path d="M0 0.5H248" id="Separator" stroke="var(--stroke-0, #E4E4E4)" />
+            <path d="M0 0.5H248" id="Separator" stroke="var(--stroke-0, var(--rule))" />
           </svg>
         </div>
       </div>
@@ -215,7 +215,7 @@ function NavigationSideabarSetting({ className }: { className?: string }) {
         <div className="size-full">
           <div className="box-border content-stretch flex flex-col gap-[12px] items-start px-[16px] py-0 relative w-full">
             <div className="box-border content-stretch flex gap-[12px] items-center px-0 py-[4px] relative shrink-0 w-full">
-              <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.4] not-italic relative shrink-0 text-[#727272] text-[12px] text-nowrap whitespace-pre">WORKSPACE SETTINGS</p>
+              <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.4] not-italic relative shrink-0 text-[var(--muted-text)] text-[12px] text-nowrap whitespace-pre">WORKSPACE SETTINGS</p>
             </div>
             <div className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0 w-full">
               <div className="h-[36px] relative rounded-[4px] shrink-0 w-full" data-name="Navigation / Sidebar / Menu">
@@ -234,7 +234,7 @@ function NavigationSideabarSetting({ className }: { className?: string }) {
                           </div>
                         </div>
                       </div>
-                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[#727272] text-[14px] text-nowrap whitespace-pre">Title</p>
+                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[var(--muted-text)] text-[14px] text-nowrap whitespace-pre">Title</p>
                     </div>
                   </div>
                 </div>
@@ -318,7 +318,7 @@ function NavigationSideabarSetting({ className }: { className?: string }) {
                           </div>
                         </div>
                       </div>
-                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[#727272] text-[14px] text-nowrap whitespace-pre">Title</p>
+                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[var(--muted-text)] text-[14px] text-nowrap whitespace-pre">Title</p>
                     </div>
                   </div>
                 </div>
@@ -360,7 +360,7 @@ function NavigationSideabarSetting({ className }: { className?: string }) {
                           </div>
                         </div>
                       </div>
-                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[#727272] text-[14px] text-nowrap whitespace-pre">Title</p>
+                      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[1.5] not-italic relative shrink-0 text-[var(--muted-text)] text-[14px] text-nowrap whitespace-pre">Title</p>
                     </div>
                   </div>
                 </div>

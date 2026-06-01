@@ -63,7 +63,7 @@ export function WorkflowStepper({ therapist }: WorkflowStepperProps) {
                                         'relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 z-10',
                                         status === 'completed' && 'bg-emerald-500 border-emerald-500',
                                         status === 'current' && 'bg-teal-600 ring-4 ring-teal-100 border-teal-600',
-                                        status === 'pending' && 'bg-white border-2 border-slate-200',
+                                        status === 'pending' && 'bg-card border-2 border-slate-200',
                                         status === 'failed' && 'bg-destructive border-destructive'
                                     )}
                                 >
@@ -72,7 +72,7 @@ export function WorkflowStepper({ therapist }: WorkflowStepperProps) {
                                     ) : status === 'failed' ? (
                                         <XCircle className="h-5 w-5 text-white" />
                                     ) : status === 'current' ? (
-                                        <div className="h-3 w-3 bg-white rounded-full" />
+                                        <div className="h-3 w-3 bg-card rounded-full" />
                                     ) : (
                                         <span className="text-sm font-medium text-slate-400">{step.id}</span>
                                     )}

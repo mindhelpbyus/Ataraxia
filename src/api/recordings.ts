@@ -1,6 +1,14 @@
 /**
- * Recording API
- * Manages session recordings, consent, and access
+ * Recording API — session recordings, consent, access.
+ *
+ * ⚠️ Backend mapping (real routes):
+ *   - backend-initial owns: POST /session-recordings/presigned-upload,
+ *     GET /session-recordings/{appointmentId}, POST /session-recordings/{recordingId}/complete.
+ *   - The consent / access-log / download-link routes below (`/recordings/*`) do NOT
+ *     exist on backend-initial or billing_payment yet, and transcript/recording session
+ *     control lives in video-service (`/rooms/:id/transcript/*`).
+ *   TODO(backend): align these endpoints (or move them to video-service) before this
+ *   module is wired to live UI. Currently it has no live callers.
  */
 
 import { get, post, del } from './client';

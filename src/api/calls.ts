@@ -1,11 +1,15 @@
 /**
- * callService.ts — Call Service
+ * api/calls.ts — Call / live-session service
  *
- * ✅ All operations proxied to the Gravity Reunion backend.
- * ✅ Zero mock data. Zero console.warn stubs.
+ * Live video sessions are owned by the separate **video-service** backend
+ * (`VITE_VIDEO_API_BASE_URL`), which is room-based (`/rooms`, `/appointments/:id/join`).
+ * It does NOT expose the old call-log / invitation / SSE model, and neither
+ * backend-initial nor billing_payment has any `/calls/*` route. The room-mappable
+ * operations call video-service; the rest are TODO(backend) no-ops (no fictional
+ * endpoints are called).
  */
 
-import { get, post, patch } from '../api/client';
+import { videoGet, videoPost } from '../api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,97 +46,75 @@ export interface CallInvitation {
 
 // ─── API Functions ────────────────────────────────────────────────────────────
 
+/** Create a video room (video-service: POST /rooms). Returns the room id. */
 export async function createCallLog(
   callType: 'video' | 'audio',
   roomName: string,
-  initiatorId: string,
-  initiatorName: string,
-  participantIds: string[],
-  participantNames: Record<string, string>,
+  _initiatorId: string,
+  _initiatorName: string,
+  _participantIds: string[],
+  _participantNames: Record<string, string>,
   appointmentId?: string
 ): Promise<string> {
-  const log = await post<CallLog>('/api/v1/calls/logs', {
-    callType, roomName, initiatorId, initiatorName,
-    participantIds, participantNames, appointmentId,
+  const { room } = await videoPost<{ room: { id: string } }>('/rooms', {
+    name: roomName,
+    type: callType,
+    appointmentId,
   });
-  return log.id;
+  return room.id;
 }
 
-export async function updateCallStatus(callId: string, status: CallLog['status']): Promise<void> {
-  await patch<void>(`/api/v1/calls/logs/${callId}/status`, { status });
+/** End a video room (video-service: POST /rooms/:roomId/end). */
+export async function endCall(callId: string, _recordingUrl?: string): Promise<void> {
+  await videoPost<void>(`/rooms/${callId}/end`, {});
 }
 
-export async function endCall(callId: string, recordingUrl?: string): Promise<void> {
-  await patch<void>(`/api/v1/calls/logs/${callId}/end`, { recordingUrl });
+// TODO(video-service): no status/notes/invitation/SSE routes exist on video-service.
+// These are no-ops until those endpoints are added; callers degrade gracefully.
+export async function updateCallStatus(_callId: string, _status: CallLog['status']): Promise<void> {
+  return;
 }
 
-export async function addCallNotes(callId: string, notes: string): Promise<void> {
-  await patch<void>(`/api/v1/calls/logs/${callId}/notes`, { notes });
+export async function addCallNotes(_callId: string, _notes: string): Promise<void> {
+  return;
 }
 
-/** Subscribe to call logs for a user via SSE. Returns unsubscribe function. */
+/** List video rooms for the user (video-service: GET /rooms). */
 export function subscribeToCallLogs(
-  userId: string,
+  _userId: string,
   callback: (logs: CallLog[]) => void
 ): () => void {
-  get<CallLog[]>(`/api/v1/calls/logs?userId=${userId}`)
-    .then(callback)
+  videoGet<{ rooms: CallLog[] }>('/rooms')
+    .then((r) => callback(r.rooms ?? []))
     .catch(() => callback([]));
-
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/calls/logs/stream?userId=${userId}`;
-  const es = new EventSource(url, { withCredentials: true });
-  es.onmessage = (event) => {
-    try { callback(JSON.parse(event.data)); } catch { /* ignore */ }
-  };
-  return () => es.close();
+  // No SSE stream on video-service yet; one-shot fetch above.
+  return () => { /* nothing to unsubscribe */ };
 }
 
-export async function createCallInvitation(
-  callType: 'video' | 'audio',
-  roomName: string,
-  initiatorId: string,
-  initiatorName: string,
-  recipientId: string,
-  recipientName: string,
-  appointmentId?: string
-): Promise<string> {
-  const inv = await post<CallInvitation>('/api/v1/calls/invitations', {
-    callType, roomName, initiatorId, initiatorName,
-    recipientId, recipientName, appointmentId,
-  });
-  return inv.id;
+// TODO(video-service): no call-invitation model. Stubbed to keep callers working.
+export async function createCallInvitation(): Promise<string> {
+  return '';
 }
 
-export async function updateCallInvitationStatus(
-  invitationId: string,
-  status: CallInvitation['status']
-): Promise<void> {
-  await patch<void>(`/api/v1/calls/invitations/${invitationId}/status`, { status });
+export async function updateCallInvitationStatus(): Promise<void> {
+  return;
 }
 
-/** Subscribe to call invitations via SSE. Returns unsubscribe function. */
 export function subscribeToCallInvitations(
-  userId: string,
+  _userId: string,
   callback: (invitations: CallInvitation[]) => void
 ): () => void {
-  get<CallInvitation[]>(`/api/v1/calls/invitations?userId=${userId}`)
-    .then(callback)
-    .catch(() => callback([]));
-
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/calls/invitations/stream?userId=${userId}`;
-  const es = new EventSource(url, { withCredentials: true });
-  es.onmessage = (event) => {
-    try { callback(JSON.parse(event.data)); } catch { /* ignore */ }
-  };
-  return () => es.close();
+  callback([]);
+  return () => { /* noop */ };
 }
 
-export async function getCallStatistics(userId: string): Promise<{
+export async function getCallStatistics(_userId: string): Promise<{
   totalCalls: number;
   completedCalls: number;
   missedCalls: number;
   totalDuration: number;
   averageDuration: number;
 }> {
-  return get(`/api/v1/calls/statistics?userId=${userId}`);
+  // TODO(video-service): no statistics route yet.
+  return { totalCalls: 0, completedCalls: 0, missedCalls: 0, totalDuration: 0, averageDuration: 0 };
 }

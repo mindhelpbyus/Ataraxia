@@ -104,7 +104,7 @@ const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass, s
   <motion.div
     variants={itemVariants}
     whileHover={{ y: -2 }}
-    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-card p-6 shadow-sm transition-all hover:shadow-md"
   >
     <div className="flex items-center justify-between">
       <div className={`rounded-xl p-2.5 ${colorClass} bg-opacity-10`}>
@@ -235,7 +235,7 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="p-4 bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl">
+                <div className="p-4 bg-card/10 backdrop-blur-sm border border-white/10 rounded-xl">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="font-medium">All Systems Operational</span>
@@ -245,17 +245,17 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
                       <span>Uptime</span>
                       <span className="text-emerald-400">99.98%</span>
                     </div>
-                    <Progress value={99.9} className="h-1.5 bg-white/10" indicatorClassName="bg-emerald-400" />
+                    <Progress value={99.9} className="h-1.5 bg-card/10" indicatorClassName="bg-emerald-400" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-white/5 rounded-lg">
+                  <div className="p-3 bg-card/5 rounded-lg">
                     <Database className="h-4 w-4 text-blue-400 mb-2" />
                     <p className="text-xs text-slate-400">Database</p>
                     <p className="text-lg font-bold">Healthy</p>
                   </div>
-                  <div className="p-3 bg-white/5 rounded-lg">
+                  <div className="p-3 bg-card/5 rounded-lg">
                     <Globe className="h-4 w-4 text-violet-400 mb-2" />
                     <p className="text-xs text-slate-400">CDN</p>
                     <p className="text-lg font-bold">Fast</p>
@@ -267,7 +267,7 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
                     <span className="text-sm text-slate-300">Current Load</span>
                     <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full">Moderate</span>
                   </div>
-                  <Progress value={65} className="h-1.5 bg-white/10" indicatorClassName="bg-amber-400" />
+                  <Progress value={65} className="h-1.5 bg-card/10" indicatorClassName="bg-amber-400" />
                 </div>
               </div>
             </CardContent>

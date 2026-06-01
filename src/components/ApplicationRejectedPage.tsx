@@ -33,10 +33,10 @@ export function ApplicationRejectedPage({
                         <AlertCircle className={`w-10 h-10 ${isRejected ? 'text-red-600' : 'text-yellow-600'
                             }`} />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
                         {isRejected ? 'Application Update Required' : 'Additional Information Needed'}
                     </h1>
-                    <p className="text-lg text-gray-600">
+                    <p className="text-lg text-muted-foreground">
                         {isRejected
                             ? 'We need some additional information to process your application'
                             : 'Please provide the requested information to continue'
@@ -78,10 +78,10 @@ export function ApplicationRejectedPage({
 
                             {/* Instructions */}
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900">
+                                <h3 className="text-lg font-semibold text-foreground">
                                     Next Steps
                                 </h3>
-                                <ol className="space-y-3 text-gray-700">
+                                <ol className="space-y-3 text-foreground">
                                     <li className="flex gap-3">
                                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-action-light text-action flex items-center justify-center text-sm font-semibold">
                                             1
@@ -119,17 +119,17 @@ export function ApplicationRejectedPage({
 
                             {/* Contact Information */}
                             <div className="bg-gradient-to-br from-action-light to-yellow-50 rounded-lg p-6 space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                <h3 className="text-lg font-semibold text-foreground mb-4">
                                     Contact Support
                                 </h3>
 
                                 {/* Email */}
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center">
                                         <Mail className="w-5 h-5 text-action" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Email</p>
+                                        <p className="text-sm text-muted-foreground">Email</p>
                                         <a
                                             href={`mailto:${supportEmail}`}
                                             className="text-action hover:text-action-dark font-medium"
@@ -141,11 +141,11 @@ export function ApplicationRejectedPage({
 
                                 {/* Phone */}
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center">
                                         <Phone className="w-5 h-5 text-action" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Phone</p>
+                                        <p className="text-sm text-muted-foreground">Phone</p>
                                         <a
                                             href={`tel:${supportPhone}`}
                                             className="text-action hover:text-action-dark font-medium"
@@ -175,7 +175,7 @@ export function ApplicationRejectedPage({
                             </div>
 
                             {/* Timeline Note */}
-                            <p className="text-center text-sm text-gray-500 pt-4 border-t">
+                            <p className="text-center text-sm text-muted-foreground pt-4 border-t">
                                 Our support team typically responds within 24-48 hours
                             </p>
                         </CardContent>

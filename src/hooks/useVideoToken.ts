@@ -1,10 +1,11 @@
 // hooks/useVideoToken.ts
-// Fetches a short-lived JWT from your backend for a given appointment.
-// The LiveKit URL is safe to hardcode — it's not a secret.
+// Joins the appointment's video room on the video-service backend and returns the
+// short-lived LiveKit credentials. The LiveKit wss URL is not a secret.
 
 import { useState, useEffect } from 'react';
+import { videoPost } from '../api/client';
 
-const LIVEKIT_URL = 'wss://ataraxia-ppdnqkly.livekit.cloud';
+const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL || 'wss://ataraxia-ppdnqkly.livekit.cloud';
 
 interface TokenResult {
   token: string;
@@ -30,28 +31,17 @@ export function useVideoToken(
     setLoading(true);
     setError(null);
 
-    const params = new URLSearchParams({
-      appointmentId,
-      name: participantName,
-      role,
-    });
-
-    // In a production app, this would be your actual backend.
-    // For testing/demo purposes, we try to hit the backend if available.
-    fetch(`/api/video/token?${params}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || `HTTP ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(({ token, room }) => {
-        setToken(token);
-        setRoom(room);
+    // video-service: POST /appointments/:appointmentId/join → LiveKit credentials
+    videoPost<{ token: string; roomName?: string; room?: string; url?: string }>(
+      `/appointments/${appointmentId}/join`,
+      { displayName: participantName, role }
+    )
+      .then((creds) => {
+        setToken(creds.token);
+        setRoom(creds.roomName ?? creds.room ?? appointmentId);
       })
       .catch((err) => {
-        setError(err.message ?? 'Failed to get video token');
+        setError(err?.message ?? 'Failed to get video token');
       })
       .finally(() => setLoading(false));
   }, [appointmentId, participantName, role]);

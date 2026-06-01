@@ -8,8 +8,6 @@ import { Input } from './ui/input';
 // REMOVED: TherapistVerificationDetailModal - verification is handled in separate screen
 import { dataService } from '../api';
 import { get } from '../api/client';
-import { USE_LOCAL_DB } from '../lib/apiSwitch';
-import { localDb } from '../lib/db/localDb';
 import { UserRole } from '../types/appointment';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -84,39 +82,9 @@ export function EnhancedTherapistsTable({ userRole, organizationId, currentUserI
   const loadTherapists = async () => {
     try {
       setLoading(true);
-      if (USE_LOCAL_DB) {
-        let dbTherapists = await localDb.therapists.findMany();
-        
-        // Filter out therapists without an organization if orgAdmin/admin
-        if (userRole === 'admin' || userRole === 'org_admin') {
-          const user = (await localDb.users.findMany(u => u.id === currentUserId))[0];
-          if (user?.organizationId) {
-            dbTherapists = dbTherapists.filter(t => t.organizationId === user.organizationId);
-          }
-        }
-        
-        const orgs = await localDb.organizations.findMany();
-        const transformedTherapists: Therapist[] = dbTherapists.map(t => {
-          const org = orgs.find(o => o.id === t.organizationId);
-          return {
-            id: t.id,
-            name: t.name,
-            email: t.email,
-            phone: t.phone || 'N/A',
-            specialty: t.specialties[0] || 'General Therapy',
-            location: 'N/A',
-            credentials: t.title || 'N/A',
-            status: t.status,
-            organization: org ? org.name : 'Independent',
-            avatar: t.avatar
-          };
-        });
-        setTherapists(transformedTherapists);
-        return;
-      }
-
-      // Call the real therapist service backend using secure client
-      const data = await get<any[]>('/api/therapists');
+      // backend-initial: GET /therapists (no /api/ prefix). Backend scopes results
+      // by the authenticated Cognito identity/role.
+      const data = await get<any[]>('/therapists');
 
       if (data) {
         // Transform backend data to frontend format
@@ -206,9 +174,9 @@ export function EnhancedTherapistsTable({ userRole, organizationId, currentUserI
         );
       case 'inactive':
         return (
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-50  border border-gray-200 ">
-            <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-            <span className="text-xs font-medium text-gray-600 ">Inactive</span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-warm)]  border border-border ">
+            <div className="h-1.5 w-1.5 rounded-full bg-[var(--dim)]" />
+            <span className="text-xs font-medium text-muted-foreground ">Inactive</span>
           </div>
         );
       default:

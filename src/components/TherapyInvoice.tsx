@@ -97,7 +97,7 @@ function statusColor(s: string) {
   return { bg: "#fee2e2", text: "#991b1b", dot: "#ef4444" };
 }
 
-export function TherapyInvoice({ invoiceData }: { invoiceData?: InvoiceData }) {
+export function TherapyInvoice({ invoiceData }: { invoiceData?: InvoiceData; compact?: boolean }) {
   const [downloading, setDownloading] = useState(false);
   const invoice = invoiceData || defaultInvoice;
 
@@ -699,7 +699,7 @@ const styles = {
   },
   rzpField: {
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as const,
     gap: 2,
   },
   rzpFieldLabel: {

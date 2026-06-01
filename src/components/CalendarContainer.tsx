@@ -340,7 +340,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
 
         <div className="flex items-center gap-4">
           {/* View Switcher - Fantastical Style */}
-          <div className="flex items-center bg-white border border-border rounded-lg p-0.5">
+          <div className="flex items-center bg-card border border-border rounded-lg p-0.5">
             {(['day', 'week', 'month'] as CalendarView[]).map((view) => (
               <Button
                 key={view}
@@ -475,7 +475,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : userRole === 'admin' && state.selectedTherapistIds.length === 0 ? (
-            <div className="flex items-center justify-center h-full bg-white">
+            <div className="flex items-center justify-center h-full bg-card">
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center">
                   <Users className="h-8 w-8 text-muted-foreground" />
@@ -489,7 +489,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
               </div>
             </div>
           ) : userRole === 'therapist' && currentTherapists.length === 0 ? (
-            <div className="flex items-center justify-center h-full bg-white">
+            <div className="flex items-center justify-center h-full bg-card">
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 mx-auto bg-blue-50 rounded-full flex items-center justify-center">
                   <CalendarBlank className="h-8 w-8 text-blue-600" weight="duotone" />

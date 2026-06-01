@@ -106,7 +106,7 @@ export function VideoRoomsView() {
                     <Button 
                         variant="secondary" 
                         size="sm" 
-                        className="bg-white/10 hover:bg-white/20 text-white border-none backdrop-blur-md"
+                        className="bg-card/10 hover:bg-card/20 text-white border-none backdrop-blur-md"
                         onClick={() => setActiveRoom(null)}
                     >
                         Minimize

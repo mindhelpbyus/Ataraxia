@@ -71,7 +71,7 @@ export function ClientJournalView() {
             case 'happy': return <Smile className={`${size} text-green-500`} />;
             case 'neutral': return <Meh className={`${size} text-yellow-500`} />;
             case 'sad': return <Frown className={`${size} text-action`} />;
-            default: return <Meh className={`${size} text-gray-400`} />;
+            default: return <Meh className={`${size} text-muted-foreground`} />;
         }
     };
 
@@ -142,7 +142,7 @@ export function ClientJournalView() {
 
                                     {/* Mood Selection */}
                                     <div>
-                                        <label className="text-sm font-semibold text-gray-700 mb-3 block">
+                                        <label className="text-sm font-semibold text-foreground mb-3 block">
                                             Overall Mood
                                         </label>
                                         <div className="grid grid-cols-3 gap-4">
@@ -160,7 +160,7 @@ export function ClientJournalView() {
                                                         flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all
                                                         ${selectedMood === item.mood
                                                             ? `bg-gradient-to-br ${item.color} text-white border-transparent shadow-lg`
-                                                            : 'bg-white border-gray-200 hover:border-action-border text-gray-600'
+                                                            : 'bg-card border-border hover:border-action-border text-muted-foreground'
                                                         }
                                                     `}
                                                 >
@@ -173,7 +173,7 @@ export function ClientJournalView() {
 
                                     {/* Energy Level */}
                                     <div>
-                                        <label className="text-sm font-semibold text-gray-700 mb-3 block flex items-center gap-2">
+                                        <label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
                                             <Zap className="w-4 h-4 text-yellow-500" />
                                             Energy Level: {energy[0]}/10
                                         </label>
@@ -185,7 +185,7 @@ export function ClientJournalView() {
                                             step={1}
                                             className="w-full"
                                         />
-                                        <div className="flex justify-between text-xs text-gray-500 mt-2">
+                                        <div className="flex justify-between text-xs text-muted-foreground mt-2">
                                             <span>Low</span>
                                             <span>High</span>
                                         </div>
@@ -193,7 +193,7 @@ export function ClientJournalView() {
 
                                     {/* Stress Level */}
                                     <div>
-                                        <label className="text-sm font-semibold text-gray-700 mb-3 block flex items-center gap-2">
+                                        <label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
                                             <Cloud className="w-4 h-4 text-blue-500" />
                                             Stress Level: {stress[0]}/10
                                         </label>
@@ -205,7 +205,7 @@ export function ClientJournalView() {
                                             step={1}
                                             className="w-full"
                                         />
-                                        <div className="flex justify-between text-xs text-gray-500 mt-2">
+                                        <div className="flex justify-between text-xs text-muted-foreground mt-2">
                                             <span>Low</span>
                                             <span>High</span>
                                         </div>
@@ -213,7 +213,7 @@ export function ClientJournalView() {
 
                                     {/* Gratitude */}
                                     <div>
-                                        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                                        <label className="text-sm font-semibold text-foreground mb-2 block">
                                             What are you grateful for today?
                                         </label>
                                         <Textarea
@@ -226,7 +226,7 @@ export function ClientJournalView() {
 
                                     {/* Reflection */}
                                     <div>
-                                        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                                        <label className="text-sm font-semibold text-foreground mb-2 block">
                                             How was your day?
                                         </label>
                                         <Textarea
@@ -239,7 +239,7 @@ export function ClientJournalView() {
 
                                     {/* Highlights */}
                                     <div>
-                                        <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                                        <label className="text-sm font-semibold text-foreground mb-2 block">
                                             Today's highlights
                                         </label>
                                         <Textarea
@@ -283,7 +283,7 @@ export function ClientJournalView() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                         >
-                            <Card className="hover:shadow-lg transition-shadow border-gray-200">
+                            <Card className="hover:shadow-lg transition-shadow border-border">
                                 <CardContent className="p-6">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-4">
@@ -333,11 +333,11 @@ export function ClientJournalView() {
                 </div>
 
                 {entries.length === 0 && !showNewEntry && (
-                    <Card className="border-2 border-dashed border-gray-300">
+                    <Card className="border-2 border-dashed border-border">
                         <CardContent className="p-12 text-center">
-                            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-600 mb-2">No entries yet</h3>
-                            <p className="text-gray-500 mb-6">Start tracking your journey today</p>
+                            <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-muted-foreground mb-2">No entries yet</h3>
+                            <p className="text-muted-foreground mb-6">Start tracking your journey today</p>
                             <Button
                                 onClick={() => setShowNewEntry(true)}
                                 className="bg-gradient-to-r from-action to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"

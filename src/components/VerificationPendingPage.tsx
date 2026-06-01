@@ -26,22 +26,22 @@ function TimelineStep({ title, description, icon, completed, active, last }: Tim
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     className={`
             w-12 h-12 rounded-full flex items-center justify-center
-            ${completed ? 'bg-green-500 text-white' : active ? 'bg-action text-white' : 'bg-gray-200 text-gray-400'}
+            ${completed ? 'bg-green-500 text-white' : active ? 'bg-action text-white' : 'bg-muted text-muted-foreground'}
           `}
                 >
                     {completed ? <CheckCircle2 className="w-6 h-6" /> : icon}
                 </motion.div>
                 {!last && (
-                    <div className={`w-0.5 h-16 mt-2 ${completed ? 'bg-green-500' : 'bg-gray-200'}`} />
+                    <div className={`w-0.5 h-16 mt-2 ${completed ? 'bg-green-500' : 'bg-muted'}`} />
                 )}
             </div>
 
             {/* Content */}
             <div className="flex-1 pb-8">
-                <h3 className={`text-lg font-semibold ${completed || active ? 'text-gray-900' : 'text-gray-400'}`}>
+                <h3 className={`text-lg font-semibold ${completed || active ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {title}
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">{description}</p>
+                <p className="text-sm text-muted-foreground mt-1">{description}</p>
                 {active && (
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -113,7 +113,7 @@ export function VerificationPendingPage() {
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-action-light to-yellow-50">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-action mx-auto" />
-                    <p className="mt-4 text-gray-600">Loading verification status...</p>
+                    <p className="mt-4 text-muted-foreground">Loading verification status...</p>
                 </div>
             </div>
         );
@@ -154,10 +154,10 @@ export function VerificationPendingPage() {
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 className="w-10 h-10 text-green-600" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                    <h1 className="text-3xl font-bold text-foreground mb-4">
                         🎉 Congratulations!
                     </h1>
-                    <p className="text-lg text-gray-600 mb-6">
+                    <p className="text-lg text-muted-foreground mb-6">
                         Your therapist account has been approved and activated!
                     </p>
                     <Button
@@ -166,7 +166,7 @@ export function VerificationPendingPage() {
                     >
                         Access Your Dashboard
                     </Button>
-                    <p className="text-sm text-gray-500 mt-4">
+                    <p className="text-sm text-muted-foreground mt-4">
                         You will be redirected automatically in 5 seconds...
                     </p>
                 </div>
@@ -202,10 +202,10 @@ export function VerificationPendingPage() {
                     <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-action-light mb-4">
                         <Shield className="w-10 h-10 text-action" />
                     </div>
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-4xl font-bold text-foreground mb-2">
                         Verification In Progress
                     </h1>
-                    <p className="text-lg text-gray-600">
+                    <p className="text-lg text-muted-foreground">
                         Thank you for applying to join Ataraxia!
                     </p>
                 </motion.div>
@@ -303,7 +303,7 @@ export function VerificationPendingPage() {
                             </div>
 
                             {/* Help text */}
-                            <p className="text-center text-sm text-gray-500 mt-6">
+                            <p className="text-center text-sm text-muted-foreground mt-6">
                                 You can safely logout and login again later to check your status
                             </p>
                         </CardContent>
@@ -315,7 +315,7 @@ export function VerificationPendingPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="mt-8 text-center text-sm text-gray-600"
+                    className="mt-8 text-center text-sm text-muted-foreground"
                 >
                     <p>
                         Questions about your application?{' '}

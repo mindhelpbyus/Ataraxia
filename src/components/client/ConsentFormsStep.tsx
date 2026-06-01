@@ -414,19 +414,19 @@ export function ConsentFormsStep({ formData, updateFormData }: StepProps) {
         <div className="space-y-6">
             <div>
                 <h2 className="text-2xl font-semibold mb-2">Consent & Legal Documents</h2>
-                <p className="text-sm text-gray-500">Review and sign all required documents to proceed</p>
+                <p className="text-sm text-muted-foreground">Review and sign all required documents to proceed</p>
             </div>
 
             {/* Progress Summary */}
-            <Card className="border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <Card className="border-border bg-gradient-to-r from-blue-50 to-indigo-50">
                 <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-700">Signing Progress</p>
-                            <p className="text-2xl font-bold text-gray-900 mt-1">
+                            <p className="text-sm font-medium text-foreground">Signing Progress</p>
+                            <p className="text-2xl font-bold text-foreground mt-1">
                                 {signedDocuments.length} / {CONSENT_DOCUMENTS.length}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">Documents signed</p>
+                            <p className="text-xs text-muted-foreground mt-1">Documents signed</p>
                         </div>
                         {allRequiredSigned && (
                             <div className="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-lg">
@@ -447,18 +447,18 @@ export function ConsentFormsStep({ formData, updateFormData }: StepProps) {
                     return (
                         <Card
                             key={doc.id}
-                            className={`border-2 transition-all hover:shadow-md ${isSigned ? 'border-green-200 bg-green-50/30' : 'border-gray-200'
+                            className={`border-2 transition-all hover:shadow-md ${isSigned ? 'border-green-200 bg-green-50/30' : 'border-border'
                                 }`}
                         >
                             <CardContent className="p-5">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-3 flex-1">
-                                        <div className={`p-2 rounded-lg ${isSigned ? 'bg-green-100' : 'bg-gray-100'}`}>
-                                            <FileText className={`w-5 h-5 ${isSigned ? 'text-green-700' : 'text-gray-600'}`} />
+                                        <div className={`p-2 rounded-lg ${isSigned ? 'bg-green-100' : 'bg-muted'}`}>
+                                            <FileText className={`w-5 h-5 ${isSigned ? 'text-green-700' : 'text-muted-foreground'}`} />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="font-semibold text-gray-900">{doc.title}</h3>
+                                                <h3 className="font-semibold text-foreground">{doc.title}</h3>
                                                 {isSigned && (
                                                     <Badge className="bg-green-600 hover:bg-green-600 text-white">
                                                         <Check className="w-3 h-3 mr-1" />
@@ -467,10 +467,10 @@ export function ConsentFormsStep({ formData, updateFormData }: StepProps) {
                                                 )}
                                             </div>
                                             {isSigned && signedDate && (
-                                                <p className="text-xs text-gray-500">Signed on {signedDate}</p>
+                                                <p className="text-xs text-muted-foreground">Signed on {signedDate}</p>
                                             )}
                                             {!isSigned && (
-                                                <p className="text-sm text-gray-600 mt-1">
+                                                <p className="text-sm text-muted-foreground mt-1">
                                                     Required • Review and sign this document
                                                 </p>
                                             )}
@@ -492,7 +492,7 @@ export function ConsentFormsStep({ formData, updateFormData }: StepProps) {
                                                     onClick={() => handleViewDocument(doc)}
                                                     variant="outline"
                                                     size="sm"
-                                                    className="border-gray-300"
+                                                    className="border-border"
                                                 >
                                                     <Eye className="w-4 h-4 mr-2" />
                                                     View
@@ -501,7 +501,7 @@ export function ConsentFormsStep({ formData, updateFormData }: StepProps) {
                                                     onClick={() => handleDownloadDocument(doc)}
                                                     variant="outline"
                                                     size="sm"
-                                                    className="border-gray-300"
+                                                    className="border-border"
                                                 >
                                                     <Download className="w-4 h-4" />
                                                 </Button>

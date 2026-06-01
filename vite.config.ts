@@ -1,14 +1,21 @@
   import { defineConfig, loadEnv } from 'vite';
   import react from '@vitejs/plugin-react-swc';
+  import tailwindcss from '@tailwindcss/vite';
   import path from 'path';
   import { AccessToken } from 'livekit-server-sdk';
 
   export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
-    
+
     return {
+      // amazon-cognito-identity-js (via its `buffer` dep) references Node's `global`,
+      // which doesn't exist in the browser. Map it to globalThis.
+      define: {
+        global: 'globalThis',
+      },
       plugins: [
         react(),
+        tailwindcss(),
         {
           name: 'livekit-token-mock',
           configureServer(server) {
@@ -137,9 +144,25 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      // Split big vendors into cacheable chunks so one heavy feature doesn't bloat
+      // a shared bundle and deps cache across deploys.
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            radix: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover',
+                    '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+            charts: ['recharts'],
+            video: ['livekit-client', '@livekit/components-react'],
+            motion: ['framer-motion'],
+            forms: ['react-select', 'react-hook-form', 'react-phone-number-input'],
+          },
+        },
+      },
     },
     server: {
       port: 3001,
       open: true,
     },
-  });
+  };
+});

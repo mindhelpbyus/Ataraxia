@@ -205,14 +205,14 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
             high: 'bg-red-100 text-red-800'
         };
         return (
-            <Badge className={colors[level as keyof typeof colors] || 'bg-gray-100 text-gray-800'}>
+            <Badge className={colors[level as keyof typeof colors] || 'bg-muted text-foreground'}>
                 {level.toUpperCase()}
             </Badge>
         );
     };
 
     const getTrendIcon = (trend?: string) => {
-        if (!trend) return <Activity className="h-4 w-4 text-gray-400" />;
+        if (!trend) return <Activity className="h-4 w-4 text-muted-foreground" />;
         if (trend === 'increasing') return <TrendingUp className="h-4 w-4 text-red-500" />;
         if (trend === 'decreasing') return <TrendingDown className="h-4 w-4 text-green-500" />;
         return <Activity className="h-4 w-4 text-blue-500" />;
@@ -221,11 +221,11 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
     const getStatusBadge = (status: string) => {
         const colors = {
             active: 'bg-green-100 text-green-800',
-            inactive: 'bg-gray-100 text-gray-800',
+            inactive: 'bg-muted text-foreground',
             suspended: 'bg-red-100 text-red-800'
         };
         return (
-            <Badge className={colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'}>
+            <Badge className={colors[status as keyof typeof colors] || 'bg-muted text-foreground'}>
                 {status.replace('_', ' ').toUpperCase()}
             </Badge>
         );
@@ -572,7 +572,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                             <p className="text-sm font-semibold mb-2">Secondary Diagnoses</p>
                                             <div className="space-y-2">
                                                 {clientData.clinical.diagnoses.secondary.map((diagnosis, i) => (
-                                                    <div key={i} className="bg-gray-50 p-3 rounded-lg">
+                                                    <div key={i} className="bg-[var(--surface-warm)] p-3 rounded-lg">
                                                         <p className="text-sm font-medium">{diagnosis.code}</p>
                                                         <p className="text-sm text-muted-foreground">{diagnosis.description}</p>
                                                     </div>
@@ -893,7 +893,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 <CardContent>
                                     <div className="space-y-3">
                                         {clientData.billing.claims.map((claim) => (
-                                            <div key={claim.claimId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <div key={claim.claimId} className="flex items-center justify-between p-3 bg-[var(--surface-warm)] rounded-lg">
                                                 <div>
                                                     <p className="text-sm font-medium">{claim.claimId}</p>
                                                     <p className="text-xs text-muted-foreground">{claim.date}</p>

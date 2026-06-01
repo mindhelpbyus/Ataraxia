@@ -32,7 +32,7 @@ import {
   Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getMFAStatus, getActiveSessions } from '../api/auth';
+import { getMFAStatus } from '../api/auth';
 import MFASetup from './MFASetup';
 import SessionManager from './SessionManager';
 
@@ -63,52 +63,25 @@ export const SecurityDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [mfaStatus, sessionsData] = await Promise.all([
-        getMFAStatus(),
-        getActiveSessions()
-      ]);
+      const mfaStatus = await getMFAStatus();
 
-      // Calculate security score
-      let score = 0;
+      // Calculate security score (Cognito exposes MFA status; no server session list).
+      let score = 50; // baseline for an authenticated, Cognito-managed account
       const recommendations: string[] = [];
 
       // MFA enabled (+40 points)
       if (mfaStatus.enabled) {
         score += 40;
       } else {
-        recommendations.push('Enable two-factor authentication for better security');
+        recommendations.push('Enable two-factor authentication (authenticator app) for better security');
       }
 
-      // TOTP enabled (+20 points)
-      if (mfaStatus.type === 'totp') {
-        score += 20;
-      } else if (!mfaStatus.enabled) {
-        recommendations.push('Use an authenticator app for the most secure MFA method');
-      }
-
-      // Recent activity (+20 points)
-      const recentSessions = sessionsData.sessions?.filter((s: any) => {
-        const lastAccess = new Date(s.lastAccessedAt);
-        const daysSinceAccess = (Date.now() - lastAccess.getTime()) / (1000 * 60 * 60 * 24);
-        return daysSinceAccess < 7;
-      }) || [];
-
-      if (recentSessions.length > 0) {
-        score += 20;
-      }
-
-      // Limited sessions (+10 points)
-      if (sessionsData.sessions?.length <= 3) {
-        score += 10;
-      } else {
-        recommendations.push('Consider logging out from unused devices');
-      }
-
-      // Account age bonus (+10 points for accounts older than 30 days)
-      const accountAge = 90; // This would come from user creation date
-      if (accountAge > 30) {
+      // TOTP is the only supported MFA type (+10 points)
+      if (mfaStatus.type === 'TOTP') {
         score += 10;
       }
+
+      const accountAge = 90; // TODO: derive from Cognito user creation date
 
       if (recommendations.length === 0) {
         recommendations.push('Your account security is excellent! Keep up the good practices.');
@@ -116,9 +89,9 @@ export const SecurityDashboard: React.FC = () => {
 
       setSecurityStatus({
         mfaEnabled: mfaStatus.enabled,
-        totpEnabled: mfaStatus.type === 'totp',
-        smsEnabled: mfaStatus.type === 'sms',
-        activeSessions: sessionsData.sessions?.length || 0,
+        totpEnabled: mfaStatus.type === 'TOTP',
+        smsEnabled: false,
+        activeSessions: 1,
         accountAge,
         securityScore: Math.min(score, 100),
         recommendations

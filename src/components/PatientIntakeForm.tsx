@@ -11,7 +11,8 @@ import { Checkbox } from './ui/checkbox';
 import { ScrollArea } from './ui/scroll-area';
 import { User, Phone, EnvelopeSimple, MapPin, FirstAidKit, Warning, IdentificationCard, Heart, CheckCircle, ArrowRight, ArrowLeft, Briefcase, Users } from '@phosphor-icons/react';
 import { Badge } from './ui/badge';
-import { useCometChatUserCreation } from '../integrations/cometchat';
+// Chat user provisioning is handled server-side (backend-initial /chat + Cognito
+// post-confirmation). No client-side messaging-user creation is needed.
 import { toast } from 'sonner';
 import { logger } from '../utils/secureLogger';
 import { AddressAutocomplete } from './AddressAutocomplete';
@@ -110,7 +111,6 @@ export interface ClientIntakeData {
 
 export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const { createUser } = useCometChatUserCreation();
 
 
   const [formData, setFormData] = useState<ClientIntakeData>({
@@ -204,29 +204,17 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
         onSubmit(formData);
       }
 
-      // Create messaging user (non-blocking)
       const fullName = `${formData.firstName} ${formData.lastName}`;
-      logger.debug(`🚀 Creating messaging user for: ${fullName} (${formData.email})`);
-
-      const userCreated = await createUser({
-        email: formData.email,
-        name: fullName,
-        role: 'client'
-      });
 
       // Dismiss loading toast
       toast.dismiss(loadingToast);
 
-      if (userCreated) {
+      {
         toast.success('Client registered successfully! 🎉', {
           description: `${fullName} can now receive messages and notifications`,
           duration: 5000
         });
-        logger.debug(`✅ Client ${fullName} registered and ready for messaging`);
-      } else {
-        toast.success('Client registered', {
-          description: 'Profile created (messaging setup pending)'
-        });
+        logger.debug(`✅ Client ${fullName} registered`);
       }
 
       // Close sidebar
@@ -367,7 +355,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.firstName}
                     onChange={(e) => updateField('firstName', e.target.value)}
                     placeholder="John"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
 
@@ -378,7 +366,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.middleName}
                     onChange={(e) => updateField('middleName', e.target.value)}
                     placeholder="Michael"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
 
@@ -391,7 +379,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.lastName}
                     onChange={(e) => updateField('lastName', e.target.value)}
                     placeholder="Doe"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
               </div>
@@ -415,7 +403,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                         updateField('dateOfBirth', null);
                       }
                     }}
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
 
@@ -426,7 +414,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.ssn}
                     onChange={(e) => updateField('ssn', e.target.value)}
                     placeholder="XXX-XX-XXXX"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
               </div>
@@ -441,7 +429,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                       { value: 'non-binary', label: 'Non-binary' },
                       { value: 'other', label: 'Other' }
                     ].map((option) => (
-                      <label key={option.value} htmlFor={option.value} className="flex items-center space-x-2 border-2 border-gray-200 rounded-lg px-4 py-3 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition-all has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                      <label key={option.value} htmlFor={option.value} className="flex items-center space-x-2 border-2 border-border rounded-lg px-4 py-3 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition-all has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
                         <RadioGroupItem value={option.value} id={option.value} className="text-blue-600" />
                         <span className="flex-1">{option.label}</span>
                       </label>
@@ -454,7 +442,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                 <div className="space-y-2">
                   <Label htmlFor="maritalStatus">Marital Status</Label>
                   <Select value={formData.maritalStatus} onValueChange={(value) => updateField('maritalStatus', value)}>
-                    <SelectTrigger className="h-11 bg-white">
+                    <SelectTrigger className="h-11 bg-card">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -471,7 +459,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                 <div className="space-y-2">
                   <Label htmlFor="preferredLanguage">Preferred Language</Label>
                   <Select value={formData.preferredLanguage} onValueChange={(value) => updateField('preferredLanguage', value)}>
-                    <SelectTrigger className="h-11 bg-white">
+                    <SelectTrigger className="h-11 bg-card">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
@@ -489,7 +477,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                 <div className="space-y-2">
                   <Label htmlFor="race">Race (Optional)</Label>
                   <Select value={formData.race} onValueChange={(value) => updateField('race', value)}>
-                    <SelectTrigger className="h-11 bg-white">
+                    <SelectTrigger className="h-11 bg-card">
                       <SelectValue placeholder="Select race" />
                     </SelectTrigger>
                     <SelectContent>
@@ -507,7 +495,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                 <div className="space-y-2">
                   <Label htmlFor="ethnicity">Ethnicity (Optional)</Label>
                   <Select value={formData.ethnicity} onValueChange={(value) => updateField('ethnicity', value)}>
-                    <SelectTrigger className="h-11 bg-white">
+                    <SelectTrigger className="h-11 bg-card">
                       <SelectValue placeholder="Select ethnicity" />
                     </SelectTrigger>
                     <SelectContent>
@@ -543,11 +531,11 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   Email Address <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" weight="duotone" />
+                  <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" weight="duotone" />
                   <Input
                     id="email"
                     type="email"
-                    className="pl-11 h-11 bg-white"
+                    className="pl-11 h-11 bg-card"
                     value={formData.email}
                     onChange={(e) => updateField('email', e.target.value)}
                     placeholder="john.doe@example.com"
@@ -561,11 +549,11 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     Primary Phone <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" weight="duotone" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" weight="duotone" />
                     <Input
                       id="phone"
                       type="tel"
-                      className="pl-11 h-11 bg-white"
+                      className="pl-11 h-11 bg-card"
                       value={formData.phone}
                       onChange={(e) => updateField('phone', e.target.value)}
                       placeholder="(555) 123-4567"
@@ -576,11 +564,11 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                 <div className="space-y-0.5">
                   <Label htmlFor="alternatePhone">Alternate Phone</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" weight="duotone" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" weight="duotone" />
                     <Input
                       id="alternatePhone"
                       type="tel"
-                      className="pl-11 h-11 bg-white"
+                      className="pl-11 h-11 bg-card"
                       value={formData.alternatePhone}
                       onChange={(e) => updateField('alternatePhone', e.target.value)}
                       placeholder="(555) 987-6543"
@@ -614,7 +602,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.address2}
                   onChange={(e) => updateField('address2', e.target.value)}
                   placeholder="Apt, Suite, Unit, Building (optional)"
-                  className="h-11 bg-white"
+                  className="h-11 bg-card"
                 />
               </div>
 
@@ -626,7 +614,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.city}
                     onChange={(e) => updateField('city', e.target.value)}
                     placeholder="New York"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
 
@@ -638,7 +626,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     onChange={(e) => updateField('state', e.target.value)}
                     placeholder="NY"
                     maxLength={2}
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
               </div>
@@ -650,7 +638,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.zipCode}
                   onChange={(e) => updateField('zipCode', e.target.value)}
                   placeholder="10001"
-                  className="h-11 bg-white"
+                  className="h-11 bg-card"
                 />
               </div>
             </div>
@@ -676,7 +664,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.occupation}
                     onChange={(e) => updateField('occupation', e.target.value)}
                     placeholder="Software Engineer"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
 
@@ -687,7 +675,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.employer}
                     onChange={(e) => updateField('employer', e.target.value)}
                     placeholder="Company Name"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
               </div>
@@ -700,7 +688,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.employerPhone}
                   onChange={(e) => updateField('employerPhone', e.target.value)}
                   placeholder="(555) 123-4567"
-                  className="h-11 bg-white"
+                  className="h-11 bg-card"
                 />
               </div>
             </div>
@@ -727,7 +715,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.emergencyContactName}
                   onChange={(e) => updateField('emergencyContactName', e.target.value)}
                   placeholder="Jane Doe"
-                  className="h-11 bg-white"
+                  className="h-11 bg-card"
                 />
               </div>
 
@@ -741,7 +729,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.emergencyContactRelationship}
                     onChange={(e) => updateField('emergencyContactRelationship', e.target.value)}
                     placeholder="Spouse"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
 
@@ -755,7 +743,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.emergencyContactPhone}
                     onChange={(e) => updateField('emergencyContactPhone', e.target.value)}
                     placeholder="(555) 123-4567"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
               </div>
@@ -777,7 +765,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.emergencyContactAddress2 || ''}
                   onChange={(e) => updateField('emergencyContactAddress2', e.target.value)}
                   placeholder="Apt, Suite, Unit (optional)"
-                  className="h-11 bg-white"
+                  className="h-11 bg-card"
                 />
               </div>
             </div>
@@ -821,7 +809,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                       </Label>
                       <Input
                         id="insuranceProvider"
-                        className="h-11 bg-white"
+                        className="h-11 bg-card"
                         value={formData.insuranceProvider}
                         onChange={(e) => updateField('insuranceProvider', e.target.value)}
                         placeholder="Blue Cross Blue Shield"
@@ -836,7 +824,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                         value={formData.insurancePhone}
                         onChange={(e) => updateField('insurancePhone', e.target.value)}
                         placeholder="(800) 123-4567"
-                        className="h-11 bg-white"
+                        className="h-11 bg-card"
                       />
                     </div>
                   </div>
@@ -851,7 +839,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                         value={formData.policyNumber}
                         onChange={(e) => updateField('policyNumber', e.target.value)}
                         placeholder="ABC123456789"
-                        className="h-11 bg-white"
+                        className="h-11 bg-card"
                       />
                     </div>
 
@@ -862,7 +850,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                         value={formData.groupNumber}
                         onChange={(e) => updateField('groupNumber', e.target.value)}
                         placeholder="GRP987654"
-                        className="h-11 bg-white"
+                        className="h-11 bg-card"
                       />
                     </div>
                   </div>
@@ -879,14 +867,14 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                             value={formData.subscriberName}
                             onChange={(e) => updateField('subscriberName', e.target.value)}
                             placeholder="If different from client"
-                            className="h-11 bg-white"
+                            className="h-11 bg-card"
                           />
                         </div>
 
                         <div className="space-y-2">
                           <Label htmlFor="subscriberRelationship">Relationship to Client</Label>
                           <Select value={formData.subscriberRelationship} onValueChange={(value) => updateField('subscriberRelationship', value)}>
-                            <SelectTrigger className="h-11 bg-white">
+                            <SelectTrigger className="h-11 bg-card">
                               <SelectValue placeholder="Select relationship" />
                             </SelectTrigger>
                             <SelectContent>
@@ -916,7 +904,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                                 updateField('subscriberDOB', null);
                               }
                             }}
-                            className="h-11 bg-white"
+                            className="h-11 bg-card"
                           />
                         </div>
 
@@ -927,7 +915,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                             value={formData.subscriberSSN}
                             onChange={(e) => updateField('subscriberSSN', e.target.value)}
                             placeholder="XXX-XX-XXXX"
-                            className="h-11 bg-white"
+                            className="h-11 bg-card"
                           />
                         </div>
                       </div>
@@ -966,7 +954,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   <Label htmlFor="primaryCarePhysician">Primary Care Physician</Label>
                   <Input
                     id="primaryCarePhysician"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                     value={formData.primaryCarePhysician}
                     onChange={(e) => updateField('primaryCarePhysician', e.target.value)}
                     placeholder="Dr. Smith"
@@ -981,7 +969,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.pcpPhone}
                     onChange={(e) => updateField('pcpPhone', e.target.value)}
                     placeholder="(555) 123-4567"
-                    className="h-11 bg-white"
+                    className="h-11 bg-card"
                   />
                 </div>
               </div>
@@ -993,7 +981,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.currentMedications}
                   onChange={(e) => updateField('currentMedications', e.target.value)}
                   placeholder="List all current medications, dosages, and frequency..."
-                  className="min-h-[100px] bg-white resize-none"
+                  className="min-h-[100px] bg-card resize-none"
                 />
               </div>
 
@@ -1004,7 +992,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.allergies}
                   onChange={(e) => updateField('allergies', e.target.value)}
                   placeholder="List any known allergies (medications, foods, environmental)..."
-                  className="min-h-[90px] bg-white resize-none"
+                  className="min-h-[90px] bg-card resize-none"
                 />
               </div>
 
@@ -1015,7 +1003,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.chronicConditions}
                   onChange={(e) => updateField('chronicConditions', e.target.value)}
                   placeholder="Diabetes, hypertension, asthma, etc."
-                  className="min-h-[90px] bg-white resize-none"
+                  className="min-h-[90px] bg-card resize-none"
                 />
               </div>
 
@@ -1026,7 +1014,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.pastSurgeries}
                   onChange={(e) => updateField('pastSurgeries', e.target.value)}
                   placeholder="List any past surgeries with approximate dates..."
-                  className="min-h-[90px] bg-white resize-none"
+                  className="min-h-[90px] bg-card resize-none"
                 />
               </div>
 
@@ -1037,7 +1025,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.medicalHistory}
                   onChange={(e) => updateField('medicalHistory', e.target.value)}
                   placeholder="Any other relevant medical history..."
-                  className="min-h-[90px] bg-white resize-none"
+                  className="min-h-[90px] bg-card resize-none"
                 />
               </div>
 
@@ -1048,7 +1036,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.familyMedicalHistory}
                   onChange={(e) => updateField('familyMedicalHistory', e.target.value)}
                   placeholder="Family history of mental health conditions, chronic diseases, etc."
-                  className="min-h-[90px] bg-white resize-none"
+                  className="min-h-[90px] bg-card resize-none"
                 />
               </div>
             </div>
@@ -1091,7 +1079,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                     value={formData.previousTherapyDetails}
                     onChange={(e) => updateField('previousTherapyDetails', e.target.value)}
                     placeholder="When? What type? What was helpful?"
-                    className="min-h-[100px] bg-white resize-none"
+                    className="min-h-[100px] bg-card resize-none"
                   />
                 </div>
               )}
@@ -1105,7 +1093,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.previousHospitalizations}
                   onChange={(e) => updateField('previousHospitalizations', e.target.value)}
                   placeholder="If applicable, when and why?"
-                  className="min-h-[90px] bg-white resize-none"
+                  className="min-h-[90px] bg-card resize-none"
                 />
               </div>
 
@@ -1118,7 +1106,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.reasonForSeeking}
                   onChange={(e) => updateField('reasonForSeeking', e.target.value)}
                   placeholder="What brings you to therapy? What are you hoping to achieve?"
-                  className="min-h-[110px] bg-white resize-none"
+                  className="min-h-[110px] bg-card resize-none"
                 />
               </div>
 
@@ -1129,7 +1117,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.currentSymptoms}
                   onChange={(e) => updateField('currentSymptoms', e.target.value)}
                   placeholder="Anxiety, depression, sleep issues, etc."
-                  className="min-h-[100px] bg-white resize-none"
+                  className="min-h-[100px] bg-card resize-none"
                 />
               </div>
 
@@ -1142,7 +1130,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.suicidalThoughts}
                   onChange={(e) => updateField('suicidalThoughts', e.target.value)}
                   placeholder="Current or past thoughts of self-harm or suicide?"
-                  className="min-h-[90px] bg-white resize-none"
+                  className="min-h-[90px] bg-card resize-none"
                 />
               </div>
 
@@ -1155,7 +1143,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.substanceUse}
                   onChange={(e) => updateField('substanceUse', e.target.value)}
                   placeholder="Current or past use of alcohol, tobacco, or other substances"
-                  className="min-h-[90px] bg-white resize-none"
+                  className="min-h-[90px] bg-card resize-none"
                 />
               </div>
 
@@ -1213,7 +1201,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                       { value: 'evening', label: 'Evening (5pm - 8pm)' },
                       { value: 'flexible', label: 'Flexible' }
                     ].map((option) => (
-                      <label key={option.value} htmlFor={`time-${option.value}`} className="flex items-center space-x-2 border-2 border-gray-200 rounded-lg px-4 py-3 hover:border-indigo-400 hover:bg-indigo-50/50 cursor-pointer transition-all has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+                      <label key={option.value} htmlFor={`time-${option.value}`} className="flex items-center space-x-2 border-2 border-border rounded-lg px-4 py-3 hover:border-indigo-400 hover:bg-indigo-50/50 cursor-pointer transition-all has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
                         <RadioGroupItem value={option.value} id={`time-${option.value}`} className="text-indigo-600" />
                         <span className="flex-1">{option.label}</span>
                       </label>
@@ -1232,7 +1220,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                       { value: 'monthly', label: 'Monthly' },
                       { value: 'as-needed', label: 'As needed' }
                     ].map((option) => (
-                      <label key={option.value} htmlFor={`freq-${option.value}`} className="flex items-center space-x-2 border-2 border-gray-200 rounded-lg px-4 py-3 hover:border-indigo-400 hover:bg-indigo-50/50 cursor-pointer transition-all has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+                      <label key={option.value} htmlFor={`freq-${option.value}`} className="flex items-center space-x-2 border-2 border-border rounded-lg px-4 py-3 hover:border-indigo-400 hover:bg-indigo-50/50 cursor-pointer transition-all has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
                         <RadioGroupItem value={option.value} id={`freq-${option.value}`} className="text-indigo-600" />
                         <span className="flex-1">{option.label}</span>
                       </label>
@@ -1246,7 +1234,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   Preferred Therapy Modality
                 </Label>
                 <Select value={formData.therapyModality} onValueChange={(value) => updateField('therapyModality', value)}>
-                  <SelectTrigger className="h-11 bg-white">
+                  <SelectTrigger className="h-11 bg-card">
                     <SelectValue placeholder="Select modality" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1272,7 +1260,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                       { value: 'social-media', label: 'Social media' },
                       { value: 'other', label: 'Other' }
                     ].map((option) => (
-                      <label key={option.value} htmlFor={`hear-${option.value}`} className="flex items-center space-x-2 border-2 border-gray-200 rounded-lg px-4 py-3 hover:border-indigo-400 hover:bg-indigo-50/50 cursor-pointer transition-all has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+                      <label key={option.value} htmlFor={`hear-${option.value}`} className="flex items-center space-x-2 border-2 border-border rounded-lg px-4 py-3 hover:border-indigo-400 hover:bg-indigo-50/50 cursor-pointer transition-all has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
                         <RadioGroupItem value={option.value} id={`hear-${option.value}`} className="text-indigo-600" />
                         <span className="flex-1">{option.label}</span>
                       </label>
@@ -1288,7 +1276,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   value={formData.additionalNotes}
                   onChange={(e) => updateField('additionalNotes', e.target.value)}
                   placeholder="Any other information you'd like us to know..."
-                  className="min-h-[100px] bg-white resize-none"
+                  className="min-h-[100px] bg-card resize-none"
                 />
               </div>
             </div>
@@ -1423,7 +1411,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
                   key={step.id}
                   className={`h-2 flex-1 rounded-full transition-all duration-300 ${index < currentStep ? 'bg-green-500' :
                     index === currentStep ? 'bg-blue-600' :
-                      'bg-gray-200'
+                      'bg-muted'
                     }`}
                 />
               ))}
@@ -1439,7 +1427,7 @@ export function ClientIntakeForm({ open, onOpenChange, onSubmit }: ClientIntakeF
         </div>
 
         {/* Fixed Footer - Always Visible */}
-        <div className="flex-shrink-0 px-6 py-4 border-t bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="flex-shrink-0 px-6 py-4 border-t bg-card shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <div className="flex items-center justify-between gap-4">
             <Button
               variant="outline"

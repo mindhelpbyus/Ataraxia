@@ -117,14 +117,14 @@ export function DayView({
         <div className="flex-1 overflow-auto">
           <div className="flex min-h-full">
             {/* Time Column */}
-            <div className="w-20 border-r border-border bg-white flex-shrink-0 sticky left-0 z-30">
-              <div className="h-16 border-b border-border flex items-center justify-center text-sm font-medium sticky top-0 bg-white z-50 border-r border-border">
+            <div className="w-20 border-r border-border bg-card flex-shrink-0 sticky left-0 z-30">
+              <div className="h-16 border-b border-border flex items-center justify-center text-sm font-medium sticky top-0 bg-card z-50 border-r border-border">
                 Time
               </div>
               {timeSlots.map(slot => (
                 <div
                   key={slot.hour}
-                  className="h-24 border-b border-border flex items-center justify-center text-xs text-muted-foreground bg-white"
+                  className="h-24 border-b border-border flex items-center justify-center text-xs text-muted-foreground bg-card"
                 >
                   {slot.displayTime}
                 </div>
@@ -199,9 +199,9 @@ export function DayView({
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {!isDayWorking && (
-        <div className="bg-[rgb(255,255,255)] border-b border-gray-300 px-4 py-2 text-sm text-gray-700 flex-shrink-0">
+        <div className="bg-[rgb(255,255,255)] border-b border-border px-4 py-2 text-sm text-foreground flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-gray-500 rounded-full" />
+            <div className="w-2 h-2 bg-[var(--muted-text)] rounded-full" />
             This is a non-working day for {therapist.name}.
           </div>
         </div>
@@ -209,11 +209,11 @@ export function DayView({
       <div className="flex-1 overflow-auto">
         <div className="flex">
           {/* Time Column */}
-          <div className="w-20 border-r border-border bg-white flex-shrink-0 sticky left-0 z-30">
+          <div className="w-20 border-r border-border bg-card flex-shrink-0 sticky left-0 z-30">
             {timeSlots.map(slot => (
               <div
                 key={slot.hour}
-                className="h-24 border-b border-border flex items-center justify-center text-xs text-muted-foreground bg-white"
+                className="h-24 border-b border-border flex items-center justify-center text-xs text-muted-foreground bg-card"
               >
                 {slot.displayTime}
               </div>
@@ -306,7 +306,7 @@ function DaySlot({
             key={appointment.id}
             appointment={appointment}
             onClick={(e) => {
-              e.stopPropagation();
+              e?.stopPropagation();
               onAppointmentClick(appointment);
             }}
             view="day"

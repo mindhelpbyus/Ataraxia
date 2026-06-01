@@ -8,7 +8,7 @@ import { User, MapPin, AlertCircle, Camera, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { PhoneInputV2 } from '../PhoneInputV2';
 import { AddressSection } from './AddressSection';
-import { Country } from 'country-state-city';
+import { Country } from '../../lib/location';
 import { StepProps } from './types';
 import { AvatarGalleryDialog } from '../AvatarGalleryDialog';
 import { CameraCaptureDialog } from './CameraCaptureDialog';
@@ -84,27 +84,27 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
         <div className="space-y-6">
             <div>
                 <h2 className="text-2xl font-semibold mb-2">Personal Information</h2>
-                <p className="text-sm text-gray-500">Tell us about yourself</p>
+                <p className="text-sm text-muted-foreground">Tell us about yourself</p>
             </div>
 
-            <Card className="border-gray-200">
+            <Card className="border-border">
                 <CardContent className="pt-6 space-y-6">
                     <div>
                         <div className="flex items-center gap-2 mb-3">
-                            <Camera className="h-5 w-5 text-gray-700" />
+                            <Camera className="h-5 w-5 text-foreground" />
                             <h3 className="text-base font-semibold">Profile Photo</h3>
                         </div>
-                        <p className="text-sm text-gray-500 mb-4">Upload a headshot, take a photo, or choose an avatar</p>
+                        <p className="text-sm text-muted-foreground mb-4">Upload a headshot, take a photo, or choose an avatar</p>
 
-                        <div className="flex flex-col sm:flex-row items-center gap-6 bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <div className="flex flex-col sm:flex-row items-center gap-6 bg-[var(--surface-warm)] border border-border rounded-lg p-6">
                             <Avatar className="w-24 h-24 border-2 border-white shadow-sm">
                                 <AvatarImage src={displayImage} />
-                                <AvatarFallback className="text-xl bg-gray-200 text-gray-600 font-medium">
+                                <AvatarFallback className="text-xl bg-muted text-muted-foreground font-medium">
                                     {formData.firstName[0]?.toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 text-center sm:text-left">
-                                <p className="text-sm font-medium text-gray-700 mb-3">
+                                <p className="text-sm font-medium text-foreground mb-3">
                                     {displayImage ? 'Update your photo' : 'Add your photo'}
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-2">
@@ -128,7 +128,7 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
                                         type="button"
                                         variant="outline"
                                         onClick={handleCameraCapture}
-                                        className="border-gray-300 hover:bg-gray-50"
+                                        className="border-border hover:bg-[var(--surface-warm)]"
                                         size="sm"
                                     >
                                         <Camera className="h-4 w-4 mr-2" />
@@ -138,14 +138,14 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
                                         type="button"
                                         variant="outline"
                                         onClick={() => setShowAvatarGallery(true)}
-                                        className="border-gray-300 hover:bg-gray-50"
+                                        className="border-border hover:bg-[var(--surface-warm)]"
                                         size="sm"
                                     >
                                         <User className="h-4 w-4 mr-2" />
                                         Choose Avatar
                                     </Button>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-2">
+                                <p className="text-xs text-muted-foreground mt-2">
                                     JPG, PNG or GIF (max. 5MB)
                                 </p>
                             </div>
@@ -154,47 +154,47 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
                 </CardContent>
             </Card>
 
-            <Card className="border-gray-200">
+            <Card className="border-border">
                 <CardContent className="pt-6 space-y-6">
                     <div>
                         <div className="flex items-center gap-2 mb-4">
-                            <User className="h-5 w-5 text-gray-700" />
+                            <User className="h-5 w-5 text-foreground" />
                             <h3 className="text-base font-semibold">Personal Details</h3>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <Label className="text-sm font-medium text-gray-700">First Name <span className="text-red-500">*</span></Label>
+                            <Label className="text-sm font-medium text-foreground">First Name <span className="text-red-500">*</span></Label>
                             <Input
                                 value={formData.firstName}
                                 onChange={(e) => updateFormData('firstName', e.target.value)}
-                                className="mt-1.5 border-gray-300"
+                                className="mt-1.5 border-border"
                             />
                         </div>
                         <div>
-                            <Label className="text-sm font-medium text-gray-700">Middle Name</Label>
+                            <Label className="text-sm font-medium text-foreground">Middle Name</Label>
                             <Input
                                 value={formData.middleName || ''}
                                 onChange={(e) => updateFormData('middleName', e.target.value)}
-                                className="mt-1.5 border-gray-300"
+                                className="mt-1.5 border-border"
                             />
                         </div>
                         <div>
-                            <Label className="text-sm font-medium text-gray-700">Last Name <span className="text-red-500">*</span></Label>
+                            <Label className="text-sm font-medium text-foreground">Last Name <span className="text-red-500">*</span></Label>
                             <Input
                                 value={formData.lastName}
                                 onChange={(e) => updateFormData('lastName', e.target.value)}
-                                className="mt-1.5 border-gray-300"
+                                className="mt-1.5 border-border"
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <Label className="text-sm font-medium text-gray-700">Gender <span className="text-red-500">*</span></Label>
+                            <Label className="text-sm font-medium text-foreground">Gender <span className="text-red-500">*</span></Label>
                             <Select value={formData.gender} onValueChange={(v) => updateFormData('gender', v)}>
-                                <SelectTrigger className="mt-1.5 border-gray-300">
+                                <SelectTrigger className="mt-1.5 border-border">
                                     <SelectValue placeholder="Select gender" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -207,7 +207,7 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
                             </Select>
                         </div>
                         <div>
-                            <Label htmlFor="dob" className="text-sm font-medium text-gray-700">Date of Birth <span className="text-red-500">*</span></Label>
+                            <Label htmlFor="dob" className="text-sm font-medium text-foreground">Date of Birth <span className="text-red-500">*</span></Label>
                             <Input
                                 id="dob"
                                 type="date"
@@ -224,7 +224,7 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
                                 }}
                                 max={new Date().toISOString().split('T')[0]}
                                 required
-                                className="mt-1.5 border-gray-300"
+                                className="mt-1.5 border-border"
                             />
                         </div>
                     </div>
@@ -239,19 +239,19 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
                             defaultCountry="US"
                         />
                         <div>
-                            <Label className="text-sm font-medium text-gray-700">Email <span className="text-red-500">*</span></Label>
+                            <Label className="text-sm font-medium text-foreground">Email <span className="text-red-500">*</span></Label>
                             <Input
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => updateFormData('email', e.target.value)}
                                 disabled={!!clientEmail}
-                                className={`mt-1.5 border-gray-300 ${formData.email ? "bg-gray-50" : ""}`}
+                                className={`mt-1.5 border-border ${formData.email ? "bg-[var(--surface-warm)]" : ""}`}
                             />
                         </div>
                     </div>
 
                     <div>
-                        <Label className="text-sm font-medium text-gray-700">Preferred Language <span className="text-red-500">*</span></Label>
+                        <Label className="text-sm font-medium text-foreground">Preferred Language <span className="text-red-500">*</span></Label>
                         <ReactSelect
                             value={selectedLanguages}
                             onChange={(langs) => updateFormData('preferredLanguage', langs ? langs.map((l: any) => l.value) : [])}
@@ -265,38 +265,38 @@ export function BasicInformationStep({ formData, updateFormData, clientEmail, cl
                 </CardContent>
             </Card>
 
-            <Card className="border-gray-200">
+            <Card className="border-border">
                 <CardContent className="pt-6">
                     <AddressSection formData={formData} updateFormData={updateFormData} />
                 </CardContent>
             </Card>
 
-            <Card className="border-gray-200">
+            <Card className="border-border">
                 <CardContent className="pt-6 space-y-6">
                     <div>
                         <div className="flex items-center gap-2 mb-4">
-                            <AlertCircle className="h-5 w-5 text-gray-700" />
+                            <AlertCircle className="h-5 w-5 text-foreground" />
                             <h3 className="text-base font-semibold">Emergency Contact <span className="text-red-500">*</span></h3>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <Label className="text-sm font-medium text-gray-700">Contact Name <span className="text-red-500">*</span></Label>
+                            <Label className="text-sm font-medium text-foreground">Contact Name <span className="text-red-500">*</span></Label>
                             <Input
                                 value={formData.emergencyContactName}
                                 onChange={(e) => updateFormData('emergencyContactName', e.target.value)}
                                 placeholder="Full name"
-                                className="mt-1.5 border-gray-300"
+                                className="mt-1.5 border-border"
                             />
                         </div>
                         <div>
-                            <Label className="text-sm font-medium text-gray-700">Relationship <span className="text-red-500">*</span></Label>
+                            <Label className="text-sm font-medium text-foreground">Relationship <span className="text-red-500">*</span></Label>
                             <Input
                                 value={formData.emergencyContactRelationship}
                                 onChange={(e) => updateFormData('emergencyContactRelationship', e.target.value)}
                                 placeholder="e.g., Spouse, Parent, Friend"
-                                className="mt-1.5 border-gray-300"
+                                className="mt-1.5 border-border"
                             />
                         </div>
                     </div>

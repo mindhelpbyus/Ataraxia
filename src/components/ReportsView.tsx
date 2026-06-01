@@ -44,7 +44,7 @@ export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewP
             </div>
             <div className="flex items-center gap-3">
               <Select value={dateRange} onValueChange={(value: any) => setDateRange(value)}>
-                <SelectTrigger className="w-[180px] bg-white border-slate-200 shadow-sm">
+                <SelectTrigger className="w-[180px] bg-card border-slate-200 shadow-sm">
                   <Calendar className="h-4 w-4 mr-2 text-slate-500" />
                   <SelectValue />
                 </SelectTrigger>
@@ -57,7 +57,7 @@ export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewP
               </Select>
               <Button
                 variant="outline"
-                className="bg-white border-slate-200 shadow-sm hover:bg-slate-50 text-slate-700"
+                className="bg-card border-slate-200 shadow-sm hover:bg-slate-50 text-slate-700"
                 onClick={handleExportExcel}
               >
                 <FileSpreadsheet className="h-4 w-4 mr-2" />

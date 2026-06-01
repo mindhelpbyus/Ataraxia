@@ -22,12 +22,12 @@ export function NavigationButtons({
     const isLastStep = currentStep === totalSteps;
 
     return (
-        <div className="flex items-center justify-between gap-4 pt-6 border-t border-gray-200">
+        <div className="flex items-center justify-between gap-4 pt-6 border-t border-border">
             <Button
                 variant="outline"
                 onClick={onPrevious}
                 disabled={currentStep === 1}
-                className="w-32 border-gray-300 hover:bg-gray-50"
+                className="w-32 border-border hover:bg-[var(--surface-warm)]"
             >
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Previous
@@ -37,7 +37,7 @@ export function NavigationButtons({
                 <Button
                     variant="ghost"
                     onClick={onSaveAndExit}
-                    className="hidden sm:flex text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    className="hidden sm:flex text-muted-foreground hover:text-foreground hover:bg-[var(--surface-warm)]"
                 >
                     Save Draft
                 </Button>
@@ -45,7 +45,7 @@ export function NavigationButtons({
                     onClick={onNext}
                     disabled={!isStepValid}
                     size="lg"
-                    className="w-40 bg-[#1E7048] hover:bg-[#ea6b0f] text-white disabled:bg-gray-300 disabled:text-gray-500"
+                    className="w-40 bg-[#1E7048] hover:bg-[#ea6b0f] text-white disabled:bg-[var(--rule)] disabled:text-muted-foreground"
                 >
                     {isLastStep ? (
                         <>

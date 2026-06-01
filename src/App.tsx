@@ -11,7 +11,7 @@
  */
 
 import React, { useEffect, useCallback, useRef, Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 import { logger } from './utils/secureLogger';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -21,6 +21,7 @@ import type { Notification } from './types/appointment';
 
 // ─── Page Components (lazy-loaded — Chief Architect §4.1 code splitting) ─────
 const LoginPage = lazy(() => import('./components/LoginPage').then(m => ({ default: m.LoginPage })));
+const AuthCallback = lazy(() => import('./components/AuthCallback').then(m => ({ default: m.AuthCallback })));
 const DashboardLayout = lazy(() => import('./components/DashboardLayout').then(m => ({ default: m.DashboardLayout })));
 const TherapistRegistrationForm = lazy(() => import('./components/TherapistRegistrationForm').then(m => ({ default: m.TherapistRegistrationForm })));
 const ClientRegistrationForm = lazy(() => import('./components/ClientRegistrationForm').then(m => ({ default: m.ClientRegistrationForm })));
@@ -71,6 +72,26 @@ const PageSpinner = () => (
     <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--action)', borderTopColor: 'transparent' }} />
   </div>
 );
+
+/**
+ * Renders the client onboarding form, hydrating it from URL query params.
+ * Used both for the real invite link (?email=&token=…) and the therapist's
+ * "Preview Form" action (token starts with "preview-").
+ */
+function ClientRegistrationRoute() {
+  const [params] = useSearchParams();
+  return (
+    <ClientRegistrationForm
+      clientEmail={params.get('email') ?? ''}
+      clientPhone={params.get('phone') ?? ''}
+      clientFirstName={params.get('firstName') ?? ''}
+      clientLastName={params.get('lastName') ?? ''}
+      clientCountryCode={params.get('countryCode') ?? '+1'}
+      registrationToken={params.get('token') ?? ''}
+      onComplete={() => window.location.replace('/')}
+    />
+  );
+}
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
@@ -147,14 +168,11 @@ export default function App() {
               path="/client-registration"
               element={
                 <ErrorBoundary>
-                  <ClientRegistrationForm
-                    clientEmail="" clientPhone="" clientFirstName="" clientLastName=""
-                    clientCountryCode="+1" registrationToken=""
-                    onComplete={() => window.location.replace('/')}
-                  />
+                  <ClientRegistrationRoute />
                 </ErrorBoundary>
               }
             />
+            <Route path="/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             <Route path="/verification-pending" element={<ErrorBoundary><VerificationPendingPage /></ErrorBoundary>} />
             <Route path="/documents/:documentId" element={<ErrorBoundary><DocumentViewer /></ErrorBoundary>} />
 

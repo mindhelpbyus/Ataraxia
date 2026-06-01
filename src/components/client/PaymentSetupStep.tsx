@@ -198,10 +198,10 @@ export function PaymentSetupStep({ formData, updateFormData }: StepProps) {
                 </CardContent>
             </Card>
 
-            <div className="bg-gray-50 border rounded-lg p-4">
+            <div className="bg-[var(--surface-warm)] border rounded-lg p-4">
                 <div className="flex gap-2 items-start">
-                    <Lock className="h-5 w-5 text-gray-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-gray-700">
+                    <Lock className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-foreground">
                         <p className="font-medium mb-1">Your payment information is secure</p>
                         <p>We use industry-standard encryption to protect your financial data. Your card information is never stored on our servers.</p>
                     </div>

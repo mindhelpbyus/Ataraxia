@@ -80,7 +80,7 @@ export function SystemStatusChecker() {
             {check.status === 'checking' && <Loader2 className="size-5 animate-spin text-blue-500 mt-0.5" />}
             {check.status === 'success' && <CheckCircle2 className="size-5 text-green-500 mt-0.5" />}
             {check.status === 'error' && <XCircle className="size-5 text-red-500 mt-0.5" />}
-            {check.status === 'pending' && <div className="size-5 rounded-full border-2 border-gray-300 mt-0.5" />}
+            {check.status === 'pending' && <div className="size-5 rounded-full border-2 border-border mt-0.5" />}
             <div>
               <p className="text-sm font-medium">{check.name}</p>
               <p className="text-xs text-muted-foreground">{check.description}</p>

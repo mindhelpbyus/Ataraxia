@@ -250,15 +250,8 @@ export function AppointmentPanel({
       if (appointment.clientName) {
         try {
           const roomName = generateRoomName(appointment.id);
-          // In production, get actual client ID and details
-          await createCallInvitation(
-            type,
-            roomName,
-            currentUserId,
-            currentUserName,
-            'client-id', // Replace with actual client ID
-            appointment.clientName
-          );
+          // TODO(video-service): call invitations are not modelled yet (stubbed).
+          await createCallInvitation();
         } catch (error) {
           console.error('Error creating call invitation:', error);
         }
@@ -450,7 +443,7 @@ export function AppointmentPanel({
                             </p>
 
                             {appointment.videoCallUrl && (
-                              <div className="text-xs text-blue-600 font-mono bg-white p-2 rounded border border-blue-200 truncate">
+                              <div className="text-xs text-blue-600 font-mono bg-card p-2 rounded border border-blue-200 truncate">
                                 {appointment.videoCallUrl}
                               </div>
                             )}

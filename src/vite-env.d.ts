@@ -1,22 +1,17 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  // Shared HTTP API Gateway (backend-initial + billing_payment)
   readonly VITE_API_BASE_URL: string
   readonly VITE_API_URL: string
-  readonly VITE_FIREBASE_API_KEY: string
-  readonly VITE_FIREBASE_AUTH_DOMAIN: string
-  readonly VITE_FIREBASE_PROJECT_ID: string
-  readonly VITE_FIREBASE_STORAGE_BUCKET: string
-  readonly VITE_FIREBASE_MESSAGING_SENDER_ID: string
-  readonly VITE_FIREBASE_APP_ID: string
+  // video-service backend (LiveKit rooms/tokens/transcripts)
+  readonly VITE_VIDEO_API_BASE_URL: string
+  // AWS Cognito (ap-south-1, same pool as backend-initial)
   readonly VITE_AWS_REGION: string
   readonly VITE_COGNITO_USER_POOL_ID: string
   readonly VITE_COGNITO_CLIENT_ID: string
-  readonly VITE_AUTH_PROVIDER_TYPE: string
-  readonly VITE_USE_API_FIRST: string
-  readonly VITE_THERAPIST_SERVICE_URL: string
-  readonly VITE_VERIFICATION_SERVICE_URL: string
-  readonly VITE_CLIENT_SERVICE_URL: string
+  // Misc
+  readonly VITE_LIVEKIT_URL: string
   readonly VITE_RAZORPAY_KEY_ID: string
   readonly VITE_GOOGLE_MAPS_API_KEY: string
   readonly DEV: boolean
@@ -28,3 +23,4 @@ interface ImportMeta {
 }
 
 declare module 'iso-639-1';
+declare module 'langs';

@@ -178,21 +178,21 @@ export function VideoCallRoom({
         setIsFullscreen(false);
       }
     } catch (error) {
-      logger.warn('Fullscreen not available:', error);
+      logger.warn('Fullscreen not available:', { message: error instanceof Error ? error.message : String(error) });
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Header */}
-      <div className="bg-gray-900 px-4 py-3 flex items-center justify-between">
+      <div className="bg-[var(--ink)] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
           <div>
             <h3 className="text-white text-sm font-medium">
               {callType === 'video' ? 'Video Call' : 'Audio Call'}
             </h3>
-            <p className="text-gray-400 text-xs">
+            <p className="text-muted-foreground text-xs">
               {Object.values(participantNames).join(', ')}
             </p>
           </div>
@@ -203,7 +203,7 @@ export function VideoCallRoom({
             variant="ghost"
             size="sm"
             onClick={toggleFullscreen}
-            className="text-white hover:bg-gray-800"
+            className="text-white hover:bg-[var(--ink)]"
           >
             {isFullscreen ? (
               <Minimize2 className="w-4 h-4" />
@@ -224,9 +224,9 @@ export function VideoCallRoom({
       </div>
 
       {/* Jitsi Container */}
-      <div className="flex-1 relative bg-gray-900">
+      <div className="flex-1 relative bg-[var(--ink)]">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div className="absolute inset-0 flex items-center justify-center bg-[var(--ink)]">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p className="text-white">Connecting to call...</p>

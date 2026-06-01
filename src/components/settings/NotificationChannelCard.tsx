@@ -52,12 +52,12 @@ export const NotificationChannelCard: React.FC<NotificationChannelCardProps> = (
         <div
             className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${enabled
                 ? `${colors.bg} ${colors.activeBorder}`
-                : 'bg-white border-gray-200'
+                : 'bg-card border-border'
                 }`}
             onClick={() => onToggle(!enabled)}
         >
             <div className="flex items-start justify-between mb-3">
-                <div className={`p-2 rounded-lg ${enabled ? 'bg-white' : colors.bg}`}>
+                <div className={`p-2 rounded-lg ${enabled ? 'bg-card' : colors.bg}`}>
                     <Icon className={`w-5 h-5 ${colors.icon}`} />
                 </div>
                 <Switch
@@ -67,8 +67,8 @@ export const NotificationChannelCard: React.FC<NotificationChannelCardProps> = (
                     onClick={(e) => e.stopPropagation()}
                 />
             </div>
-            <h3 className="font-medium text-gray-900 mb-1">{title}</h3>
-            <p className="text-sm text-gray-500">{description}</p>
+            <h3 className="font-medium text-foreground mb-1">{title}</h3>
+            <p className="text-sm text-muted-foreground">{description}</p>
         </div>
     );
 };

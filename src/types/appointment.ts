@@ -44,7 +44,7 @@ export interface Client {
 }
 
 export type CalendarView = 'day' | 'week' | 'month';
-export type UserRole = 'therapist' | 'admin' | 'org_admin' | 'superadmin' | 'super_admin' | 'client';
+export type UserRole = 'therapist' | 'admin' | 'org_admin' | 'superadmin' | 'client';
 
 export interface CalendarState {
   currentDate: Date;

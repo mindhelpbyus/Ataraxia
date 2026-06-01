@@ -213,7 +213,7 @@ export function SessionNotesView() {
               {filteredNotes.map((note) => (
                 <div
                   key={note.id}
-                  className="border border-border rounded-lg p-5 hover:border-primary hover:shadow-sm transition-all cursor-pointer bg-white"
+                  className="border border-border rounded-lg p-5 hover:border-primary hover:shadow-sm transition-all cursor-pointer bg-card"
                   onClick={() => setSelectedNote(note)}
                 >
                   <div className="flex items-start justify-between mb-3">

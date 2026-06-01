@@ -8,7 +8,7 @@
  */
 
 // ─── Forms ────────────────────────────────────────────────────────────────────
-export { default as AddressAutocomplete } from '../AddressAutocomplete';
+export { AddressAutocomplete } from '../AddressAutocomplete';
 export { PhoneInput } from '../PhoneInput';
 export { SignatureCapture } from '../SignatureCapture';
 

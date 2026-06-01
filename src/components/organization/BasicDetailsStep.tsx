@@ -10,7 +10,7 @@ import { Button } from '../ui/button';
 import { Building2, User, MapPin, Plus, X, FileText } from 'lucide-react';
 import { PhoneInputV2 } from '../PhoneInputV2';
 import { AddressAutocomplete } from '../AddressAutocomplete';
-import { Country, State, City } from 'country-state-city';
+import { Country, State, City } from '../../lib/location';
 import ReactSelect from 'react-select';
 import * as ct from 'countries-and-timezones';
 import { StepProps, ServiceLocation } from './types';
@@ -82,7 +82,7 @@ export function BasicDetailsStep({
     const allTimezones = ct.getAllTimezones();
     const timezones = Object.keys(allTimezones).map(tz => ({
         value: tz,
-        label: `${tz} (UTC${allTimezones[tz].utcOffsetStr})`,
+        label: `${tz} (UTC${allTimezones[tz as keyof typeof allTimezones].utcOffsetStr})`,
     }));
 
     // Selected values for HQ

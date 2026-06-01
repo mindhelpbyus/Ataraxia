@@ -324,9 +324,9 @@ function IconQuestion() {
       <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
         <g id="Icon/Question">
           <g id="Vector"></g>
-          <path d={svgPaths.p30c3b00} id="Vector_2" stroke="var(--stroke-0, #727272)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-          <path d={svgPaths.p1e260480} fill="var(--fill-0, #727272)" id="Vector_3" stroke="var(--stroke-0, #727272)" strokeWidth="1.5" />
-          <path d={svgPaths.pd3b280} id="Vector_4" stroke="var(--stroke-0, #727272)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+          <path d={svgPaths.p30c3b00} id="Vector_2" stroke="var(--stroke-0, var(--muted-text))" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+          <path d={svgPaths.p1e260480} fill="var(--fill-0, var(--muted-text))" id="Vector_3" stroke="var(--stroke-0, var(--muted-text))" strokeWidth="1.5" />
+          <path d={svgPaths.pd3b280} id="Vector_4" stroke="var(--stroke-0, var(--muted-text))" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
         </g>
       </svg>
     </div>
@@ -364,7 +364,7 @@ function Frame47667() {
 
 function Container3() {
   return (
-    <div className="absolute bg-[#f9f9f9] content-stretch flex h-[64px] items-center justify-between left-0 top-0 w-[1563px]" data-name="Container">
+    <div className="absolute bg-[var(--surface)] content-stretch flex h-[64px] items-center justify-between left-0 top-0 w-[1563px]" data-name="Container">
       <Container1 />
       <Container2 />
       <Frame47667 />

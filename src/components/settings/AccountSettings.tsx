@@ -8,11 +8,11 @@ import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
 import { SettingsSection } from './SettingsSection';
 import { MapPin, Upload, AlertTriangle } from 'lucide-react';
-import { Country, State, City } from 'country-state-city';
+import { Country, State, City } from '../../lib/location';
 import Select from 'react-select';
 import langs from 'langs';
 import * as ct from 'countries-and-timezones';
-import zipcodes from 'zipcodes';
+import { zipcodesShim as zipcodes } from '../../lib/location';
 import { PhoneInputV2 } from '../PhoneInputV2';
 
 interface AccountSettingsProps {
@@ -180,13 +180,13 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
     const allLanguages = useMemo(() => {
         const languages = langs.all();
         return languages
-            .map(lang => ({
+            .map((lang: any) => ({
                 value: lang['1'] || lang['2'] || lang['2B'] || lang['3'],
                 label: lang.name,
                 local: lang.local,
             }))
-            .filter(lang => lang.value && lang.label)
-            .sort((a, b) => a.label.localeCompare(b.label));
+            .filter((lang: any) => lang.value && lang.label)
+            .sort((a: any, b: any) => a.label.localeCompare(b.label));
     }, []);
 
     // Get languages arranged by country (country languages first)
@@ -200,7 +200,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
         const countryLanguages: any[] = [];
         const otherLanguages: any[] = [];
 
-        allLanguages.forEach(lang => {
+        allLanguages.forEach((lang: any) => {
             const isCountryLanguage = countryLanguageCodes.some((countryLang: string) =>
                 lang.value.toLowerCase() === countryLang.toLowerCase() ||
                 lang.label.toLowerCase().includes(countryLang.toLowerCase()) ||
@@ -222,7 +222,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
         const allTimezones = ct.getAllTimezones();
         return Object.keys(allTimezones)
             .map(tzName => {
-                const tz = allTimezones[tzName];
+                const tz = allTimezones[tzName as keyof typeof allTimezones];
                 const offset = tz.utcOffset / 60;
                 const offsetStr = offset >= 0 ? `+${offset}` : `${offset}`;
                 return {
@@ -240,8 +240,6 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
         return Country.getAllCountries().map(country => ({
             value: country.isoCode,
             label: country.name,
-            phonecode: country.phonecode,
-            currency: country.currency,
             ...country
         }));
     }, []);
@@ -252,7 +250,6 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
         return State.getStatesOfCountry(selectedCountry.value).map(state => ({
             value: state.isoCode,
             label: state.name,
-            countryCode: state.countryCode,
             ...state
         }));
     }, [selectedCountry]);
@@ -261,11 +258,10 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
     const cities = useMemo(() => {
         if (!selectedCountry || !selectedState) return [];
         const citiesData = City.getCitiesOfState(selectedCountry.value, selectedState.value);
+        // Cities now come from PIN/zip auto-fill (light model — no bundled coords).
         return citiesData.map(city => ({
             value: city.name,
             label: city.name,
-            latitude: city.latitude,
-            longitude: city.longitude,
             ...city
         }));
     }, [selectedCountry, selectedState]);
@@ -330,7 +326,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
 
             // Auto-populate languages based on country
             const countryLanguageCodes = countryData?.languages || [];
-            const countryLanguages = allLanguages.filter(lang =>
+            const countryLanguages = allLanguages.filter((lang: any) =>
                 countryLanguageCodes.some((countryLang: string) =>
                     lang.value.toLowerCase() === countryLang.toLowerCase() ||
                     lang.label.toLowerCase().includes(countryLang.toLowerCase()) ||
@@ -435,7 +431,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
             <div className="max-w-6xl mx-auto">
                 <div className="space-y-4">
                     {/* Profile Photo Card */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="bg-card rounded-lg border border-border p-6">
                         <div className="mb-4">
                             <h2 className="text-base font-semibold flex items-center gap-2">
                                 <Upload className="h-5 w-5 text-action" />
@@ -480,7 +476,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                     </div>
 
                     {/* Personal Details Card */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="bg-card rounded-lg border border-border p-6">
                         <div className="mb-6">
                             <h2 className="text-base font-semibold flex items-center gap-2">
                                 <MapPin className="h-5 w-5 text-action" />
@@ -564,7 +560,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
                     </div>
 
                     {/* Address Card */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="bg-card rounded-lg border border-border p-6">
                         <div className="mb-6">
                             <h2 className="text-base font-semibold flex items-center gap-2">
                                 <MapPin className="h-5 w-5 text-action" />
@@ -712,7 +708,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
 
                     {/* Emergency Contact Card - Only for Clients */}
                     {userRole === 'client' && (
-                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <div className="bg-card rounded-lg border border-border p-6">
                             <div className="mb-6">
                                 <h2 className="text-base font-semibold flex items-center gap-2">
                                     <AlertTriangle className="h-5 w-5 text-action" />

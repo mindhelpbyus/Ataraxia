@@ -54,7 +54,7 @@ const recentActivity = [
 const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass }: any) => (
   <motion.div
     whileHover={{ y: -2 }}
-    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-card p-6 shadow-sm transition-all hover:shadow-md"
   >
     <div className="flex items-center justify-between">
       <div className={`rounded-xl p-2.5 ${colorClass} bg-opacity-10`}>
@@ -198,21 +198,21 @@ export function ProfessionalDashboard({ userRole, userEmail, onNavigate }: Profe
             <CardContent className="space-y-3">
               <Button
                 variant="secondary"
-                className="w-full justify-start bg-white/10 hover:bg-white/20 text-white border-none h-12"
+                className="w-full justify-start bg-card/10 hover:bg-card/20 text-white border-none h-12"
                 onClick={() => onNavigate('clients')}
               >
                 <Users className="mr-3 h-5 w-5" /> Add New Client
               </Button>
               <Button
                 variant="secondary"
-                className="w-full justify-start bg-white/10 hover:bg-white/20 text-white border-none h-12"
+                className="w-full justify-start bg-card/10 hover:bg-card/20 text-white border-none h-12"
                 onClick={() => onNavigate('notes')}
               >
                 <FileText className="mr-3 h-5 w-5" /> Write Session Notes
               </Button>
               <Button
                 variant="secondary"
-                className="w-full justify-start bg-white/10 hover:bg-white/20 text-white border-none h-12"
+                className="w-full justify-start bg-card/10 hover:bg-card/20 text-white border-none h-12"
                 onClick={() => onNavigate('messages')}
               >
                 <Mail className="mr-3 h-5 w-5" /> Send Message

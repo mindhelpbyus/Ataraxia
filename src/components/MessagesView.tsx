@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { messagingService } from '../api/messaging';
 import type { Conversation, Message, UserRole } from '../api/messaging';
+import { appsyncEvents, conversationChannel, type ChatEvent } from '../api/appsyncEvents';
 
 interface MessagesViewProps {
   currentUserId: string;
@@ -53,7 +54,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
     const loadConversations = async () => {
       setIsLoading(true);
       try {
-        const loadedConversations = await messagingService.getConversations();
+        const loadedConversations = await messagingService.getConversations(currentUserId);
         setConversations(loadedConversations);
         if (loadedConversations.length > 0) {
           setSelectedConversation(loadedConversations[0]);
@@ -81,7 +82,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
           setMessages(loadedMessages);
 
           await messagingService.markAsRead(selectedConversation.id);
-          const updatedConversations = await messagingService.getConversations();
+          const updatedConversations = await messagingService.getConversations(currentUserId);
           setConversations(updatedConversations);
         } catch (error) {
           console.error('Failed to load messages:', error);
@@ -92,6 +93,30 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
     loadConversationMessages();
   }, [selectedConversation]);
 
+  // Real-time: subscribe to the selected conversation's AppSync Event API channel.
+  // Same backend/channel as the mobile apps (chat/channel/{conversationId}), so
+  // web ↔ mobile messages arrive live.
+  useEffect(() => {
+    if (!selectedConversation) return;
+    const channel = conversationChannel(selectedConversation.id);
+
+    const onEvent = (event: ChatEvent) => {
+      if (event.type !== 'message') return;
+      const incoming = mapEventToMessage(event, currentUserId);
+      if (!incoming) return;
+      // Ignore our own echoes; dedupe by id.
+      if (incoming.senderId === currentUserId) return;
+      setMessages((prev) => (prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming]));
+      // Refresh the conversation list (last message / unread).
+      messagingService.getConversations(currentUserId).then(setConversations).catch(() => {});
+    };
+
+    const unsubscribe = appsyncEvents.subscribe(channel, onEvent, (err) =>
+      console.error('AppSync subscription error:', err),
+    );
+    return unsubscribe;
+  }, [selectedConversation, currentUserId]);
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
 
@@ -100,7 +125,25 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
       setMessages(prev => [...prev, sent]);
       setNewMessage('');
 
-      const updatedConversations = await messagingService.getConversations();
+      // Publish to the AppSync channel so the recipient's live subscription
+      // receives it immediately (REST persists; AppSync delivers in real time).
+      void appsyncEvents.publish(conversationChannel(selectedConversation.id), {
+        type: 'message',
+        conversationId: selectedConversation.id,
+        payload: {
+          id: sent.id,
+          conversationId: sent.conversationId,
+          senderId: sent.senderId,
+          senderName: sent.senderName,
+          content: sent.content,
+          type: 'text',
+          timestamp: sent.timestamp,
+          status: 'sent',
+        },
+        timestamp: new Date().toISOString(),
+      });
+
+      const updatedConversations = await messagingService.getConversations(currentUserId);
       setConversations(updatedConversations);
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -117,7 +160,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
   const toggleStar = async (conversationId: string) => {
     try {
       await messagingService.toggleStar(conversationId);
-      const updatedConversations = await messagingService.getConversations();
+      const updatedConversations = await messagingService.getConversations(currentUserId);
       setConversations(updatedConversations);
 
       if (selectedConversation?.id === conversationId) {
@@ -138,7 +181,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
       case 'client':
         return <UserCircle2 className="w-3 h-3" />;
       case 'admin':
-      case 'super_admin':
+      case 'superadmin':
         return <ShieldCheck className="w-3 h-3" />;
     }
   };
@@ -153,7 +196,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
         return 'bg-green-100 text-green-700';
       case 'admin':
         return 'bg-amber-100 text-amber-700';
-      case 'super_admin':
+      case 'superadmin':
         return 'bg-red-100 text-red-700';
     }
   };
@@ -196,7 +239,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
       if (filterRole === 'therapist') {
         // 'therapist' filter acts as 'Staff' filter
         return conv.participants.some(p =>
-          (p.role === 'therapist' || p.role === 'receptionist' || p.role === 'admin' || p.role === 'super_admin') &&
+          (p.role === 'therapist' || p.role === 'receptionist' || p.role === 'admin' || p.role === 'superadmin') &&
           p.id !== CURRENT_USER.id
         );
       }
@@ -211,7 +254,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
   const otherParticipant = selectedConversation?.participants.find(p => p.id !== CURRENT_USER.id);
 
   return (
-    <div className="h-full bg-white p-6">
+    <div className="h-full bg-card p-6">
       <div className="max-w-full mx-auto">
         <div className="grid grid-cols-12 gap-6" style={{ height: '800px' }}>
           {/* Conversations List */}
@@ -221,7 +264,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                 <div className="space-y-2.5 w-full">
                   {/* Search */}
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -264,12 +307,12 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
 
               <CardContent className="flex-1 overflow-y-auto p-0 min-h-0">
                 {isLoading ? (
-                  <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
+                  <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
                     Loading...
                   </div>
                 ) : filteredConversations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500 p-6">
-                    <MessageSquare className="w-12 h-12 mb-2 text-gray-300" />
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-6">
+                    <MessageSquare className="w-12 h-12 mb-2 text-muted-foreground" />
                     <p className="text-sm">No conversations found</p>
                   </div>
                 ) : (
@@ -282,7 +325,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                         <div
                           key={conv.id}
                           onClick={() => setSelectedConversation(conv)}
-                          className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConversation?.id === conv.id ? 'bg-action-light border-l-4 border-[#1E7048]' : ''
+                          className={`p-4 cursor-pointer hover:bg-[var(--surface-warm)] transition-colors ${selectedConversation?.id === conv.id ? 'bg-action-light border-l-4 border-[#1E7048]' : ''
                             }`}
                         >
                           <div className="flex items-start gap-3">
@@ -295,14 +338,14 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-sm text-gray-900 truncate">
+                                  <span className="font-semibold text-sm text-foreground truncate">
                                     {participant.name}
                                   </span>
                                   {conv.isStarred && (
                                     <Star className="w-3 h-3 text-[#1E7048] fill-[#1E7048]" />
                                   )}
                                 </div>
-                                <span className="text-xs text-gray-500 flex-shrink-0">
+                                <span className="text-xs text-muted-foreground flex-shrink-0">
                                   {formatTimestamp(conv.lastMessage.timestamp)}
                                 </span>
                               </div>
@@ -315,7 +358,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
 
                               </div>
 
-                              <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                              <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
                                 {conv.lastMessage.senderId === CURRENT_USER.id ? 'You: ' : ''}
                                 {conv.lastMessage.content}
                               </p>
@@ -350,13 +393,13 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{otherParticipant.name}</h3>
+                        <h3 className="font-semibold text-foreground">{otherParticipant.name}</h3>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={`text-xs ${getRoleBadgeColor(otherParticipant.role)} border-0`}>
                             <span className="mr-1">{getRoleIcon(otherParticipant.role)}</span>
                             {otherParticipant.role}
                           </Badge>
-                          <span className="text-xs text-gray-500">Active now</span>
+                          <span className="text-xs text-muted-foreground">Active now</span>
                         </div>
                       </div>
                     </div>
@@ -367,7 +410,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                         size="sm"
                         onClick={() => toggleStar(selectedConversation.id)}
                       >
-                        <Star className={`w-4 h-4 ${selectedConversation.isStarred ? 'text-[#1E7048] fill-[#1E7048]' : 'text-gray-400'}`} />
+                        <Star className={`w-4 h-4 ${selectedConversation.isStarred ? 'text-[#1E7048] fill-[#1E7048]' : 'text-muted-foreground'}`} />
                       </Button>
                       <Button variant="ghost" size="sm">
                         <Phone className="w-4 h-4" />
@@ -407,7 +450,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                         <div className={`max-w-[70%] ${isCurrentUser ? 'order-2' : 'order-1'}`}>
                           {!isCurrentUser && (
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-medium text-gray-700">
+                              <span className="text-xs font-medium text-foreground">
                                 {message.senderName}
                               </span>
                               <Badge variant="outline" className={`text-xs ${getRoleBadgeColor(message.senderRole)} border-0`}>
@@ -418,14 +461,14 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                           <div
                             className={`rounded-lg px-4 py-2 ${isCurrentUser
                               ? 'bg-[#1E7048] text-white'
-                              : 'bg-gray-100 text-gray-900'
+                              : 'bg-muted text-foreground'
                               }`}
                           >
                             <p className="text-sm whitespace-pre-wrap break-words">
                               {message.content}
                             </p>
                           </div>
-                          <div className={`flex items-center gap-1 mt-1 text-xs text-gray-500 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`flex items-center gap-1 mt-1 text-xs text-muted-foreground ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
                             <Clock className="w-3 h-3" />
                             <span>{formatTimestamp(message.timestamp)}</span>
                             {isCurrentUser && message.read && (
@@ -461,7 +504,7 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Messages are encrypted and HIPAA-compliant. Press Enter to send, Shift+Enter for new line.
                   </p>
                 </div>
@@ -469,8 +512,8 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
             ) : (
               <Card className="h-full flex flex-col overflow-hidden">
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <div className="text-center text-muted-foreground">
+                    <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-lg font-medium">Select a conversation</p>
                     <p className="text-sm mt-1">Choose a conversation from the list to start messaging</p>
                   </div>
@@ -482,4 +525,23 @@ export function MessagesView({ currentUserId, currentUserName, currentUserEmail,
       </div>
     </div>
   );
+}
+
+/** Map an AppSync `message` event payload to our Message shape. */
+function mapEventToMessage(event: ChatEvent, currentUserId: string): Message | null {
+  const p = event.payload as Record<string, unknown>;
+  const id = (p.id as string) ?? '';
+  const senderId = (p.senderId as string) ?? '';
+  const content = (p.content as string) ?? '';
+  if (!id || !content) return null;
+  return {
+    id,
+    conversationId: (p.conversationId as string) ?? event.conversationId,
+    senderId,
+    senderName: (p.senderName as string) ?? 'Unknown',
+    senderRole: ((p.senderRole as UserRole) ?? 'client'),
+    content,
+    timestamp: (p.timestamp as string) ?? event.timestamp,
+    read: senderId === currentUserId,
+  };
 }

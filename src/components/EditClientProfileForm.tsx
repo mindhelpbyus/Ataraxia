@@ -123,7 +123,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
             <DialogContent className="sm:max-w-[900px] h-[90vh] flex flex-col p-0 gap-0 z-[100] bg-zinc-50/50">
-                <DialogHeader className="p-6 border-b border-zinc-200 bg-white">
+                <DialogHeader className="p-6 border-b border-zinc-200 bg-card">
                     <div className="flex items-center justify-between">
                         <div>
                             <DialogTitle className="text-xl font-semibold text-zinc-900">Edit Client Profile</DialogTitle>
@@ -148,8 +148,8 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                     </div>
                 </div>
 
-                <Tabs defaultValue="context" className="flex-1 flex flex-col overflow-hidden bg-white">
-                    <div className="px-6 pt-2 border-b border-zinc-200 bg-white sticky top-0 z-10">
+                <Tabs defaultValue="context" className="flex-1 flex flex-col overflow-hidden bg-card">
+                    <div className="px-6 pt-2 border-b border-zinc-200 bg-card sticky top-0 z-10">
                         <TabsList className="w-full justify-start h-12 bg-transparent p-0 space-x-6">
                             <TabsTrigger
                                 value="context"
@@ -189,7 +189,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
 
                             {/* TAB: CONTEXT */}
                             <TabsContent value="context" className="mt-0 space-y-6">
-                                <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
+                                <div className="bg-card p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
                                     <div className="flex items-center gap-2 mb-2">
                                         <User className="h-5 w-5 text-action" />
                                         <h3 className="text-lg font-semibold text-zinc-900">Identity Information</h3>
@@ -225,7 +225,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                                     </div>
                                 </div>
 
-                                <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6 opacity-70">
+                                <div className="bg-card p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6 opacity-70">
                                     <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Read Only Context</h3>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-1">
@@ -243,7 +243,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
 
                             {/* TAB: BACKGROUND */}
                             <TabsContent value="background" className="mt-0 space-y-6">
-                                <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
+                                <div className="bg-card p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
                                     <div className="flex items-center gap-2 mb-2">
                                         <FileText className="h-5 w-5 text-action" />
                                         <h3 className="text-lg font-semibold text-zinc-900">Client History (Append Only)</h3>
@@ -315,7 +315,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
 
                             {/* TAB: TREATMENT PLAN */}
                             <TabsContent value="treatment" className="mt-0 space-y-6">
-                                <div className="bg-white p-5 rounded-xl border border-zinc-200 shadow-sm space-y-4">
+                                <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm space-y-4">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Target className="h-5 w-5 text-action" />
                                         <h3 className="text-lg font-semibold text-zinc-900">Treatment Plan</h3>
@@ -413,7 +413,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
 
                             {/* TAB: CLINICAL NOTES */}
                             <TabsContent value="clinical" className="mt-0 space-y-6">
-                                <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
+                                <div className="bg-card p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
                                     <div className="flex items-center gap-2 mb-2">
                                         <FileText className="h-5 w-5 text-action" />
                                         <h3 className="text-lg font-semibold text-zinc-900">Last Session Notes</h3>
@@ -484,7 +484,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
 
                             {/* TAB: METADATA */}
                             <TabsContent value="metadata" className="mt-0 space-y-6">
-                                <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
+                                <div className="bg-card p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6">
                                     <h3 className="text-lg font-semibold text-zinc-900">Therapy Settings</h3>
                                     <div className="space-y-2 max-w-md">
                                         <Label>Session Frequency</Label>
@@ -503,7 +503,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                                     </div>
                                 </div>
 
-                                <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6 opacity-70">
+                                <div className="bg-card p-6 rounded-xl border border-zinc-200 shadow-sm space-y-6 opacity-70">
                                     <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">System Data (Read Only)</h3>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-2">
@@ -533,7 +533,7 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
                         </div>
                     </div>
 
-                    <div className="p-6 border-t border-zinc-200 bg-white flex justify-between items-center z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div className="p-6 border-t border-zinc-200 bg-card flex justify-between items-center z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                         <p className="text-sm text-zinc-500">Changes will be saved to the client's profile</p>
                         <div className="flex gap-3">
                             <Button variant="outline" onClick={onCancel}>Cancel</Button>

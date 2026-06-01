@@ -67,7 +67,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
             case 'happy': return <Smile className="w-6 h-6 text-green-500" />;
             case 'neutral': return <Meh className="w-6 h-6 text-yellow-500" />;
             case 'sad': return <Frown className="w-6 h-6 text-action" />;
-            default: return <Meh className="w-6 h-6 text-gray-400" />;
+            default: return <Meh className="w-6 h-6 text-muted-foreground" />;
         }
     };
 
@@ -83,7 +83,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
         <div className="min-h-screen bg-gradient-to-br from-action-light/50 via-white to-action-light/30">
 
             {/* Top Navigation Bar */}
-            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-action-light/50 shadow-sm">
+            <nav className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-action-light/50 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
 
@@ -96,7 +96,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                 <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-action bg-clip-text text-transparent">
                                     Ataraxia
                                 </h1>
-                                <p className="text-xs text-gray-500">Your Wellness Journey</p>
+                                <p className="text-xs text-muted-foreground">Your Wellness Journey</p>
                             </div>
                         </div>
 
@@ -113,7 +113,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                             flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-medium text-sm
                                             ${isActive
                                                 ? 'bg-gradient-to-r from-action to-orange-600 text-white shadow-lg shadow-action/30'
-                                                : 'text-gray-600 hover:bg-action-light hover:text-action'
+                                                : 'text-muted-foreground hover:bg-action-light hover:text-action'
                                             }
                                         `}
                                     >
@@ -127,22 +127,22 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                         {/* Right Side */}
                         <div className="flex items-center gap-3">
                             <Button variant="ghost" size="icon" className="relative hidden md:flex">
-                                <Bell className="w-5 h-5 text-gray-600" />
+                                <Bell className="w-5 h-5 text-muted-foreground" />
                                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-action rounded-full"></span>
                             </Button>
 
                             {/* User Menu */}
-                            <div className="hidden md:flex items-center gap-3 pl-3 border-l border-gray-200">
+                            <div className="hidden md:flex items-center gap-3 pl-3 border-l border-border">
                                 <Avatar className="w-9 h-9 border-2 border-action-light">
                                     <AvatarFallback className="bg-gradient-to-br from-action to-orange-600 text-white text-sm">
                                         {userName?.split(' ').map(n => n[0]).join('') || 'U'}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="text-left">
-                                    <p className="text-sm font-semibold text-gray-900">{userName || 'User'}</p>
+                                    <p className="text-sm font-semibold text-foreground">{userName || 'User'}</p>
                                     <button
                                         onClick={onLogout}
-                                        className="text-xs text-gray-500 hover:text-action transition-colors"
+                                        className="text-xs text-muted-foreground hover:text-action transition-colors"
                                     >
                                         Sign Out
                                     </button>
@@ -169,7 +169,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="md:hidden border-t border-action-light bg-white"
+                            className="md:hidden border-t border-action-light bg-card"
                         >
                             <div className="px-4 py-4 space-y-2">
                                 {navItems.map((item) => {
@@ -186,7 +186,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                                 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium
                                                 ${isActive
                                                     ? 'bg-gradient-to-r from-action to-orange-600 text-white'
-                                                    : 'text-gray-600 hover:bg-action-light'
+                                                    : 'text-muted-foreground hover:bg-action-light'
                                                 }
                                             `}
                                         >
@@ -195,11 +195,11 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                         </button>
                                     );
                                 })}
-                                <div className="pt-4 border-t border-gray-200">
+                                <div className="pt-4 border-t border-border">
                                     <Button
                                         onClick={onLogout}
                                         variant="outline"
-                                        className="w-full justify-start text-gray-600"
+                                        className="w-full justify-start text-muted-foreground"
                                     >
                                         <LogOut className="w-4 h-4 mr-2" />
                                         Sign Out
@@ -220,10 +220,10 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-8"
                 >
-                    <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
                         Welcome back, {userName?.split(' ')[0] || 'there'} 👋
                     </h2>
-                    <p className="text-gray-600">How are you feeling today?</p>
+                    <p className="text-muted-foreground">How are you feeling today?</p>
                 </motion.div>
 
                 {/* Quick Mood Check */}
@@ -233,7 +233,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                     transition={{ delay: 0.1 }}
                     className="mb-8"
                 >
-                    <Card className="border-2 border-action-light bg-white shadow-xl shadow-action/5">
+                    <Card className="border-2 border-action-light bg-card shadow-xl shadow-action/5">
                         <CardHeader className="pb-4">
                             <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                                 <Heart className="w-5 h-5 text-action" />
@@ -258,7 +258,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                             flex flex-col items-center justify-center gap-2 sm:gap-3 p-4 sm:p-6 rounded-2xl border-2 transition-all
                                             ${selectedMood === item.mood
                                                 ? `bg-gradient-to-br ${item.color} text-white border-transparent shadow-lg`
-                                                : 'bg-white border-gray-200 hover:border-action-border text-gray-600'
+                                                : 'bg-card border-border hover:border-action-border text-muted-foreground'
                                             }
                                         `}
                                     >
@@ -297,7 +297,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                 <CardContent className="p-6 sm:p-8">
                                     <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
                                         <div className="space-y-4 flex-1">
-                                            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                                            <Badge className="bg-card/20 text-white border-white/30 backdrop-blur-sm">
                                                 <Video className="w-3 h-3 mr-1" />
                                                 Upcoming Session
                                             </Badge>
@@ -308,7 +308,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                             <div className="flex items-center gap-4 pt-2">
                                                 <Avatar className="w-14 h-14 sm:w-16 sm:h-16 border-4 border-white/30">
                                                     <AvatarImage src={upcomingSession.therapistImage} />
-                                                    <AvatarFallback className="bg-white/20">SJ</AvatarFallback>
+                                                    <AvatarFallback className="bg-card/20">SJ</AvatarFallback>
                                                 </Avatar>
                                                 <div>
                                                     <p className="font-bold text-base sm:text-lg">{upcomingSession.therapist}</p>
@@ -318,7 +318,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                         </div>
                                         <Button
                                             size="lg"
-                                            className="w-full sm:w-auto bg-white text-action hover:bg-action-light shadow-xl font-bold"
+                                            className="w-full sm:w-auto bg-card text-action hover:bg-action-light shadow-xl font-bold"
                                         >
                                             Join Now
                                             <ChevronRight className="w-5 h-5 ml-2" />
@@ -334,7 +334,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
                         >
-                            <Card className="shadow-lg shadow-gray-200/50 border-gray-200">
+                            <Card className="shadow-lg shadow-gray-200/50 border-border">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-lg">
                                         <MessageSquare className="w-5 h-5 text-action" />
@@ -346,11 +346,11 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                         <motion.button
                                             key={index}
                                             whileHover={{ x: 4 }}
-                                            className="w-full text-left p-4 rounded-xl bg-gradient-to-r from-gray-50 to-action-light/30 border border-gray-200 hover:border-action-border transition-all group"
+                                            className="w-full text-left p-4 rounded-xl bg-gradient-to-r from-gray-50 to-action-light/30 border border-border hover:border-action-border transition-all group"
                                         >
                                             <div className="flex items-center justify-between">
-                                                <p className="text-gray-700 font-medium text-sm sm:text-base">{prompt}</p>
-                                                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-action transition-colors flex-shrink-0" />
+                                                <p className="text-foreground font-medium text-sm sm:text-base">{prompt}</p>
+                                                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-action transition-colors flex-shrink-0" />
                                             </div>
                                         </motion.button>
                                     ))}
@@ -371,7 +371,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
                         >
-                            <Card className="shadow-lg shadow-gray-200/50 border-gray-200">
+                            <Card className="shadow-lg shadow-gray-200/50 border-border">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-lg">
                                         <TrendingUp className="w-5 h-5 text-action" />
@@ -382,7 +382,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                     <div className="grid grid-cols-7 gap-2 sm:gap-3">
                                         {moodHistory.map((day, index) => (
                                             <div key={index} className="flex flex-col items-center gap-2">
-                                                <div className="text-xs text-gray-500 font-semibold">{day.date}</div>
+                                                <div className="text-xs text-muted-foreground font-semibold">{day.date}</div>
                                                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-action-light to-action-light flex items-center justify-center border-2 border-action-light shadow-sm">
                                                     {getMoodIcon(day.mood)}
                                                 </div>
@@ -409,7 +409,7 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <Card className="shadow-lg shadow-gray-200/50 border-gray-200">
+                            <Card className="shadow-lg shadow-gray-200/50 border-border">
                                 <CardHeader>
                                     <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
                                 </CardHeader>
@@ -466,20 +466,20 @@ export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLa
                                 <CardContent className="space-y-4">
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
-                                            <span className="text-gray-700 font-medium">Sessions Completed</span>
+                                            <span className="text-foreground font-medium">Sessions Completed</span>
                                             <span className="font-bold text-green-600">8/12</span>
                                         </div>
                                         <Progress value={67} className="h-2.5 bg-green-100" />
                                     </div>
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
-                                            <span className="text-gray-700 font-medium">Journal Entries</span>
+                                            <span className="text-foreground font-medium">Journal Entries</span>
                                             <span className="font-bold text-green-600">24</span>
                                         </div>
                                         <Progress value={80} className="h-2.5 bg-green-100" />
                                     </div>
                                     <div className="pt-4 border-t border-green-200">
-                                        <p className="text-sm text-gray-700 font-medium">
+                                        <p className="text-sm text-foreground font-medium">
                                             🎉 You're making great progress! Keep it up.
                                         </p>
                                     </div>

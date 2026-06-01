@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+          <div className="bg-card rounded-lg shadow-xl p-8 max-w-2xl w-full">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,8 +43,8 @@ export class ErrorBoundary extends Component<Props, State> {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Application Error</h1>
-                <p className="text-sm text-gray-600">Something went wrong loading the application</p>
+                <h1 className="text-2xl font-bold text-foreground">Application Error</h1>
+                <p className="text-sm text-muted-foreground">Something went wrong loading the application</p>
               </div>
             </div>
 
@@ -56,9 +56,9 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {this.state.errorInfo && (
-              <details className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                <summary className="font-semibold text-gray-900 cursor-pointer">Stack Trace</summary>
-                <pre className="mt-2 text-xs text-gray-700 overflow-auto max-h-96">
+              <details className="bg-[var(--surface-warm)] border border-border rounded-lg p-4 mb-4">
+                <summary className="font-semibold text-foreground cursor-pointer">Stack Trace</summary>
+                <pre className="mt-2 text-xs text-foreground overflow-auto max-h-96">
                   {this.state.errorInfo.componentStack}
                 </pre>
               </details>
@@ -74,7 +74,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <button
                 onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
-                className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                className="w-full bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-[var(--rule)] transition-colors"
               >
                 Try Again
               </button>

@@ -1,4 +1,7 @@
-export type UserRole = 'super_admin' | 'org_admin' | 'org_receptionist' | 'therapist' | 'client';
+// Canonical app role vocabulary. The backend/Cognito may emit variant spellings
+// (e.g. 'super_admin'); always pass raw role strings through `normalizeRole`
+// (src/api/auth.ts) before comparing.
+export type UserRole = 'superadmin' | 'org_admin' | 'org_receptionist' | 'therapist' | 'client';
 
 export interface User {
     id: string;

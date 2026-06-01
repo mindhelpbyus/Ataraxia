@@ -205,14 +205,14 @@ export function TwoFactorSetup({ userId, phoneNumber }: TwoFactorSetupProps) {
       <CardContent className="space-y-4">
         {/* Status Badge */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Status:</span>
+          <span className="text-sm text-muted-foreground">Status:</span>
           {is2FAEnabled ? (
             <Badge className="bg-green-100 text-green-800 border-green-300">
               <ShieldCheck className="w-3 h-3 mr-1" />
               Enabled
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-gray-600">
+            <Badge variant="outline" className="text-muted-foreground">
               <ShieldAlert className="w-3 h-3 mr-1" />
               Disabled
             </Badge>
@@ -239,13 +239,13 @@ export function TwoFactorSetup({ userId, phoneNumber }: TwoFactorSetupProps) {
             {enrolledFactors.map((factor) => (
               <div
                 key={factor.uid}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-3 bg-[var(--surface-warm)] rounded-lg"
               >
                 <div className="flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-gray-600" />
+                  <Smartphone className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">{factor.displayName || 'Phone'}</p>
-                    <p className="text-xs text-gray-500">{factor.phoneNumber}</p>
+                    <p className="text-xs text-muted-foreground">{factor.phoneNumber}</p>
                   </div>
                 </div>
                 <Button
@@ -320,7 +320,7 @@ export function TwoFactorSetup({ userId, phoneNumber }: TwoFactorSetupProps) {
                     maxLength={6}
                     disabled={isLoading}
                   />
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Enter the 6-digit code sent to {enrollmentPhone}
                   </p>
                 </div>
@@ -357,13 +357,13 @@ export function TwoFactorSetup({ userId, phoneNumber }: TwoFactorSetupProps) {
         ) : (
           !is2FAEnabled && (
             <div className="space-y-3">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-700 mb-2">
+              <div className="p-4 bg-[var(--surface-warm)] rounded-lg">
+                <p className="text-sm text-foreground mb-2">
                   Two-factor authentication adds an extra layer of security to your account.
                   After enabling 2FA, you'll need to enter a code from your phone in addition
                   to your password when signing in.
                 </p>
-                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                   <li>Protects your account even if your password is compromised</li>
                   <li>Receive verification codes via SMS</li>
                   <li>Can be disabled at any time</li>

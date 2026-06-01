@@ -295,7 +295,7 @@ export function AvatarGalleryDialog({
               onClick={() => handleSelect(avatar.id)}
               className={`relative aspect-square rounded-full overflow-hidden border-4 transition-all hover:scale-105 ${tempSelectedId === avatar.id
                 ? 'border-blue-600 ring-2 ring-blue-600 ring-offset-2'
-                : 'border-gray-300 hover:border-gray-400'
+                : 'border-border hover:border-gray-400'
                 }`}
             >
               {/* Avatar image */}

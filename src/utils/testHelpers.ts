@@ -70,7 +70,7 @@ export const sqlInjectionArbitrary = (): fc.Arbitrary<string> => {
  */
 export const phiDataArbitrary = (): fc.Arbitrary<Record<string, unknown>> => {
   return fc.record({
-    name: fc.fullUnicodeString({ minLength: 1, maxLength: 50 }),
+    name: fc.string({ minLength: 1, maxLength: 50 }),
     email: emailArbitrary(),
     phone: phoneArbitrary(),
     ssn: fc.tuple(

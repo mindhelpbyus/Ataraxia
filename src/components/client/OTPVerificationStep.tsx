@@ -51,7 +51,7 @@ export function OTPVerificationStep({
                 </p>
             </div>
 
-            <Card className="border-gray-200">
+            <Card className="border-border">
                 <CardContent className="pt-6 space-y-6">
                     <div>
                         <h3 className="text-base font-semibold mb-4">Choose Verification Method</h3>
@@ -59,14 +59,14 @@ export function OTPVerificationStep({
                             <div
                                 className={`flex items-start space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 ${verificationType === 'email'
                                         ? 'border-[#1E7048] bg-action-light shadow-sm'
-                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                        : 'border-border hover:border-border hover:bg-[var(--surface-warm)]'
                                     }`}
                                 onClick={() => setVerificationType('email')}
                             >
                                 <RadioGroupItem value="email" id="email" className="mt-1 data-[state=checked]:border-[#1E7048] data-[state=checked]:text-[#1E7048]" />
                                 <Label htmlFor="email" className="flex flex-col gap-1 cursor-pointer flex-1 font-normal">
-                                    <div className="flex items-center gap-2 font-medium text-gray-900">
-                                        <Mail className={`h-4 w-4 ${verificationType === 'email' ? 'text-[#1E7048]' : 'text-gray-500'}`} />
+                                    <div className="flex items-center gap-2 font-medium text-foreground">
+                                        <Mail className={`h-4 w-4 ${verificationType === 'email' ? 'text-[#1E7048]' : 'text-muted-foreground'}`} />
                                         Email Verification
                                     </div>
                                     <div className="text-sm text-muted-foreground break-all">{clientEmail}</div>
@@ -76,14 +76,14 @@ export function OTPVerificationStep({
                             <div
                                 className={`flex items-start space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 ${verificationType === 'sms'
                                         ? 'border-[#1E7048] bg-action-light shadow-sm'
-                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                        : 'border-border hover:border-border hover:bg-[var(--surface-warm)]'
                                     }`}
                                 onClick={() => setVerificationType('sms')}
                             >
                                 <RadioGroupItem value="sms" id="sms" className="mt-1 data-[state=checked]:border-[#1E7048] data-[state=checked]:text-[#1E7048]" />
                                 <Label htmlFor="sms" className="flex flex-col gap-1 cursor-pointer flex-1 font-normal">
-                                    <div className="flex items-center gap-2 font-medium text-gray-900">
-                                        <Phone className={`h-4 w-4 ${verificationType === 'sms' ? 'text-[#1E7048]' : 'text-gray-500'}`} />
+                                    <div className="flex items-center gap-2 font-medium text-foreground">
+                                        <Phone className={`h-4 w-4 ${verificationType === 'sms' ? 'text-[#1E7048]' : 'text-muted-foreground'}`} />
                                         SMS Verification
                                     </div>
                                     <div className="text-sm text-muted-foreground">{clientPhone}</div>
@@ -114,7 +114,7 @@ export function OTPVerificationStep({
                                 <CheckCircle2 className="h-4 w-4 mr-2" />
                                 Verify Code
                             </Button>
-                            <Button variant="ghost" onClick={handleSendOTP} className="w-full text-gray-600 hover:text-gray-900">
+                            <Button variant="ghost" onClick={handleSendOTP} className="w-full text-muted-foreground hover:text-foreground">
                                 Resend Code
                             </Button>
                         </div>

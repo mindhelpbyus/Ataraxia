@@ -148,7 +148,7 @@ export function SelectorExamples() {
         
         <div className="grid grid-cols-2 gap-6">
           {/* Basic Options */}
-          <div className="w-96 rounded bg-white shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
+          <div className="w-96 rounded bg-card shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
             <div className="pb-1.5">
               <MenuItem>Option</MenuItem>
               <MenuItem>Option</MenuItem>
@@ -159,7 +159,7 @@ export function SelectorExamples() {
           </div>
 
           {/* Options with Checkboxes */}
-          <div className="w-96 rounded bg-white shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
+          <div className="w-96 rounded bg-card shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
             <div className="pb-1.5">
               <MenuItem variant="with-checkbox">Option</MenuItem>
               <MenuItem variant="with-checkbox" selected>Selected Option</MenuItem>
@@ -169,7 +169,7 @@ export function SelectorExamples() {
           </div>
 
           {/* Options with Radio Buttons */}
-          <div className="w-96 rounded bg-white shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
+          <div className="w-96 rounded bg-card shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
             <div className="pb-1.5">
               <MenuItem variant="with-radio">Option</MenuItem>
               <MenuItem variant="with-radio" selected>Selected Option</MenuItem>
@@ -179,7 +179,7 @@ export function SelectorExamples() {
           </div>
 
           {/* Options with Small Avatars */}
-          <div className="w-96 rounded bg-white shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
+          <div className="w-96 rounded bg-card shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
             <div className="pb-1.5">
               <MenuItem
                 variant="with-avatar"
@@ -214,7 +214,7 @@ export function SelectorExamples() {
           </div>
 
           {/* Options with Large Avatars */}
-          <div className="w-96 rounded bg-white shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
+          <div className="w-96 rounded bg-card shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
             <div className="pb-1.5">
               <MenuItem
                 variant="with-avatar-large"
@@ -245,7 +245,7 @@ export function SelectorExamples() {
           </div>
 
           {/* Options with Icons */}
-          <div className="w-96 rounded bg-white shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
+          <div className="w-96 rounded bg-card shadow-[0px_4px_20px_0px_rgba(230,233,239,1.00)] outline outline-1 outline-offset-[-1px] outline-gray-100">
             <div className="pb-1.5">
               <MenuItem
                 variant="with-icon"
