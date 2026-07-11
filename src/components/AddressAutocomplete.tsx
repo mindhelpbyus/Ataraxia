@@ -41,7 +41,6 @@ export function AddressAutocomplete({
   success = false,
   className = '',
   showIcon = true,
-  userCountryCode = 'IN',
 }: AddressAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 

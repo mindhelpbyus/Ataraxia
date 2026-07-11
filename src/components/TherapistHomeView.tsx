@@ -1,19 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent } from './ui/card';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Avatar, AvatarFallback } from './ui/avatar';
 import {
   CalendarDays,
   Users,
-  ClipboardList,
   FileText,
-  AlertTriangle,
   DollarSign,
   TrendingUp,
   Clock,
-  UserPlus,
   CheckCircle2,
   Video,
   Coffee,
@@ -22,10 +17,9 @@ import {
   CloudSun,
   Award
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getTherapistAppointments } from '../api/appointmentsBackend';
-import { dataService } from '../api';
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isFuture, parseISO, getHours } from 'date-fns';
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO, getHours } from 'date-fns';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
@@ -105,7 +99,7 @@ const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, coun
 };
 
 // 2. Breathing Stats Cards
-const BreathingStatCard = ({ icon: Icon, label, value, trend, index, delay }: any) => (
+const BreathingStatCard = ({ icon: Icon, label, value, trend, delay }: any) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -215,7 +209,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
 
             {/* Right: Action Grid */}
             <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mandatorySections.map((section, idx) => {
+              {mandatorySections.map((section, _idx) => {
                 const isCompleted = section.status === 'completed';
                 return (
                   <motion.button
@@ -283,13 +277,13 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
 
 export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus }: TherapistHomeViewProps & { accountStatus?: string }) {
   const userName = getUserName(userEmail);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   // Metrics State
   const [todaySessionsCount, setTodaySessionsCount] = useState(0);
   const [monthSessions, setMonthSessions] = useState(0);
   const [pendingNotes, setPendingNotes] = useState(0);
-  const [riskAlerts, setRiskAlerts] = useState<any[]>([]);
+  const [, setRiskAlerts] = useState<any[]>([]);
   const [todaySchedule, setTodaySchedule] = useState<any[]>([]);
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
   const [revenueThisMonth, setRevenueThisMonth] = useState(0);
@@ -297,7 +291,6 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
 
   // Profile Completion State
   const [profileCompletion, setProfileCompletion] = useState(10); // Default 10% after registration
-  const [showCompletionBanner, setShowCompletionBanner] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
@@ -319,15 +312,6 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
     } catch (error) {
       console.error('Failed to load profile completion:', error);
     }
-  };
-
-  const handleCompleteProfile = () => {
-    onNavigate('settings');
-  };
-
-  const handleDismissBanner = () => {
-    setShowCompletionBanner(false);
-    localStorage.setItem(`dismissedBanner_${userId}`, 'true');
   };
 
   const loadDashboardData = async () => {

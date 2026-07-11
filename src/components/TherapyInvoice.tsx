@@ -106,11 +106,6 @@ export function TherapyInvoice({ invoiceData }: { invoiceData?: InvoiceData; com
   const total    = subtotal + taxAmt - invoice.discount;
   const sc       = statusColor(invoice.status);
 
-  const handleDownload = () => {
-    setDownloading(true);
-    setTimeout(() => setDownloading(false), 1800);
-  };
-
   return (
     <div style={styles.page} className="invoice-print-wrapper">
       <style>

@@ -7,8 +7,6 @@ import {
     Heart,
     TrendingUp,
     Sparkles,
-    Sun,
-    Moon,
     Cloud,
     Zap,
     Smile,
@@ -50,7 +48,7 @@ const journalPrompts = [
     "How did you practice self-care today?"
 ];
 
-export function ClientDashboardView({ userId, userEmail, userName, onNavigate }: ClientDashboardViewProps) {
+export function ClientDashboardView({ userId, userName }: ClientDashboardViewProps) {
     const [selectedMood, setSelectedMood] = useState<string | null>(null);
     const [upcomingSession, setUpcomingSession] = useState<any>({
         therapist: 'Dr. Sarah Johnson',

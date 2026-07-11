@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { UserRole } from '../types/appointment';
 import { TherapistReports } from './reports/TherapistReports';
 import { AdminReports } from './reports/AdminReports';

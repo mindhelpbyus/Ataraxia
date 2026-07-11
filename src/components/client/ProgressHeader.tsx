@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 
@@ -8,7 +8,7 @@ interface ProgressHeaderProps {
     stepTitle: string;
 }
 
-export function ProgressHeader({ currentStep, totalSteps, stepTitle }: ProgressHeaderProps) {
+export function ProgressHeader({ currentStep, totalSteps }: ProgressHeaderProps) {
     const progressPercent = (currentStep / totalSteps) * 100;
 
     return (

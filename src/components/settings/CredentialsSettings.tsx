@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../ui/checkbox';
 import { toast } from 'sonner';
 import { SettingsSection } from './SettingsSection';
-import { GraduationCap, Brain, Heart } from "lucide-react";
+import { Brain, Heart } from "lucide-react";
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import {

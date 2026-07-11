@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { StepProps } from './types';
 import { PresentingConcerns } from '../PresentingConcerns';
 

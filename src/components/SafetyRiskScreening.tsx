@@ -1,6 +1,6 @@
-import React from 'react';
-import { AlertTriangle, Phone, MessageSquare, Heart, Shield, AlertCircle, Brain, Clock } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+
+import { AlertTriangle, MessageSquare, Heart, Shield, AlertCircle, Brain, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Textarea } from './ui/textarea';

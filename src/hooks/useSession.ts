@@ -24,7 +24,7 @@ export function useSession(sessionId?: string, pollInterval: number = 5000) {
   const [jwt, setJwt] = useState<string | null>(null);
 
   // Poll for session updates if sessionId is provided
-  const { data: polledSession } = usePolling(
+  usePolling(
     async () => {
       if (!sessionId) throw new Error('No session ID');
       return getSession(sessionId);

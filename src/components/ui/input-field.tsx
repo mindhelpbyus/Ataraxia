@@ -1,6 +1,5 @@
 import React, { useState, forwardRef } from 'react';
 import { Label } from './label';
-import { MagnifyingGlass } from '@phosphor-icons/react';
 
 export interface InputFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
   label?: string;

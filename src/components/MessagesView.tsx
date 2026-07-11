@@ -33,7 +33,7 @@ interface MessagesViewProps {
   userRole?: string;
 }
 
-export function MessagesView({ currentUserId, currentUserName, currentUserEmail, userRole = 'therapist' }: MessagesViewProps) {
+export function MessagesView({ currentUserId, currentUserName, userRole = 'therapist' }: MessagesViewProps) {
   const CURRENT_USER = {
     id: currentUserId,
     name: currentUserName,

@@ -1,8 +1,7 @@
-import React from 'react';
+
 import { Appointment, Therapist } from '../types/appointment';
-import { format, isSameDay, isToday, isTomorrow, isThisWeek } from 'date-fns';
-import { Clock, CalendarBlank, User, ListBullets } from '@phosphor-icons/react';
-import { Badge } from './ui/badge';
+import { format, isToday, isTomorrow, isThisWeek } from 'date-fns';
+import { Clock, CalendarBlank, ListBullets } from '@phosphor-icons/react';
 
 interface AgendaViewProps {
   appointments: Appointment[];
@@ -11,7 +10,7 @@ interface AgendaViewProps {
   onAppointmentClick: (appointment: Appointment) => void;
 }
 
-export function AgendaView({ appointments, therapists, currentDate, onAppointmentClick }: AgendaViewProps) {
+export function AgendaView({ appointments, therapists, onAppointmentClick }: AgendaViewProps) {
   // Get upcoming appointments (next 7 days)
   const now = new Date();
   const upcomingAppointments = appointments
@@ -70,7 +69,6 @@ export function AgendaView({ appointments, therapists, currentDate, onAppointmen
                 {dayAppointments.map((appointment) => {
                   const therapist = getTherapist(appointment.therapistId);
                   const startTime = new Date(appointment.startTime);
-                  const endTime = new Date(appointment.endTime);
                   
                   return (
                     <button

@@ -78,7 +78,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
 
     // Detect OS for keyboard shortcut
     const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    const commandKey = isMac ? '⌘' : 'Ctrl';
+
 
     return (
       <div

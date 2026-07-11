@@ -1,16 +1,14 @@
-import React from 'react';
+
 import { motion } from 'framer-motion';
 import {
   Users,
   CalendarDays,
   DollarSign,
-  TrendingUp,
   Clock,
   BarChart3,
   Target,
   ArrowUpRight,
   ArrowDownRight,
-  MoreHorizontal,
   ChevronRight,
   Activity
 } from 'lucide-react';
@@ -29,9 +27,7 @@ import {
   Radar,
   Legend
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Progress } from './ui/progress';
 
@@ -113,9 +109,8 @@ const PremiumMetricCard = ({ title, value, trend, trendValue, icon: Icon, colorC
   </motion.div>
 );
 
-export function AdminDashboardView({ userId, userEmail, onNavigate }: AdminDashboardViewProps) {
+export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardViewProps) {
   const userName = userEmail.split('@')[0].split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
-  const today = new Date();
 
   return (
     <div className="min-h-screen bg-background p-8 lg:p-12 font-sans selection:bg-indigo-100 selection:text-indigo-900">

@@ -1,4 +1,4 @@
-import { Check, Circle, XCircle } from 'lucide-react';
+import { Check, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Therapist } from '@/types/therapist';
 

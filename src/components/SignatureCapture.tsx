@@ -140,28 +140,6 @@ export function SignatureCapture({
     onSignatureChange(signatureData);
   };
 
-  const generateTypedSignatureCanvas = (name: string): string => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 150;
-    const ctx = canvas.getContext('2d');
-    
-    if (ctx) {
-      // White background
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Signature text
-      ctx.fillStyle = '#000000';
-      ctx.font = 'italic 48px "Brush Script MT", cursive';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(name, canvas.width / 2, canvas.height / 2);
-    }
-    
-    return canvas.toDataURL('image/png');
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

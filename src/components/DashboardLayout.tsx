@@ -16,7 +16,6 @@ const AdminDashboardView = lazy(() => named(import('./AdminDashboardView'), 'Adm
 const SuperAdminDashboardView = lazy(() => named(import('./SuperAdminDashboardView'), 'SuperAdminDashboardView'));
 const OrganizationManagementView = lazy(() => named(import('./OrganizationManagementView'), 'OrganizationManagementView'));
 const ProfessionalClientsView = lazy(() => named(import('./ProfessionalClientsView'), 'ProfessionalClientsView'));
-const TherapyVideoRoom = lazy(() => named(import('./TherapyVideoRoom'), 'TherapyVideoRoom'));
 const EnhancedTherapistsTable = lazy(() => named(import('./EnhancedTherapistsTable'), 'EnhancedTherapistsTable'));
 const VideoRoomsView = lazy(() => named(import('./VideoRoomsView'), 'VideoRoomsView'));
 const QuickNotesView = lazy(() => named(import('./QuickNotesView'), 'QuickNotesView'));
@@ -34,26 +33,18 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { Toaster } from './ui/sonner';
 
 import {
-  Plus,
   Settings,
   Bell,
   Search,
   ChevronDown,
   LogOut,
-  User,
   HelpCircle,
-  X,
-  ChevronLeft,
   ChevronRight,
   PanelLeft,
   PanelLeftClose,
   UserCog,
   Building2,
-  Mail,
-  ShieldCheck,
-  Palette,
   Sparkles,
-  Gift,
   Zap,
   Moon,
   Sun,
@@ -64,7 +55,6 @@ import {
   CheckSquare,
   FileText,
   BarChart3,
-  Shield,
   Video,
   Activity,
   History,
@@ -75,17 +65,14 @@ import {
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback } from './ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
-import { Input } from './ui/input';
-import { SearchBar } from './ui/search-bar';
 import { GlobalSearchBar } from './GlobalSearchBar';
 
 import { Dialog, DialogContent } from './ui/dialog';
-import { Separator } from './ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface DashboardLayoutProps {
   userRole: UserRole;
@@ -136,7 +123,7 @@ const SETTINGS_TITLES: Record<string, string> = {
   messaging: 'Messaging',
 };
 
-export function DashboardLayout({ userRole, currentUserId, userEmail, userName, accountStatus, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead, onNavigateToSecurity, onNavigateToMFA, onNavigateToSessions }: DashboardLayoutProps) {
+export function DashboardLayout({ userRole, currentUserId, userEmail, userName, accountStatus, onLogout, notifications, onMarkNotificationAsRead, onMarkAllNotificationsAsRead }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [activeSettingsTab, setActiveSettingsTab] = useState<string>('account');
   const [showSettingsNav, setShowSettingsNav] = useState(false);
@@ -145,7 +132,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [triggerNewAppointment, setTriggerNewAppointment] = useState(0);
+  const [triggerNewAppointment] = useState(0);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     'Overview': true,
     'Core Management': true,
@@ -178,7 +165,7 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     }
   };
 
-  const [subscriptionInfo, setSubscriptionInfo] = useState<{
+  const [, setSubscriptionInfo] = useState<{
     status: string;
     trialDaysRemaining: number | null;
     isTrialActive: boolean;
@@ -246,14 +233,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const handleNotificationClick = (notification: Notification) => {
-    onMarkNotificationAsRead(notification.id);
-    if (notification.type === 'message') {
-      handleTabChange('messages');
-      setNotificationPopoverOpen(false);
-    }
-  };
-
   const handleGlobalSearchResult = (result: any) => {
     switch (result.category) {
       case 'organizations':
@@ -277,19 +256,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
-  };
-
   const getInitials = (email: string) => {
     const name = email.split('@')[0];
     return name.split('.').map(part => part[0]).join('').toUpperCase().slice(0, 2);
@@ -298,13 +264,6 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   const getUserName = (email: string) => {
     const name = email.split('@')[0];
     return name.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
   };
 
   type NavigationItem = {

@@ -3,10 +3,8 @@ import { MiniCalendar } from './MiniCalendar';
 import { AgendaView } from './AgendaView';
 import { SlotAvailability } from './SlotAvailability';
 import { Appointment, Therapist, CalendarView } from '../types/appointment';
-import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Calendar, ListTodo, Clock, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { Separator } from './ui/separator';
+import { Calendar, ListTodo, Clock, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface EnhancedCalendarSidebarProps {
   currentDate: Date;

@@ -13,12 +13,7 @@ import {
     AlertTriangle,
     Users,
     FileText,
-    Clock,
-    Moon,
-    Volume2,
-    VolumeX,
-    Send,
-    Info
+    Clock
 } from "lucide-react";
 import { CardContent } from '../ui/card';
 import { Switch } from '../ui/switch';

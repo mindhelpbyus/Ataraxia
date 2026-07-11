@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Appointment, Therapist } from '../types/appointment';
 
 interface MonthViewProps {
@@ -18,7 +18,6 @@ export function MonthView({
 }: MonthViewProps) {
   // Get the first day of the month
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-  const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
   // Get the first day of the calendar (may be from previous month)
   const firstDayOfCalendar = new Date(firstDayOfMonth);
@@ -73,7 +72,7 @@ export function MonthView({
 
       {/* Calendar grid */}
       <div className="flex-1 grid grid-cols-7 grid-rows-6">
-        {calendarDays.map((day, index) => {
+        {calendarDays.map((day, _index) => {
           const dayAppointments = getAppointmentsForDay(day);
           const isCurrentMonthDay = isCurrentMonth(day);
           const isTodayDay = isToday(day);

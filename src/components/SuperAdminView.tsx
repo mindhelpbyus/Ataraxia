@@ -23,7 +23,6 @@ import { Checkbox } from './ui/checkbox';
 import {
   Building2,
   Search,
-  Filter,
   Download,
   Mail,
   Eye,
@@ -32,11 +31,7 @@ import {
   Ban,
   MoreHorizontal,
   CheckCircle2,
-  AlertCircle,
   Clock,
-  TrendingUp,
-  Users,
-  Database,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -82,7 +77,7 @@ interface SuperAdminViewProps {
   userEmail: string;
 }
 
-export function SuperAdminView({ userId, userEmail }: SuperAdminViewProps) {
+export function SuperAdminView(_props: SuperAdminViewProps) {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [filteredOrgs, setFilteredOrgs] = useState<Organization[]>([]);
   const [selectedOrgs, setSelectedOrgs] = useState<string[]>([]);
@@ -370,7 +365,7 @@ export function SuperAdminView({ userId, userEmail }: SuperAdminViewProps) {
     }
   };
 
-  const handleBulkAction = (action: string) => {
+  const handleBulkAction = (_action: string) => {
   };
 
   const handleExport = () => {

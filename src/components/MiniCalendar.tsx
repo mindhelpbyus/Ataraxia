@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
@@ -16,7 +16,6 @@ export function MiniCalendar({
   currentDate,
   onDateChange,
   onNavigate,
-  appointments,
   therapists
 }: MiniCalendarProps) {
   const today = new Date();

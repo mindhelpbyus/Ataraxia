@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -13,7 +13,7 @@ import { AddressAutocomplete } from '../AddressAutocomplete';
 import { Country, State, City } from '../../lib/location';
 import ReactSelect from 'react-select';
 import * as ct from 'countries-and-timezones';
-import { StepProps, ServiceLocation } from './types';
+import { StepProps } from './types';
 
 export function BasicDetailsStep({
     formData,

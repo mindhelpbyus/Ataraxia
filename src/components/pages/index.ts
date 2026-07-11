@@ -12,7 +12,6 @@
 export { DashboardView } from '../DashboardView';
 export { AdminDashboardView } from '../AdminDashboardView';
 export { TherapistHomeView } from '../TherapistHomeView';
-export { ProfessionalDashboard } from '../ProfessionalDashboard';
 export { ProfessionalClientsView } from '../ProfessionalClientsView';
 export { ClientDashboardView } from '../ClientDashboardView';
 export { SuperAdminDashboardView } from '../SuperAdminDashboardView';
@@ -21,6 +20,5 @@ export { HomeView } from '../HomeView';
 
 // ─── Special Pages ────────────────────────────────────────────────────────────
 export { ApplicationRejectedPage } from '../ApplicationRejectedPage';
-export { UnauthorizedDomainAlert } from '../UnauthorizedDomainAlert';
 export { default as DocumentViewer } from '../DocumentViewer';
 // LoggingDashboard is an empty stub — not exported until implemented

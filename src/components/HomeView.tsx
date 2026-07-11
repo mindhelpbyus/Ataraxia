@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox';
 import { Avatar, AvatarFallback } from './ui/avatar';
@@ -37,7 +36,7 @@ interface HomeViewProps {
   onNavigate: (tab: 'dashboard' | 'calendar' | 'clients' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings') => void;
 }
 
-export function HomeView({ userRole, userEmail, onNavigate }: HomeViewProps) {
+export function HomeView({ userEmail }: HomeViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statsData, setStatsData] = useState([
     { icon: <Mail className="h-5 w-5 text-content-secondary" />, label: 'Sessions Sent', value: '—', unit: 'Sessions' },

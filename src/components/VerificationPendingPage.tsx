@@ -72,7 +72,6 @@ export function VerificationPendingPage() {
 
             // If not authenticated, try to get from localStorage (saved during registration)
             if (!user) {
-                const savedEmail = localStorage.getItem('therapistOnboardingEmail');
                 const savedUid = localStorage.getItem('therapistAuthUid');
 
                 if (savedUid) {

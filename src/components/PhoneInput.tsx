@@ -3,7 +3,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from './ui/label';
 import { cn } from './ui/utils';
 import { CountryFlag } from './ui/country-flag';
-import { ChevronDown } from 'lucide-react';
 
 // Country codes with flag emojis and phone patterns
 // US and India prioritized for primary markets
@@ -214,7 +213,7 @@ export function PhoneInput({
     if (onPhoneChange) onPhoneChange(cleanNumber);
   };
 
-  const handlePhoneInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const handlePhoneInputBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     if (onBlur) {
       const cleanNumber = displayValue.replace(/\D/g, '');
       onBlur(cleanNumber);

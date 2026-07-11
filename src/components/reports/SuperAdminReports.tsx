@@ -1,14 +1,13 @@
-import React from 'react';
+
 import { motion, Variants } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import {
-  BarChart, Bar, LineChart, Line, AreaChart, Area, ComposedChart,
+  Bar, LineChart, Line, AreaChart, Area, ComposedChart,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import {
-  Users, UserPlus, TrendingUp, Activity, Video,
-  MessageSquare, AlertTriangle, Clock, Server, Database,
-  ArrowUpRight, ArrowDownRight, Zap, Shield, Globe
+  Users, UserPlus, Activity, Server, Database,
+  ArrowUpRight, ArrowDownRight, Shield, Globe
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
@@ -37,13 +36,6 @@ const activeUsersData = [
   { date: 'Sun', dau: 720, mau: 4150 },
 ];
 
-const sessionVolumeData = [
-  { week: 'Week 1', videoCalls: 456, chatMessages: 2340, videoMinutes: 18240 },
-  { week: 'Week 2', videoCalls: 512, chatMessages: 2580, videoMinutes: 20480 },
-  { week: 'Week 3', videoCalls: 489, chatMessages: 2420, videoMinutes: 19560 },
-  { week: 'Week 4', videoCalls: 534, chatMessages: 2690, videoMinutes: 21360 },
-];
-
 const retentionData = [
   { cohort: 'Jan 2024', retention: 87, churn: 13 },
   { cohort: 'Feb 2024', retention: 85, churn: 15 },
@@ -66,14 +58,6 @@ const slowEndpoints = [
   { endpoint: '/api/sessions/history', avgTime: 1620, calls: 8920, p95: 2800 },
   { endpoint: '/api/reports/generate', avgTime: 2340, calls: 1250, p95: 4100 },
   { endpoint: '/api/files/upload', avgTime: 1480, calls: 3680, p95: 2500 },
-];
-
-const errorLogs = [
-  { type: 'Authentication Failed', count: 145, severity: 'warning', trend: -12 },
-  { type: 'Database Timeout', count: 23, severity: 'critical', trend: 5 },
-  { type: 'Rate Limit Exceeded', count: 89, severity: 'warning', trend: -8 },
-  { type: 'Video Call Failed', count: 12, severity: 'high', trend: -3 },
-  { type: 'File Upload Error', count: 34, severity: 'medium', trend: 2 },
 ];
 
 // --- Animation Variants ---
@@ -125,7 +109,7 @@ const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass, s
   </motion.div>
 );
 
-export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
+export function SuperAdminReports(_props: SuperAdminReportsProps) {
   return (
     <motion.div
       variants={containerVariants}
@@ -416,7 +400,7 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {slowEndpoints.map((endpoint, index) => (
+                {slowEndpoints.map((endpoint, _index) => (
                   <div
                     key={endpoint.endpoint}
                     className="p-3 border border-slate-100 rounded-xl hover:border-action-light hover:bg-action-light/50 transition-colors"

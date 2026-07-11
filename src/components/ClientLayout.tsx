@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Home,
@@ -57,7 +57,7 @@ const journalPrompts = [
     "How did you practice self-care today?"
 ];
 
-export function ClientLayout({ userId, userEmail, userName, onLogout }: ClientLayoutProps) {
+export function ClientLayout({ userName, onLogout }: ClientLayoutProps) {
     const [selectedMood, setSelectedMood] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('home');

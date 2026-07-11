@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Appointment, Therapist } from '../types/appointment';
 import { EnhancedAppointmentCard } from './EnhancedAppointmentCard';
 import { useDrop } from 'react-dnd';
@@ -22,7 +22,6 @@ export function DayView({
   onAppointmentClick,
   onAppointmentUpdate,
   showMultipleTherapists,
-  isAdminMode = false,
 }: DayViewProps) {
   // Generate ALL 24 hour time slots
   const timeSlots = Array.from({ length: 24 }, (_, i) => {
@@ -260,7 +259,6 @@ interface DaySlotProps {
 function DaySlot({
   hour,
   appointments,
-  therapist,
   isWorkingHour,
   onSlotClick,
   onAppointmentClick,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus,
@@ -7,13 +7,7 @@ import {
     Frown,
     Zap,
     Cloud,
-    Sun,
-    Moon,
     Heart,
-    TrendingUp,
-    Calendar as CalendarIcon,
-    ChevronLeft,
-    ChevronRight,
     Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CalendarView, UserRole, Appointment, Therapist, CalendarState } from '../types/appointment';
 import { appointmentsApi } from '../api/appointments';
 import { DayView } from './DayView';
@@ -8,7 +8,6 @@ import { EnhancedAppointmentForm } from './EnhancedAppointmentForm';
 import { AppointmentPanel } from './AppointmentPanel';
 import { EnhancedCalendarSidebar } from './EnhancedCalendarSidebar';
 import { Button } from './ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Checkbox } from './ui/checkbox';
 import { CaretLeft, CaretRight, Plus, CalendarBlank, Users, CaretDown, MagnifyingGlass } from '@phosphor-icons/react';
@@ -30,7 +29,7 @@ export function CalendarContainer({ userRole, currentUserId, searchQuery = '', t
   });
 
   // Track if initial selection has been made to prevent auto-selection
-  const [initialSelectionDone, setInitialSelectionDone] = useState(userRole === 'therapist');
+  const [] = useState(userRole === 'therapist');
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [therapists, setTherapists] = useState<Therapist[]>([]);

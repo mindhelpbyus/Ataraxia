@@ -4,9 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
-import { SettingsSection } from './SettingsSection';
 import { MapPin, Upload, AlertTriangle } from 'lucide-react';
 import { Country, State, City } from '../../lib/location';
 import Select from 'react-select';
@@ -29,7 +27,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
     const [gender, setGender] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [phone, setPhone] = useState('');
-    const [countryCode, setCountryCode] = useState('+1');
+    const [] = useState('+1');
     const [addressLine1, setAddressLine1] = useState('');
     const [addressLine2, setAddressLine2] = useState('');
 
@@ -45,9 +43,9 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({ userId, userEm
     const [postalCodeOptions, setPostalCodeOptions] = useState<any>([]);
     const [isLoadingPostalCodes, setIsLoadingPostalCodes] = useState(false);
 
-    const [shortBio, setShortBio] = useState('');
-    const [extendedBio, setExtendedBio] = useState('');
-    const [clientExpectations, setClientExpectations] = useState('');
+    const [shortBio] = useState('');
+    const [] = useState('');
+    const [] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 

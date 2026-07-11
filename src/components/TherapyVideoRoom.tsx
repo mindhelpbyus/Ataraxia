@@ -162,7 +162,6 @@ function RoomContent({ role }: { role: 'therapist' | 'client' }) {
 // ── Session header ────────────────────────────────────────────────────────────
 
 function SessionHeader({
-  appointmentId,
   role,
 }: {
   appointmentId: string;

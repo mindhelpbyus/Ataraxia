@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { X, PenTool, Check, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '../ui/button';

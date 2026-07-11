@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -10,8 +10,8 @@ import {
     ArrowLeft, Calendar, Video, Phone, Mail, MapPin, AlertTriangle,
     FileText, Pill, Target, TrendingUp, TrendingDown, Activity,
     DollarSign, MessageSquare, Brain, Shield, User, Heart,
-    Clock, CheckCircle2, XCircle, Download, ExternalLink,
-    Edit, Plus, Minus, ChevronRight
+    CheckCircle2, XCircle, Download, ExternalLink,
+    Edit, Plus, ChevronRight
 } from 'lucide-react';
 import { Line } from 'recharts';
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';

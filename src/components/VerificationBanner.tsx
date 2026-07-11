@@ -1,5 +1,5 @@
-import React from 'react';
-import { Clock, AlertCircle, CheckCircle2, ChevronRight, Settings } from 'lucide-react';
+
+import { Clock, AlertCircle, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface VerificationBannerProps {

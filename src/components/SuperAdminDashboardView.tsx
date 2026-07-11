@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { get } from '../api/client';
 import { motion } from 'framer-motion';
 import {
@@ -6,14 +6,10 @@ import {
     Users,
     Activity,
     DollarSign,
-    TrendingUp,
     Zap,
     ArrowUpRight,
     ArrowDownRight,
-    MoreHorizontal,
-    Calendar,
     CreditCard,
-    ShieldCheck,
     Globe
 } from 'lucide-react';
 import {
@@ -31,8 +27,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
 
 // --- Types & Interfaces ---
@@ -42,23 +36,6 @@ interface SuperAdminDashboardViewProps {
     userName?: string;
     onNavigate: (tab: 'dashboard' | 'calendar' | 'clients' | 'notes' | 'messages' | 'tasks' | 'analytics' | 'settings') => void;
 }
-
-// --- Mock Data (Preserved from previous version) ---
-const platformGrowth = {
-    totalOrganizations: 142,
-    totalProviders: 487,
-    totalClients: 3624,
-    dailyActiveUsers: 892,
-    monthlyActiveUsers: 2847,
-    growth: { organizations: 12.4, providers: 18.2, clients: 24.8, dau: 8.4, mau: 15.2 }
-};
-
-const revenueMetrics = {
-    mrr: 284750,
-    arr: 3417000,
-    revenueGrowth: 18.5,
-    churnRate: 2.8
-};
 
 const revenueTrend = [
     { month: 'Jul', mrr: 218000, arr: 2616000 },
@@ -130,7 +107,7 @@ const CustomAreaChart = ({ data, color = "#6366f1" }: { data: any[], color?: str
     </ResponsiveContainer>
 );
 
-export function SuperAdminDashboardView({ userId, userEmail, userName, onNavigate }: SuperAdminDashboardViewProps) {
+export function SuperAdminDashboardView({ userName }: SuperAdminDashboardViewProps) {
     const [activeTab, setActiveTab] = React.useState('overview');
     const [stats, setStats] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(true);
@@ -294,7 +271,7 @@ export function SuperAdminDashboardView({ userId, userEmail, userName, onNavigat
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart data={activeUsersTrend}>
                                                 <Bar dataKey="users" fill="#cbd5e1" radius={[2, 2, 0, 0]}>
-                                                    {activeUsersTrend.map((entry, index) => (
+                                                    {activeUsersTrend.map((_entry, index) => (
                                                         <Cell key={`cell-${index}`} fill={index === 3 ? '#3b82f6' : '#cbd5e1'} />
                                                     ))}
                                                 </Bar>

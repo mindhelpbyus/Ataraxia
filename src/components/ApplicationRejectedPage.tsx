@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { motion } from 'framer-motion';
 import { AlertCircle, Mail, Phone, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader } from './ui/card';

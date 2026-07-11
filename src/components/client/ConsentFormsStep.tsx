@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -356,7 +356,7 @@ By signing below, I consent to the collection, use, and analysis of my clinical 
     }
 ];
 
-export function ConsentFormsStep({ formData, updateFormData }: StepProps) {
+export function ConsentFormsStep({ updateFormData }: StepProps) {
     const [selectedDocument, setSelectedDocument] = useState<ConsentDocument | null>(null);
     const [signedDocuments, setSignedDocuments] = useState<string[]>([]);
 

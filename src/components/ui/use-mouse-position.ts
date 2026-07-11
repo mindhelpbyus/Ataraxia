@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 export const useMousePosition = () => {
     const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({

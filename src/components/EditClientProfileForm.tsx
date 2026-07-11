@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { ScrollArea } from './ui/scroll-area';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { AlertCircle, CheckCircle2, Plus, X, User, FileText, Target, Heart } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Plus, X, User, FileText, Target } from 'lucide-react';
 
 interface EditClientProfileFormProps {
     clientId: string;
@@ -32,10 +31,6 @@ export function EditClientProfileForm({ clientId, clientName, initialData, onSav
     const [newGoal, setNewGoal] = useState('');
     const [newSubGoal, setNewSubGoal] = useState('');
     const [newActionItem, setNewActionItem] = useState('');
-
-    const handleChange = (field: string, value: any) => {
-        setFormData((prev: any) => ({ ...prev, [field]: value }));
-    };
 
     const handleNestedChange = (path: string[], value: any) => {
         setFormData((prev: any) => {

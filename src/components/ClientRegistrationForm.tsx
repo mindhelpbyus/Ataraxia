@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { logger } from '../utils/secureLogger';
-import { Card } from './ui/card';
 import { ComprehensiveClientData } from './client/types';
 import { ProgressHeader } from './client/ProgressHeader';
 import { NavigationButtons } from './client/NavigationButtons';
@@ -40,9 +39,7 @@ export function ClientRegistrationForm({
     clientFirstName,
     clientLastName,
     clientCountryCode,
-    registrationToken,
     onComplete,
-    organizationMode = false,
 }: ClientRegistrationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [otpVerified, setOtpVerified] = useState(false);

@@ -147,7 +147,6 @@ const FloatingShapeItem = ({
 
 export function ParallaxAntiGravity({
     children,
-    intensity = 0.5,
     enableMouse = true,
     enableScroll = true,
     shapes = 30,

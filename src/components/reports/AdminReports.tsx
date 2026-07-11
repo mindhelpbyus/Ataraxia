@@ -1,14 +1,11 @@
-import React from 'react';
+
 import { motion, Variants } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, ComposedChart,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import {
-  Users, DollarSign, TrendingUp, Activity, Clock,
-  AlertCircle, Calendar, FileText, Target, Briefcase,
-  ArrowUpRight, ArrowDownRight, CheckCircle, Zap
+  Users, DollarSign, TrendingUp, Activity, Calendar, Target, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
@@ -41,22 +38,6 @@ const revenueByProviderData = [
   { therapist: 'E. Rodriguez', amount: 8100 },
   { therapist: 'A. Lee', amount: 7800 },
   { therapist: 'J. Wilson', amount: 7200 },
-];
-
-const revenueByServiceData = [
-  { name: 'Individual Therapy', value: 28500, color: '#1E7048' },
-  { name: 'Family Therapy', value: 8200, color: '#F59E0B' },
-  { name: 'Group Therapy', value: 4100, color: '#10b981' },
-  { name: 'Psychiatric Eval', value: 5800, color: '#3b82f6' },
-  { name: 'Couples Therapy', value: 6200, color: '#8b5cf6' },
-];
-
-const roomUtilizationData = [
-  { room: 'Room A', utilization: 85, sessions: 68 },
-  { room: 'Room B', utilization: 78, sessions: 62 },
-  { room: 'Room C', utilization: 72, sessions: 58 },
-  { room: 'Room D', utilization: 65, sessions: 52 },
-  { room: 'Virtual', utilization: 92, sessions: 147 },
 ];
 
 const capacityForecastData = [
@@ -121,7 +102,7 @@ const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass }:
   </motion.div>
 );
 
-export function AdminReports({ dateRange }: AdminReportsProps) {
+export function AdminReports(_props: AdminReportsProps) {
   return (
     <motion.div
       variants={containerVariants}
@@ -356,7 +337,7 @@ export function AdminReports({ dateRange }: AdminReportsProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {capacityForecastData.map((week, i) => (
+                {capacityForecastData.map((week, _i) => (
                   <div key={week.week} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-slate-900">{week.week}</span>

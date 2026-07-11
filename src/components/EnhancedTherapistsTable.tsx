@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, User, MoreVertical, Search, Filter, Plus, Award, TrendingUp, UserCheck, Clock, Building2, Check, X, ShieldAlert, Shield } from 'lucide-react';
+import { Phone, Mail, MapPin, User, MoreVertical, Search, Filter, Plus, Award, UserCheck, Clock, Check, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -9,7 +9,6 @@ import { Input } from './ui/input';
 import { dataService } from '../api';
 import { get } from '../api/client';
 import { UserRole } from '../types/appointment';
-import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
@@ -63,17 +62,17 @@ interface EnhancedTherapistsTableProps {
   currentUserId?: string;
 }
 
-export function EnhancedTherapistsTable({ userRole, organizationId, currentUserId }: EnhancedTherapistsTableProps) {
+export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTherapistsTableProps) {
   // const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
   // REMOVED: verificationModalOpen - verification handled in separate screen
-  const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
+  const [, setSelectedTherapistId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(10);
   const [therapists, setTherapists] = useState<Therapist[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [, setLoading] = useState(true);
+  const [] = useState('');
 
   useEffect(() => {
     loadTherapists();

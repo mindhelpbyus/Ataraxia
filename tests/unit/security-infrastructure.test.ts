@@ -27,11 +27,13 @@ import {
   sanitizeText,
   sanitizeEmail,
   
-  // Test helpers
+} from '../../src/utils/security';
+// Test helpers live outside the runtime security barrel (test-only utilities)
+import {
   emailArbitrary,
   xssPayloadArbitrary,
   containsXSS,
-} from '../../src/utils/security';
+} from '../../src/utils/testHelpers';
 
 describe('Security Infrastructure Setup', () => {
   describe('Constants', () => {

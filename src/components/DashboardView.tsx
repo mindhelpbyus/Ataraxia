@@ -1,21 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Input } from './ui/input';
 import { StatusDot } from './ui/status-dot';
-import { Tag } from './ui/tag';
 import { Checkbox } from './ui/checkbox';
 import { SearchBar } from './ui/search-bar';
 import {
   CalendarDays, Users, ClipboardList, FileText,
   ChevronRight, Search, Bell, ChevronDown,
-  Mail, Phone, MapPin, MoreVertical,
-  Calendar as CalendarIcon, User as UserIcon, TrendingUp
+  Mail, Phone, MapPin, User as UserIcon, TrendingUp
 } from 'lucide-react';
 import { UserRole } from '../types/appointment';
-import { BedrockLogo } from '../imports/BedrockLogo';
 import { get } from '../api/client';
 
 const CITIES_SAMPLE = ['San Francisco, CA','Austin, TX','New York, NY','Chicago, IL','Seattle, WA','Boston, MA','Denver, CO','Portland, OR'];
@@ -33,7 +30,7 @@ const getUserName = (email: string) => {
   return name.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
 };
 
-export function DashboardView({ userRole, userEmail, onNavigate }: DashboardViewProps) {
+export function DashboardView({ userEmail }: DashboardViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const userName = getUserName(userEmail);
 

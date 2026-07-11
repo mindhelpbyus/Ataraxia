@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { CreditCard, Wallet, Calendar, ShieldCheck, CheckCircle2, FileSearch, X } from 'lucide-react';
+import { CreditCard, Wallet, Calendar, ShieldCheck, CheckCircle2, FileSearch } from 'lucide-react';
 import { dataService } from '../api';
 import { UserRole } from '../types/appointment';
 import { Dialog, DialogContent, DialogTitle, DialogHeader } from './ui/dialog';

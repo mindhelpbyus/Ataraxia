@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Calendar, Clock, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { CalendarView, Therapist } from '../types/appointment';
@@ -89,7 +88,6 @@ export function SlotAvailability({ currentDate, therapistIds, therapists, viewTy
     return { total, byTherapist };
   };
 
-  const timeSlots = generateTimeSlots();
 
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);

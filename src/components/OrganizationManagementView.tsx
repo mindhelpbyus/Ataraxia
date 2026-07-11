@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OrganizationSetupForm } from './organization';
 import { Button } from './ui/button';
@@ -13,9 +13,8 @@ import {
 import { Badge } from './ui/badge';
 import {
   Building2, Plus, Search, MoreVertical, Edit, Trash2,
-  Users, MapPin, Shield, CheckCircle2, XCircle, Eye,
-  Settings, TrendingUp, Calendar, DollarSign, Activity,
-  Globe, Command, Filter
+  Users, Shield, Settings, DollarSign, Activity,
+  Filter
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -57,7 +56,7 @@ interface OrganizationManagementViewProps {
   onNavigate: () => void;
 }
 
-export function OrganizationManagementView({ userId, userEmail, onNavigate }: OrganizationManagementViewProps) {
+export function OrganizationManagementView(_props: OrganizationManagementViewProps) {
   const [showSetupForm, setShowSetupForm] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -354,7 +353,7 @@ export function OrganizationManagementView({ userId, userEmail, onNavigate }: Or
               </TableHeader>
               <TableBody>
                 <AnimatePresence mode="popLayout">
-                  {filteredOrganizations.map((org, index) => (
+                  {filteredOrganizations.map((org, _index) => (
                     <motion.tr
                       key={org.id}
                       variants={itemVariants}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Country, State, City } from '../../lib/location';
 import Select from 'react-select';
 import { MapPin } from 'lucide-react';

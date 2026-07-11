@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../ui/checkbox';
 import { toast } from 'sonner';
 import { SettingsSection } from './SettingsSection';
-import { Shield, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { LICENSE_TYPES } from '@/types/onboarding';
 import { State } from '../../lib/location';
 

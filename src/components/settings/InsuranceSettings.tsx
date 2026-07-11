@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Switch } from '../ui/switch';
 import { toast } from 'sonner';
 import { SettingsSection } from './SettingsSection';
-import { CreditCard, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Badge } from '../ui/badge';
 import { INSURANCE_PROVIDERS } from '@/types/onboarding';
 

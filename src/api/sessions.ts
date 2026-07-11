@@ -3,7 +3,7 @@
  * Handles video session creation, joining, and management
  */
 
-import { get, post, put, del } from './client';
+import { get, post, put } from './client';
 import { logger, AuditEventType } from '../utils/secureLogger';
 
 export interface CreateSessionRequest {

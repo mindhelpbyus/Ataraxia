@@ -164,7 +164,6 @@ export const DocumentSettings = () => {
 
     const getDocumentContent = (docId: string, title: string): string => {
         // Get signature data from localStorage
-        const signatureData = localStorage.getItem(`document_${docId}_signature`);
         const signedDate = localStorage.getItem(`document_${docId}_date`);
 
         const header = `${title}\n${'='.repeat(title.length)}\n\nDocument ID: ${docId}\nSigned Date: ${signedDate || new Date().toLocaleDateString()}\n\n`;

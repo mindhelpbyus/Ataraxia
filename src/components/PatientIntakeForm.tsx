@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
+import { useState } from 'react';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from './ui/sheet';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -7,9 +7,7 @@ import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Checkbox } from './ui/checkbox';
-
-import { ScrollArea } from './ui/scroll-area';
-import { User, Phone, EnvelopeSimple, MapPin, FirstAidKit, Warning, IdentificationCard, Heart, CheckCircle, ArrowRight, ArrowLeft, Briefcase, Users } from '@phosphor-icons/react';
+import { User, Phone, EnvelopeSimple, FirstAidKit, Warning, IdentificationCard, Heart, CheckCircle, ArrowRight, ArrowLeft, Briefcase, Users } from '@phosphor-icons/react';
 import { Badge } from './ui/badge';
 // Chat user provisioning is handled server-side (backend-initial /chat + Cognito
 // post-confirmation). No client-side messaging-user creation is needed.

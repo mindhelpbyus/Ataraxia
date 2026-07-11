@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Checkbox } from './ui/checkbox';
-import { X, Calendar as CalendarIcon, Clock, User, FileText, Flag, Palette, Coffee, Users, Building2, Sparkles, Video, Phone } from 'lucide-react';
-import { Badge } from './ui/badge';
+import { Calendar as CalendarIcon, User, Flag, Palette, Coffee, Users, Building2, Sparkles, Video, Phone } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
 import { generateRoomName } from '../api/jitsi';
@@ -70,7 +69,7 @@ export function EnhancedAppointmentForm({
 }: EnhancedAppointmentFormProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [, setShowColorPicker] = useState(false);
   const [openClientSelect, setOpenClientSelect] = useState(false);
   const { user } = useAuthStore();
 
@@ -270,7 +269,6 @@ export function EnhancedAppointmentForm({
   };
 
   const currentDisplayColor = formData.customColor || formData.color;
-  const selectedType = APPOINTMENT_TYPES.find(t => t.value === formData.type);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X, Maximize2, Minimize2, Phone } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Maximize2, Minimize2, Phone } from 'lucide-react';
 import { Button } from './ui/button';
 // TODO: Replace with Zoom VideoSDK component (VideoRoomsView.tsx). Jitsi shim kept for build compatibility.
 import { getJitsiConfig, getJitsiDomain } from '../api/jitsi';
@@ -31,7 +31,6 @@ export function VideoCallRoom({
   onClose,
   appointmentId,
   callType = 'video',
-  jwtToken,
   isModerator = false
 }: VideoCallRoomProps) {
   const jitsiContainerRef = useRef<HTMLDivElement>(null);

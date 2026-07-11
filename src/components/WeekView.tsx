@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Appointment, Therapist } from '../types/appointment';
 import { EnhancedAppointmentCard } from './EnhancedAppointmentCard';
 import { useDrop } from 'react-dnd';
@@ -23,7 +23,6 @@ export function WeekView({
   onAppointmentClick,
   onAppointmentUpdate,
   showMultipleTherapists,
-  isAdminMode = false,
 }: WeekViewProps) {
   // Generate 7 days starting from startDate
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -392,7 +391,6 @@ function WeekSlot({
   date,
   hour,
   appointments,
-  therapist,
   isWorkingHour,
   onSlotClick,
   onAppointmentClick,

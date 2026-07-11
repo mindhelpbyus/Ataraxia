@@ -2,14 +2,18 @@
  * tests/unit/apiClient.test.ts
  *
  * Unit tests for the API client — security-critical code that
- * handles all HTTP communication, CSRF tokens, and X-Request-IDs.
- *
- * Chief Architect priorities: CSRF (GAP-5), X-Request-ID (GAP-12),
- * credentials:include (HTTP-only cookies), error handling.
+ * handles all HTTP communication, the Cognito Bearer token, and X-Request-IDs.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { apiRequest, ApiException } from '../../src/api/client';
+import { getAccessToken } from '../../src/lib/cognito';
+
+// Auth transport is Cognito Bearer — mock the token source
+vi.mock('../../src/lib/cognito', () => ({
+    getAccessToken: vi.fn().mockResolvedValue(null),
+}));
+const mockGetAccessToken = vi.mocked(getAccessToken);
 
 // ─── Mock global fetch ────────────────────────────────────────────────────────
 const mockFetch = vi.fn();
@@ -39,8 +43,7 @@ function mockErrorResponse(status: number, body = { error: 'Server error' }) {
 describe('apiRequest()', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        // ✅ Clear cookies before each test
-        document.cookie = 'csrf_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+        mockGetAccessToken.mockResolvedValue(null);
         // ✅ Stub window.location.replace so 401-triggered redirects don't hang jsdom
         Object.defineProperty(window, 'location', {
             configurable: true,
@@ -50,13 +53,14 @@ describe('apiRequest()', () => {
 
     // ─── Request structure ─────────────────────────────────────────────────────
     describe('request headers', () => {
-        it('sends credentials: include on every request (HTTP-only cookie support)', async () => {
+        it('attaches Authorization: Bearer <token> from the Cognito session', async () => {
+            mockGetAccessToken.mockResolvedValue('cognito-access-token-abc123');
             mockFetch.mockResolvedValueOnce(mockSuccessResponse({ data: {} }));
 
             await apiRequest('/api/v1/test');
 
             const [, fetchOptions] = mockFetch.mock.calls[0];
-            expect(fetchOptions.credentials).toBe('include');
+            expect(fetchOptions.headers['Authorization']).toBe('Bearer cognito-access-token-abc123');
         });
 
         it('sends X-Request-ID header for backend trace correlation', async () => {
@@ -69,25 +73,24 @@ describe('apiRequest()', () => {
             expect(typeof fetchOptions.headers['X-Request-ID']).toBe('string');
         });
 
-        it('sends X-CSRF-Token header from cookie (CSRF protection)', async () => {
-            // Set a CSRF token in the cookie
-            document.cookie = 'csrf_token=test-csrf-token-abc123';
-            mockFetch.mockResolvedValueOnce(mockSuccessResponse({ data: {} }));
-
-            await apiRequest('/api/v1/test', { method: 'POST', body: {} });
-
-            const [, fetchOptions] = mockFetch.mock.calls[0];
-            expect(fetchOptions.headers['X-CSRF-Token']).toBe('test-csrf-token-abc123');
-        });
-
-        it('sends empty X-CSRF-Token when no cookie is set (graceful degradation)', async () => {
+        it('omits the Authorization header when there is no Cognito session', async () => {
+            mockGetAccessToken.mockResolvedValue(null);
             mockFetch.mockResolvedValueOnce(mockSuccessResponse({ data: {} }));
 
             await apiRequest('/api/v1/test');
 
             const [, fetchOptions] = mockFetch.mock.calls[0];
-            // Should not throw — CSRF token is empty string if cookie absent
-            expect(fetchOptions.headers['X-CSRF-Token']).toBe('');
+            expect(fetchOptions.headers['Authorization']).toBeUndefined();
+        });
+
+        it('does not use cookie credentials (Bearer model, not cookies)', async () => {
+            mockFetch.mockResolvedValueOnce(mockSuccessResponse({ data: {} }));
+
+            await apiRequest('/api/v1/test', { method: 'POST', body: {} });
+
+            const [, fetchOptions] = mockFetch.mock.calls[0];
+            expect(fetchOptions.credentials).toBeUndefined();
+            expect(fetchOptions.headers['X-CSRF-Token']).toBeUndefined();
         });
 
         it('sets Content-Type application/json for non-FormData requests', async () => {

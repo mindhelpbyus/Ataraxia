@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 import { dataService } from '../api';
 import { post } from '../api/client';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Separator } from './ui/separator';
 import { motion } from 'framer-motion';
 
 const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(' ');
@@ -21,7 +20,7 @@ interface VerificationModalProps {
 
 export function TherapistVerificationDetailModal({ therapistId, isOpen, onClose }: VerificationModalProps) {
     const [therapist, setTherapist] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
+    const [, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [notes, setNotes] = useState('');
 

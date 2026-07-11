@@ -1,7 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Camera, X, RotateCcw, Check, AlertCircle, Info } from 'lucide-react';
+import { Camera, RotateCcw, Check, AlertCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CameraCaptureDialogProps {

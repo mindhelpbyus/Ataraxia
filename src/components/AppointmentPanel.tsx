@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Appointment, Therapist, Client } from '../types/appointment';
 import { appointmentsApi } from '../api/appointments';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
@@ -21,8 +21,6 @@ import {
   Trash2,
   AlertCircle,
   CheckCircle2,
-  MapPin,
-  X,
   Save,
   XCircle,
   Video,
@@ -57,7 +55,7 @@ export function AppointmentPanel({
 }: AppointmentPanelProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [clients, setClients] = useState<Client[]>([]);
+  const [, setClients] = useState<Client[]>([]);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [callType, setCallType] = useState<'video' | 'audio'>('video');
 
@@ -249,7 +247,6 @@ export function AppointmentPanel({
       // Create call invitation if appointment has a client
       if (appointment.clientName) {
         try {
-          const roomName = generateRoomName(appointment.id);
           // TODO(video-service): call invitations are not modelled yet (stubbed).
           await createCallInvitation();
         } catch (error) {

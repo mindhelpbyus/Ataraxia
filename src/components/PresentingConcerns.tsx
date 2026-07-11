@@ -1,5 +1,5 @@
-import React from 'react';
-import { Heart, Brain, Users, Utensils, Wine, Clock, Briefcase, Home, Baby, MessageCircle, Activity, Moon, Scale, Frown, Zap, Shield, Palette, Plus } from 'lucide-react';
+
+import { Heart, Brain, Users, Utensils, Wine, Briefcase, Home, Baby, MessageCircle, Activity, Moon, Frown, Zap, Shield, Palette, Plus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';

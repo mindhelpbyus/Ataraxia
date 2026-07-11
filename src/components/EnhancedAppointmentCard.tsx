@@ -1,6 +1,6 @@
 import React from 'react';
 import { Appointment, Therapist } from '../types/appointment';
-import { Clock, User, Flag, AlertCircle } from 'lucide-react';
+import { Clock, User, Flag } from 'lucide-react';
 import { useDrag } from 'react-dnd';
 import { Badge } from './ui/badge';
 
@@ -61,7 +61,6 @@ export function EnhancedAppointmentCard({
   };
 
   const isBreak = appointment.type === 'break';
-  const isInternalOrExternal = appointment.type === 'internal' || appointment.type === 'external';
 
   const getAccentColor = () => {
     if (appointment.type === 'break') return '#6b7280';

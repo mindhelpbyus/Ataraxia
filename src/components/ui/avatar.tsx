@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
-import { Check, Minus, X, Circle, Clock } from "lucide-react";
+import { Check, Minus, Circle } from "lucide-react";
 
 import { cn } from "./utils";
 
@@ -110,7 +110,7 @@ const Avatar = React.forwardRef<
     // Determine status badge size based on avatar size
     const getStatusBadgeSize = () => {
       // Extract size from className if provided
-      const hasSize = className?.includes('size-') || className?.includes('h-') || className?.includes('w-');
+
 
       // Default to size-3.5 for 40px avatar (default)
       // You can make this more sophisticated based on actual size detection

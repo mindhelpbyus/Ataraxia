@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { PencilSimple as Edit, MagnifyingGlass as Search, Funnel as Filter, Plus, Calendar, User, Clock, FileText } from '@phosphor-icons/react';
+import { useState } from 'react';
+import { PencilSimple as Edit, MagnifyingGlass as Search, Funnel as Filter, Plus, Calendar, Clock, FileText } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';

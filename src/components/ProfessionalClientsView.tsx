@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { get } from '../api/client';
 import { dataService } from '../api';
-import { Search, Filter, Plus, MoreVertical, Phone, Mail, Calendar, User, MapPin, AlertCircle, TrendingUp, AlertTriangle, Shield, Brain, CheckCircle2, Stethoscope, Clock, FileText, ChevronRight, Eye, Send, Sparkles, ShieldAlert, Files, MessageSquare, Activity, Target, Upload, XCircle, Download, Video } from 'lucide-react';
+import { Search, Filter, Plus, MoreVertical, Phone, Mail, Calendar, User, AlertCircle, TrendingUp, AlertTriangle, Shield, Brain, CheckCircle2, Stethoscope, Clock, FileText, ChevronRight, Eye, Send, Sparkles, ShieldAlert, Files, MessageSquare, Activity, Target, Upload, XCircle, Download, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback } from './ui/avatar';
-import { Progress } from './ui/progress';
 import {
   Table,
   TableBody,
@@ -29,14 +28,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { EditClientProfileForm } from './EditClientProfileForm';
 import { Separator } from './ui/separator';
-import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
 import { PhoneInputV2 } from './PhoneInputV2';
 
 import { toast } from 'sonner';
 import { Switch } from './ui/switch';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from './ui/sheet';
-import { ClientDetailView, ClientDetailData } from './ClientDetailView';
+import { Sheet, SheetContent } from './ui/sheet';
+import { ClientDetailData } from './ClientDetailView';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface Client {
@@ -218,7 +216,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
   });
 
   const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     loadClients();
@@ -385,7 +383,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
   const [isSafetyPlanOpen, setIsSafetyPlanOpen] = useState(false);
   const [isTreatmentPlanOpen, setIsTreatmentPlanOpen] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [showEmergencyContact, setShowEmergencyContact] = useState(false);
+  const [] = useState(false);
 
   return (
     <div className="min-h-screen bg-background p-8 max-w-[1600px] mx-auto">
@@ -1344,7 +1342,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
           clientId={selectedClient.id}
           clientName={selectedClient.name}
           initialData={mapClientToDetailData(selectedClient)}
-          onSave={async (data) => {
+          onSave={async (_data) => {
             try {
               // backend-initial: PUT /clients/{id}
               await dataService.update('/clients', selectedClient.id, {

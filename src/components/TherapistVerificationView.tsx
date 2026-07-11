@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect, ReactNode } from 'react';
 import {
-    Activity, Search, Filter, MoreVertical, Check, X,
-    ChevronRight, ChevronLeft, Circle, Clock, AlertCircle, FileText, Download,
-    Shield, CheckCircle2, ExternalLink, Rocket, User, Mail, GraduationCap,
-    MapPin, Calendar, Briefcase, Phone, Loader2, RefreshCw, Award
+    Search, Filter, MoreVertical, Check, X,
+    ChevronRight, ChevronLeft, Clock, AlertCircle, FileText, Download,
+    Shield, CheckCircle2, ExternalLink, User, Mail, GraduationCap,
+    MapPin, Phone, Loader2, RefreshCw, Award
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { verificationService } from '@/api/verification';
-import { Therapist, VerificationStage, VerificationStatus } from '@/types/therapist';
+import { Therapist } from '@/types/therapist';
 import {
     Select,
     SelectContent,
@@ -31,9 +31,6 @@ import {
 import {
     Sheet,
     SheetContent,
-    SheetHeader,
-    SheetTitle,
-    SheetDescription,
 } from '@/components/ui/sheet';
 
 // ==================== STEPPER COMPONENT ====================
@@ -169,8 +166,8 @@ function VerificationSheet({
 }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
-    const [notes, setNotes] = useState(therapist.verification_notes || '');
-    const [backgroundChecks, setBackgroundChecks] = useState({
+    const [] = useState(therapist.verification_notes || '');
+    const [] = useState({
         criminal: 'clear',
         references: 'verified',
         education: 'verified'
@@ -219,7 +216,7 @@ function VerificationSheet({
         }
     };
 
-    const handleViewDocument = (documentUrl: string | undefined, documentName: string) => {
+    const handleViewDocument = (documentUrl: string | undefined, _documentName: string) => {
         if (!documentUrl) {
             toast.error('Document not available');
             return;
@@ -228,20 +225,6 @@ function VerificationSheet({
         // Open document in new tab
         window.open(documentUrl, '_blank', 'noopener,noreferrer');
     };
-
-    const getDocumentName = (type: string) => {
-        const documentTypes: Record<string, string> = {
-            'license_document': 'Professional License',
-            'degree_certificate': 'Degree Certificate',
-            'malpractice_insurance': 'Malpractice Insurance',
-            'photo_id': 'Photo ID',
-            'headshot': 'Professional Headshot'
-        };
-        return documentTypes[type] || 'Document';
-    };
-
-    const isDocVerified = therapist.license_verified;
-    const isBgCheckPassed = therapist.background_check_status === 'completed';
     const isActive = therapist.account_status === 'active';
 
     return (

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { motion, Variants } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import {
@@ -6,9 +6,8 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart
 } from 'recharts';
 import {
-  TrendingUp, TrendingDown, DollarSign, Calendar,
-  Users, Clock, FileText, AlertCircle, Activity,
-  ArrowUpRight, ArrowDownRight, CheckCircle
+  DollarSign, Calendar,
+  Clock, AlertCircle, ArrowUpRight, ArrowDownRight, CheckCircle
 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 
@@ -81,7 +80,7 @@ const itemVariants: Variants = {
   }
 };
 
-const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass, delay = 0 }: any) => (
+const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass }: any) => (
   <motion.div
     variants={itemVariants}
     whileHover={{ y: -2 }}
@@ -105,7 +104,7 @@ const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass, d
   </motion.div>
 );
 
-export function TherapistReports({ currentUserId, userEmail, dateRange }: TherapistReportsProps) {
+export function TherapistReports(_props: TherapistReportsProps) {
   return (
     <motion.div
       variants={containerVariants}

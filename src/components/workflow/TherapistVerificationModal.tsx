@@ -1,33 +1,20 @@
 import { useState } from 'react';
 import {
-    Check,
     X,
-    AlertCircle,
-    FileText,
-    Calendar,
-    Shield,
-    User,
-    Clock,
-    ExternalLink
+    FileText
 } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogDescription
+    DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { toast } from 'sonner';
 
 import { Therapist, VerificationStage, VerificationStatus } from '@/types/therapist';
 import { WorkflowStepper } from './WorkflowStepper';
@@ -47,7 +34,7 @@ export function TherapistVerificationModal({
     onUpdate
 }: TherapistVerificationModalProps) {
     const [notes, setNotes] = useState('');
-    const [activeTab, setActiveTab] = useState('overview');
+    const [] = useState('overview');
     const [isLoading, setIsLoading] = useState(false);
 
     if (!therapist) return null;

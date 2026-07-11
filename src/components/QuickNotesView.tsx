@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import {
@@ -174,32 +174,6 @@ export function QuickNotesView() {
     setNotes(notes.map(note =>
       note.id === id ? { ...note, content } : note
     ));
-  };
-
-  const handleUpdatePosition = (id: string, x: number, y: number) => {
-    setNotes(notes.map(note =>
-      note.id === id ? { ...note, position: { x, y } } : note
-    ));
-  };
-
-  const handleUpdateSize = (id: string, width: number, height: number) => {
-    setNotes(notes.map(note =>
-      note.id === id ? { ...note, size: { width, height } } : note
-    ));
-  };
-
-  const bringToFront = (id: string) => {
-    // Simple way to bring to front: remove and re-add to end of array
-    // But we need to maintain state.
-    // Alternatively, we can just sort by a zIndex property, but re-ordering array works for visual stacking in DOM.
-    const noteIndex = notes.findIndex(n => n.id === id);
-    if (noteIndex === -1 || noteIndex === notes.length - 1) return;
-
-    const note = notes[noteIndex];
-    const newNotes = [...notes];
-    newNotes.splice(noteIndex, 1);
-    newNotes.push(note);
-    setNotes(newNotes);
   };
 
 

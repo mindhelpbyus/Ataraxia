@@ -1,5 +1,5 @@
 import React from 'react';
-import PhoneInputLib, { Country, getCountries, getCountryCallingCode } from 'react-phone-number-input';
+import { Country, getCountries, getCountryCallingCode } from 'react-phone-number-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Label } from './ui/label';
 import { cn } from './ui/utils';
