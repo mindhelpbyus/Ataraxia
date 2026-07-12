@@ -91,12 +91,14 @@ function therapistLeaderboard(appointments: AppointmentRow[]): TherapistAgg[] {
   return [...byId.values()].sort((a, b) => b.revenuePaise - a.revenuePaise).slice(0, 5);
 }
 
+// Chart tokens (--chart-1..5) resolve to the brand's action/sage/lavender/ochre/danger
+// palette — see globals.css. Referenced via var() since these feed inline SVG styles.
 const PIPELINE_STAGES: { stage: string; statuses: string[]; color: string }[] = [
-  { stage: 'Awaiting Payment', statuses: ['initiated'], color: '#F59E0B' },
-  { stage: 'Scheduled', statuses: ['scheduled'], color: '#3B82F6' },
-  { stage: 'Confirmed', statuses: ['confirmed'], color: '#8B5CF6' },
-  { stage: 'In Session', statuses: ['in_progress', 'in-progress'], color: '#10B981' },
-  { stage: 'Completed', statuses: ['completed'], color: '#1E7048' }
+  { stage: 'Awaiting Payment', statuses: ['initiated'], color: 'var(--chart-4)' },
+  { stage: 'Scheduled', statuses: ['scheduled'], color: 'var(--chart-3)' },
+  { stage: 'Confirmed', statuses: ['confirmed'], color: 'var(--chart-2)' },
+  { stage: 'In Session', statuses: ['in_progress', 'in-progress'], color: 'var(--chart-1)' },
+  { stage: 'Completed', statuses: ['completed'], color: 'var(--action)' }
 ];
 
 function pipeline(appointments: AppointmentRow[]) {
@@ -130,19 +132,19 @@ const PremiumMetricCard = ({ title, value, icon: Icon, colorClass, index }: {
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.05 }}
     whileHover={{ y: -5 }}
-    className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] cursor-pointer group"
+    className="relative overflow-hidden rounded-xl bg-card p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-card-hi)] cursor-pointer group"
   >
     {/* Subtle gradient splash on hover */}
     <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClass} opacity-0 group-hover:opacity-10 rounded-full blur-3xl -mr-10 -mt-10 transition-opacity duration-500`} />
 
     <div className="flex items-center justify-between mb-4 relative z-10">
-      <div className={`rounded-2xl p-3 ${colorClass.replace('from-', 'bg-').split(' ')[0].replace('400', '50')} text-slate-700 group-hover:text-white group-hover:bg-slate-900 transition-colors duration-300`}>
+      <div className={`rounded-2xl p-3 ${colorClass.replace('from-', 'bg-').split(' ')[0].replace('400', '50')} text-body-text group-hover:text-white group-hover:bg-ink transition-colors duration-300`}>
         <Icon className="h-6 w-6" />
       </div>
     </div>
     <div className="relative z-10">
-      <h3 className="text-3xl font-bold tracking-tight text-slate-900 mb-1 font-sans">{value}</h3>
-      <p className="text-sm font-medium text-slate-500 tracking-wide">{title}</p>
+      <h3 className="text-3xl font-bold tracking-tight text-ink mb-1 font-sans">{value}</h3>
+      <p className="text-sm font-medium text-muted-text tracking-wide">{title}</p>
     </div>
   </motion.div>
 );
@@ -190,7 +192,7 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
   const maxStage = Math.max(1, ...clientJourneyData.map(s => s.count));
 
   return (
-    <div className="min-h-screen bg-background p-8 lg:p-12 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-background p-8 lg:p-12 font-sans selection:bg-action-light selection:text-ink">
 
       {/* Premium Header */}
       <motion.div
@@ -199,31 +201,31 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
         className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6"
       >
         <div>
-          <div className="flex items-center gap-2 text-indigo-600 font-semibold mb-2 text-sm uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-action font-semibold mb-2 text-sm uppercase tracking-wider">
             <Activity className="h-4 w-4" />
             <span>Executive Overview</span>
           </div>
-          <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 mb-3">
+          <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-ink mb-3">
             Welcome back, {userName}.
           </h1>
-          <p className="text-lg text-slate-500 max-w-2xl leading-relaxed">
+          <p className="text-lg text-muted-text max-w-2xl leading-relaxed">
             {loadError
-              ? <span className="text-rose-600">{loadError}</span>
+              ? <span className="text-danger">{loadError}</span>
               : counts
                 ? <>
-                    <span className="text-indigo-600 font-semibold">{counts.pendingTherapists}</span> therapist{counts.pendingTherapists === 1 ? '' : 's'} awaiting verification
+                    <span className="text-action font-semibold">{counts.pendingTherapists}</span> therapist{counts.pendingTherapists === 1 ? '' : 's'} awaiting verification
                     {' · '}
-                    <span className="text-indigo-600 font-semibold">{counts.pendingPayouts}</span> payout{counts.pendingPayouts === 1 ? '' : 's'} pending
+                    <span className="text-action font-semibold">{counts.pendingPayouts}</span> payout{counts.pendingPayouts === 1 ? '' : 's'} pending
                   </>
                 : 'Loading platform overview…'}
           </p>
         </div>
 
         <div className="flex gap-4">
-          <Button variant="outline" onClick={() => onNavigate('analytics')} className="h-12 px-6 rounded-xl border-slate-200 text-slate-600 hover:bg-card hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm bg-card/50 backdrop-blur-sm">
+          <Button variant="outline" onClick={() => onNavigate('analytics')} className="h-12 px-6 rounded-xl border-rule-hi text-muted-text hover:bg-card hover:text-action hover:border-action-light transition-all shadow-sm bg-card/50 backdrop-blur-sm">
             <BarChart3 className="mr-2 h-5 w-5" /> Insights
           </Button>
-          <Button onClick={() => onNavigate('calendar')} className="h-12 px-6 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all">
+          <Button onClick={() => onNavigate('calendar')} className="h-12 px-6 rounded-xl bg-action text-white hover:bg-action-dark shadow-lg shadow-action/30 hover:shadow-action/40 transition-all">
             <CalendarDays className="mr-2 h-5 w-5" /> Schedule
           </Button>
         </div>
@@ -238,7 +240,7 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
             title="Active Clients"
             value={counts ? counts.totalClients.toLocaleString('en-IN') : '—'}
             icon={Users}
-            colorClass="from-violet-400 to-purple-500"
+            colorClass="from-info to-info"
             index={0}
           />
         </div>
@@ -247,7 +249,7 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
             title="Active Therapists"
             value={counts ? counts.totalTherapists.toLocaleString('en-IN') : '—'}
             icon={UserCheck}
-            colorClass="from-blue-400 to-indigo-500"
+            colorClass="from-info to-action"
             index={1}
           />
         </div>
@@ -256,7 +258,7 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
             title="Pending Verifications"
             value={counts ? counts.pendingTherapists.toLocaleString('en-IN') : '—'}
             icon={Clock}
-            colorClass="from-action to-amber-500"
+            colorClass="from-action to-warning"
             index={2}
           />
         </div>
@@ -265,7 +267,7 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
             title="Pending Payouts"
             value={counts ? counts.pendingPayouts.toLocaleString('en-IN') : '—'}
             icon={DollarSign}
-            colorClass="from-emerald-400 to-teal-500"
+            colorClass="from-action to-teal-500"
             index={3}
           />
         </div>
@@ -276,30 +278,30 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="bg-card rounded-[2rem] p-8 shadow-sm border border-slate-100 h-[450px]"
+            className="bg-card rounded-[2rem] p-8 shadow-sm border border-rule h-[450px]"
           >
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="text-xl font-bold text-slate-900 tracking-tight">Session Volume</h3>
-                <p className="text-slate-500 text-sm">Completed vs missed sessions, this week</p>
+                <h3 className="text-xl font-bold text-ink tracking-tight">Session Volume</h3>
+                <p className="text-muted-text text-sm">Completed vs missed sessions, this week</p>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
-                <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-                <span className="text-xs font-semibold text-slate-700">{appointments.length} appointments</span>
+              <div className="flex items-center gap-2 px-3 py-1 bg-surface-warm rounded-full border border-rule">
+                <div className="w-2 h-2 rounded-full bg-action animate-pulse" />
+                <span className="text-xs font-semibold text-body-text">{appointments.length} appointments</span>
               </div>
             </div>
 
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={weeklySessionsData} barSize={40}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--rule)" />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-text)', fontSize: 12 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-text)', fontSize: 12 }} allowDecimals={false} />
                 <Tooltip
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', padding: '12px' }}
+                  cursor={{ fill: 'var(--surface-warm)' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-card-hi)' }}
                 />
-                <Bar dataKey="completed" name="Completed" stackId="a" fill="#6366f1" radius={[0, 0, 6, 6]} />
-                <Bar dataKey="missed" name="Missed" stackId="a" fill="#cbd5e1" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="completed" name="Completed" stackId="a" fill="var(--action)" radius={[0, 0, 6, 6]} />
+                <Bar dataKey="missed" name="Missed" stackId="a" fill="var(--rule-hi)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </motion.div>
@@ -310,27 +312,27 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.25 }}
-            className="bg-card rounded-[2rem] p-8 shadow-sm border border-slate-100 h-[450px] flex flex-col"
+            className="bg-card rounded-[2rem] p-8 shadow-sm border border-rule h-[450px] flex flex-col"
           >
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Recent Activity</h3>
-              <p className="text-slate-500 text-sm">Latest admin actions (audit trail)</p>
+              <h3 className="text-xl font-bold text-ink tracking-tight">Recent Activity</h3>
+              <p className="text-muted-text text-sm">Latest admin actions (audit trail)</p>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
               {activity.length === 0 && (
-                <p className="text-sm text-slate-400">No admin activity recorded yet.</p>
+                <p className="text-sm text-dim">No admin activity recorded yet.</p>
               )}
               {activity.map(item => (
                 <div key={item.id} className="flex items-start gap-3">
-                  <div className="rounded-full bg-indigo-50 p-2 mt-0.5">
-                    <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                  <div className="rounded-full bg-action-light p-2 mt-0.5">
+                    <ShieldCheck className="h-4 w-4 text-action" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm text-slate-700 leading-snug">
-                      <span className="font-semibold text-slate-900">{item.actor.firstName} {item.actor.lastName}</span>{' '}
+                    <p className="text-sm text-body-text leading-snug">
+                      <span className="font-semibold text-ink">{item.actor.firstName} {item.actor.lastName}</span>{' '}
                       {ACTIVITY_LABELS[item.action] ?? item.action}
                     </p>
-                    <p className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                    <p className="text-xs text-dim">{new Date(item.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
                   </div>
                 </div>
               ))}
@@ -344,47 +346,47 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-card rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"
+            className="bg-card rounded-[2rem] shadow-sm border border-rule overflow-hidden"
           >
-            <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+            <div className="p-8 border-b border-surface-warm flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold text-slate-900 tracking-tight">Top Performers</h3>
-                <p className="text-slate-500 text-sm">By completed-session revenue, this week</p>
+                <h3 className="text-xl font-bold text-ink tracking-tight">Top Performers</h3>
+                <p className="text-muted-text text-sm">By completed-session revenue, this week</p>
               </div>
-              <Button variant="ghost" onClick={() => onNavigate('analytics')} className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-full text-sm">
+              <Button variant="ghost" onClick={() => onNavigate('analytics')} className="text-action hover:text-action-dark hover:bg-action-light rounded-full text-sm">
                 View Full Report <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
             <div className="p-4">
               {leaderboard.length === 0 && (
-                <p className="p-4 text-sm text-slate-400">No sessions recorded this week yet.</p>
+                <p className="p-4 text-sm text-dim">No sessions recorded this week yet.</p>
               )}
               {leaderboard.map((therapist, i) => {
                 const completion = therapist.sessions ? Math.round((therapist.completed / therapist.sessions) * 100) : 0;
                 return (
-                  <div key={therapist.id} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-2xl transition-colors group cursor-pointer duration-200">
+                  <div key={therapist.id} className="flex items-center justify-between p-4 hover:bg-surface-warm rounded-2xl transition-colors group cursor-pointer duration-200">
                     <div className="flex items-center gap-4">
-                      <span className="font-mono text-slate-300 font-bold text-lg w-6">{i + 1}</span>
+                      <span className="font-mono text-rule-hi font-bold text-lg w-6">{i + 1}</span>
                       <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
-                        <AvatarFallback className="bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-700 font-bold">{therapist.initials}</AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-br from-action-light to-info/15 text-action-dark font-bold">{therapist.initials}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-bold text-slate-900 text-base">{therapist.name}</p>
-                        <p className="text-slate-500 text-sm">{therapist.completed} of {therapist.sessions} sessions completed</p>
+                        <p className="font-bold text-ink text-base">{therapist.name}</p>
+                        <p className="text-muted-text text-sm">{therapist.completed} of {therapist.sessions} sessions completed</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-8 text-right">
                       <div>
-                        <p className="font-bold text-slate-900">{formatRupees(therapist.revenuePaise)}</p>
-                        <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Revenue</p>
+                        <p className="font-bold text-ink">{formatRupees(therapist.revenuePaise)}</p>
+                        <p className="text-xs text-dim font-medium uppercase tracking-wider">Revenue</p>
                       </div>
                       <div className="w-32 hidden md:block">
                         <div className="flex justify-between text-xs mb-1">
-                          <span className="text-slate-500">Completion</span>
-                          <span className="font-bold text-indigo-600">{completion}%</span>
+                          <span className="text-muted-text">Completion</span>
+                          <span className="font-bold text-action">{completion}%</span>
                         </div>
-                        <Progress value={completion} className="h-2 bg-slate-100" indicatorClassName="bg-indigo-500 rounded-full" />
+                        <Progress value={completion} className="h-2 bg-rule" indicatorClassName="bg-action rounded-full" />
                       </div>
                     </div>
                   </div>
@@ -399,17 +401,17 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="bg-card rounded-[2rem] shadow-sm border border-slate-100 p-8 h-full"
+            className="bg-card rounded-[2rem] shadow-sm border border-rule p-8 h-full"
           >
-            <h3 className="text-xl font-bold text-slate-900 tracking-tight mb-6">Client Pipeline</h3>
+            <h3 className="text-xl font-bold text-ink tracking-tight mb-6">Client Pipeline</h3>
             <div className="space-y-6">
               {clientJourneyData.map((stage, index) => (
                 <div key={stage.stage} className="space-y-3 group cursor-pointer">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">{stage.stage}</span>
-                    <span className="px-2 py-0.5 bg-slate-100 rounded-md text-slate-600 font-medium text-xs group-hover:bg-slate-200 transition-colors">{stage.count}</span>
+                    <span className="font-semibold text-body-text group-hover:text-ink transition-colors">{stage.stage}</span>
+                    <span className="px-2 py-0.5 bg-rule rounded-md text-muted-text font-medium text-xs group-hover:bg-rule-hi transition-colors">{stage.count}</span>
                   </div>
-                  <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-surface-warm rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(stage.count / maxStage) * 100}%` }}
@@ -422,8 +424,8 @@ export function AdminDashboardView({ userEmail, onNavigate }: AdminDashboardView
               ))}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-50">
-              <Button variant="outline" onClick={() => onNavigate('calendar')} className="w-full rounded-xl border-dashed border-slate-300 text-slate-500 hover:text-slate-700 hover:border-slate-400">
+            <div className="mt-8 pt-6 border-t border-surface-warm">
+              <Button variant="outline" onClick={() => onNavigate('calendar')} className="w-full rounded-xl border-dashed border-rule-hi text-muted-text hover:text-body-text hover:border-dim">
                 <CalendarCheck className="mr-2 h-4 w-4" /> View This Week's Schedule
               </Button>
             </div>

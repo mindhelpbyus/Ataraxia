@@ -334,22 +334,22 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
     if (client.safetyRisk === 'high') {
       return (
         <div className="flex flex-col gap-1 items-start">
-          <Badge className="bg-red-100 text-red-700 hover:bg-red-200 border-red-200 whitespace-nowrap">
+          <Badge className="bg-danger-light text-danger hover:bg-danger/30 border-danger/30 whitespace-nowrap">
             <AlertCircle className="w-3 h-3 mr-1" />
             High Safety Concern
           </Badge>
           {client.safetyFlags?.includes('abuse_environment') && (
-            <div className="flex items-center text-xs text-red-600 font-medium ml-1">
+            <div className="flex items-center text-xs text-danger font-medium ml-1">
               <Shield className="w-3 h-3 mr-1" /> Environment unsafe
             </div>
           )}
           {client.safetyFlags?.includes('psychosis') && (
-            <div className="flex items-center text-xs text-red-600 font-medium ml-1">
+            <div className="flex items-center text-xs text-danger font-medium ml-1">
               <Brain className="w-3 h-3 mr-1" /> Needs higher care
             </div>
           )}
           {client.safetyFlags?.includes('substance') && (
-            <div className="flex items-center text-xs text-red-600 font-medium ml-1">
+            <div className="flex items-center text-xs text-danger font-medium ml-1">
               <AlertTriangle className="w-3 h-3 mr-1" /> Substance risk
             </div>
           )}
@@ -367,7 +367,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
     }
 
     return (
-      <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200 whitespace-nowrap">
+      <Badge className="bg-action-light text-action-dark hover:bg-action/30 border-action/30 whitespace-nowrap">
         <CheckCircle2 className="w-3 h-3 mr-1" />
         Stable
       </Badge>
@@ -498,15 +498,15 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
         </motion.div>
 
         <motion.div variants={statsVariants}>
-          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-green-500/20 transition-all duration-300 group">
+          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-action/20 transition-all duration-300 group">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Active</p>
-                  <p className="text-3xl font-bold tracking-tight text-green-600">{clients.filter((p: Client) => p.status === 'active').length}</p>
+                  <p className="text-3xl font-bold tracking-tight text-action">{clients.filter((p: Client) => p.status === 'active').length}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors duration-300">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
+                <div className="h-12 w-12 rounded-xl bg-action/10 flex items-center justify-center group-hover:bg-action/20 transition-colors duration-300">
+                  <TrendingUp className="h-6 w-6 text-action" />
                 </div>
               </div>
             </CardContent>
@@ -514,15 +514,15 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
         </motion.div>
 
         <motion.div variants={statsVariants}>
-          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-blue-500/20 transition-all duration-300 group">
+          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-info/20 transition-all duration-300 group">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">New This Month</p>
-                  <p className="text-3xl font-bold tracking-tight text-blue-600">{clients.filter((p: Client) => p.status === 'new').length}</p>
+                  <p className="text-3xl font-bold tracking-tight text-info">{clients.filter((p: Client) => p.status === 'new').length}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors duration-300">
-                  <User className="h-6 w-6 text-blue-600" />
+                <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center group-hover:bg-info/20 transition-colors duration-300">
+                  <User className="h-6 w-6 text-info" />
                 </div>
               </div>
             </CardContent>
@@ -647,7 +647,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                               Edit Client
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
+                            <DropdownMenuItem className="text-danger">
                               Delete Client
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -683,13 +683,13 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
       <AnimatePresence>
         {selectedClient && (
           <Sheet open={!!selectedClient} onOpenChange={(open) => !open && setSelectedClient(null)}>
-            <SheetContent side="right" className="sm:max-w-6xl w-[90vw] p-0 border-l border-zinc-200 shadow-2xl bg-card overflow-hidden flex flex-col">
+            <SheetContent side="right" className="sm:max-w-6xl w-[90vw] p-0 border-l border-rule-hi shadow-2xl bg-card overflow-hidden flex flex-col">
               {(() => {
                 const detailData = mapClientToDetailData(selectedClient);
                 return (
                   <>
                     {/* 1. Top Header (Identity + Safety Banner) */}
-                    <div className="bg-card border-b border-zinc-200 px-8 py-6 flex-shrink-0 z-10 shadow-sm">
+                    <div className="bg-card border-b border-rule-hi px-8 py-6 flex-shrink-0 z-10 shadow-sm">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-6">
                           <Button
@@ -700,30 +700,30 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                           >
                             <ChevronRight className="h-6 w-6 rotate-180" />
                           </Button>
-                          <Avatar className="h-20 w-20 ring-4 ring-zinc-50 shadow-md rounded-2xl">
-                            <AvatarFallback className="bg-zinc-900 text-white text-2xl font-light">
+                          <Avatar className="h-20 w-20 ring-4 ring-surface-warm shadow-md rounded-2xl">
+                            <AvatarFallback className="bg-ink text-white text-2xl font-light">
                               {detailData.profile.identity.firstName[0]}{detailData.profile.identity.lastName[0]}
                             </AvatarFallback>
                           </Avatar>
                           <div className="pt-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
+                              <h2 className="text-2xl font-bold tracking-tight text-ink">
                                 {detailData.profile.identity.firstName} {detailData.profile.identity.lastName}
                               </h2>
-                              <span className="text-sm text-zinc-500 font-medium">({detailData.profile.identity.preferredName})</span>
-                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${detailData.profile.status.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
+                              <span className="text-sm text-muted-text font-medium">({detailData.profile.identity.preferredName})</span>
+                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${detailData.profile.status.riskLevel === 'high' ? 'bg-danger-light text-danger' :
                                 detailData.profile.status.riskLevel === 'medium' ? 'bg-action-light text-action-dark' :
-                                  'bg-emerald-100 text-emerald-700'
+                                  'bg-action-light text-action-dark'
                                 }`}>
                                 {detailData.profile.status.riskLevel} Risk
                               </span>
                             </div>
-                            <div className="flex items-center gap-4 text-sm font-medium text-zinc-500">
+                            <div className="flex items-center gap-4 text-sm font-medium text-muted-text">
                               <span>{detailData.profile.identity.age} yrs</span>
-                              <span className="text-zinc-300">•</span>
+                              <span className="text-rule-hi">•</span>
                               <span>{detailData.profile.identity.pronouns}</span>
-                              <span className="text-zinc-300">•</span>
-                              <span className={`capitalize ${detailData.profile.status.accountStatus === 'active' ? 'text-emerald-600' : 'text-zinc-500'}`}>
+                              <span className="text-rule-hi">•</span>
+                              <span className={`capitalize ${detailData.profile.status.accountStatus === 'active' ? 'text-action' : 'text-muted-text'}`}>
                                 {detailData.profile.status.accountStatus}
                               </span>
                             </div>
@@ -743,7 +743,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
 
                       {/* Safety Banner - Feature Flagged: Disabled */}
                       {false && (detailData.profile.status.riskLevel === 'high' || detailData.profile.status.riskLevel === 'medium') && (
-                        <div className={`mt-6 p-3 rounded-lg flex items-center gap-3 ${detailData.profile.status.riskLevel === 'high' ? 'bg-red-50 border border-red-100 text-red-800' : 'bg-action-light border border-action-light text-action-dark'}`}>
+                        <div className={`mt-6 p-3 rounded-lg flex items-center gap-3 ${detailData.profile.status.riskLevel === 'high' ? 'bg-danger-light border border-danger-light text-danger' : 'bg-action-light border border-action-light text-action-dark'}`}>
                           <ShieldAlert className="h-5 w-5 flex-shrink-0" />
                           <span className="text-sm font-medium">
                             {detailData.profile.status.riskBanner || "Safety Alert: Please review recent assessments."}
@@ -760,30 +760,30 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       )}
                     </div>
 
-                    <div className="flex-1 overflow-y-auto bg-zinc-50/50 p-8 space-y-8">
+                    <div className="flex-1 overflow-y-auto bg-surface-warm/50 p-8 space-y-8">
 
                       {/* AI Insights Section - Feature Flagged: Disabled */}
                       {false && (detailData.aiInsights.documentationAlerts.length > 0 || detailData.aiInsights.trendAlerts.length > 0) && (
-                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 shadow-sm">
+                        <div className="bg-info/10 border border-info/15 rounded-xl p-5 shadow-sm">
                           <div className="flex items-center gap-2 mb-3">
-                            <Brain className="h-5 w-5 text-blue-600" />
-                            <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider">AI Insights & Alerts</h3>
+                            <Brain className="h-5 w-5 text-info" />
+                            <h3 className="text-sm font-bold text-ink uppercase tracking-wider">AI Insights & Alerts</h3>
                           </div>
-                          <p className="text-sm text-blue-800 mb-4 leading-relaxed">
+                          <p className="text-sm text-info-foreground mb-4 leading-relaxed">
                             {detailData.aiInsights.progressSummary}
                           </p>
                           <div className="space-y-3">
                             {detailData.aiInsights.documentationAlerts.map((alert, i) => (
-                              <div key={`doc-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-blue-100/50">
+                              <div key={`doc-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-info/15/50">
                                 <AlertTriangle className="h-4 w-4 text-action flex-shrink-0 mt-0.5" />
-                                <span className="text-sm text-zinc-700">{alert}</span>
+                                <span className="text-sm text-body-text">{alert}</span>
                               </div>
                             ))}
                             {detailData.aiInsights.trendAlerts.map((alert, i) => (
-                              <div key={`trend-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-blue-100/50">
-                                <TrendingUp className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
-                                <span className="text-sm text-zinc-700">
-                                  <span className="font-semibold text-zinc-900">{alert.type}:</span> {alert.message}
+                              <div key={`trend-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-info/15/50">
+                                <TrendingUp className="h-4 w-4 text-danger flex-shrink-0 mt-0.5" />
+                                <span className="text-sm text-body-text">
+                                  <span className="font-semibold text-ink">{alert.type}:</span> {alert.message}
                                 </span>
                               </div>
                             ))}
@@ -795,23 +795,23 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       <div className="grid grid-cols-4 gap-6">
                         {/* Tile 1: Next Session */}
                         {/* Tile 1: Next Session */}
-                        <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48 relative overflow-hidden">
+                        <div className="bg-card p-5 rounded-xl border border-rule-hi shadow-sm flex flex-col justify-between h-48 relative overflow-hidden">
                           <div>
-                            <div className="flex items-center gap-2 text-zinc-500 mb-3">
+                            <div className="flex items-center gap-2 text-muted-text mb-3">
                               <Calendar className="h-4 w-4" />
                               <span className="text-xs font-bold uppercase tracking-wider">Next Session</span>
                             </div>
                             {detailData.sessions.nextSession ? (
                               <>
-                                <div className="text-xl font-semibold text-zinc-900 mb-1">
+                                <div className="text-xl font-semibold text-ink mb-1">
                                   {new Date(detailData.sessions.nextSession.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                 </div>
-                                <div className="text-sm text-zinc-600 mb-2">
+                                <div className="text-sm text-muted-text mb-2">
                                   {detailData.sessions.nextSession.startTime} • {detailData.sessions.nextSession.mode}
                                 </div>
                               </>
                             ) : (
-                              <div className="text-sm text-zinc-500 italic">No upcoming sessions</div>
+                              <div className="text-sm text-muted-text italic">No upcoming sessions</div>
                             )}
                           </div>
 
@@ -856,23 +856,23 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                         </div>
 
                         {/* Tile 2: Last Session */}
-                        <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
+                        <div className="bg-card p-5 rounded-xl border border-rule-hi shadow-sm flex flex-col justify-between h-48">
                           <div>
-                            <div className="flex items-center gap-2 text-zinc-500 mb-3">
+                            <div className="flex items-center gap-2 text-muted-text mb-3">
                               <Clock className="h-4 w-4" />
                               <span className="text-xs font-bold uppercase tracking-wider">Last Session</span>
                             </div>
                             {detailData.sessions.lastSession ? (
                               <>
-                                <div className="text-sm font-medium text-zinc-900 mb-1">
+                                <div className="text-sm font-medium text-ink mb-1">
                                   {new Date(detailData.sessions.lastSession.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                 </div>
-                                <p className="text-xs text-zinc-600 line-clamp-3 leading-relaxed">
+                                <p className="text-xs text-muted-text line-clamp-3 leading-relaxed">
                                   {detailData.sessions.lastSession.summary}
                                 </p>
                               </>
                             ) : (
-                              <div className="text-sm text-zinc-500 italic">No previous sessions</div>
+                              <div className="text-sm text-muted-text italic">No previous sessions</div>
                             )}
                           </div>
                           {detailData.sessions.lastSession && (
@@ -883,59 +883,59 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                         </div>
 
                         {/* Tile 3: Assessments Overview */}
-                        <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
+                        <div className="bg-card p-5 rounded-xl border border-rule-hi shadow-sm flex flex-col justify-between h-48">
                           <div>
-                            <div className="flex items-center gap-2 text-zinc-500 mb-3">
+                            <div className="flex items-center gap-2 text-muted-text mb-3">
                               <Activity className="h-4 w-4" />
                               <span className="text-xs font-bold uppercase tracking-wider">Assessments</span>
                             </div>
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium text-zinc-700">PHQ-9</span>
+                                <span className="text-sm font-medium text-body-text">PHQ-9</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-lg font-bold text-zinc-900">{detailData.assessments.latest.PHQ9?.score ?? '—'}</span>
-                                  <span className={`text-xs ${detailData.assessments.latest.PHQ9?.trend === 'increasing' ? 'text-red-500' : 'text-emerald-500'}`}>
+                                  <span className="text-lg font-bold text-ink">{detailData.assessments.latest.PHQ9?.score ?? '—'}</span>
+                                  <span className={`text-xs ${detailData.assessments.latest.PHQ9?.trend === 'increasing' ? 'text-danger' : 'text-action'}`}>
                                     {detailData.assessments.latest.PHQ9?.trend === 'increasing' ? '↑' : '↓'}
                                   </span>
                                 </div>
                               </div>
                               <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium text-zinc-700">GAD-7</span>
+                                <span className="text-sm font-medium text-body-text">GAD-7</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-lg font-bold text-zinc-900">{detailData.assessments.latest.GAD7?.score ?? '—'}</span>
-                                  <span className="text-xs text-zinc-400">→</span>
+                                  <span className="text-lg font-bold text-ink">{detailData.assessments.latest.GAD7?.score ?? '—'}</span>
+                                  <span className="text-xs text-dim">→</span>
                                 </div>
                               </div>
                             </div>
                           </div>
-                          <div className="text-xs text-zinc-400 mt-auto text-center">
+                          <div className="text-xs text-dim mt-auto text-center">
                             Last updated: {detailData.assessments.latest.PHQ9?.lastUpdated ?? '—'}
                           </div>
                         </div>
 
                         {/* Tile 4: Treatment Plan Snapshot */}
-                        <div className="bg-card p-5 rounded-xl border border-zinc-200 shadow-sm flex flex-col justify-between h-48">
+                        <div className="bg-card p-5 rounded-xl border border-rule-hi shadow-sm flex flex-col justify-between h-48">
                           <div>
-                            <div className="flex items-center gap-2 text-zinc-500 mb-3">
+                            <div className="flex items-center gap-2 text-muted-text mb-3">
                               <Target className="h-4 w-4" />
                               <span className="text-xs font-bold uppercase tracking-wider">Treatment Plan</span>
                             </div>
-                            <div className="text-sm font-medium text-zinc-900 mb-1 line-clamp-1">
+                            <div className="text-sm font-medium text-ink mb-1 line-clamp-1">
                               {detailData.clinical.treatmentPlan.mainGoal}
                             </div>
                             <div className="flex gap-2 mb-3">
-                              <span className="px-2 py-0.5 bg-zinc-100 text-zinc-600 text-xs rounded border border-zinc-200">
+                              <span className="px-2 py-0.5 bg-rule text-muted-text text-xs rounded border border-rule-hi">
                                 {detailData.clinical.treatmentPlan.modality}
                               </span>
                             </div>
                             <div className="space-y-1">
-                              <div className="flex justify-between text-xs text-zinc-500">
+                              <div className="flex justify-between text-xs text-muted-text">
                                 <span>Progress</span>
                                 <span>{detailData.clinical.treatmentPlan.progressPercent}%</span>
                               </div>
-                              <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+                              <div className="h-1.5 w-full bg-rule rounded-full overflow-hidden">
                                 <div
-                                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                  className="h-full bg-action rounded-full transition-all duration-500"
                                   style={{ width: `${detailData.clinical.treatmentPlan.progressPercent}%` }}
                                 />
                               </div>
@@ -953,92 +953,92 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       </div>
 
                       {/* 3. Clinical Overview Panel */}
-                      <section className="bg-card rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-                        <div className="px-6 py-4 border-b border-zinc-100 bg-zinc-50/50 flex justify-between items-center">
-                          <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                            <Brain className="h-4 w-4 text-zinc-500" />
+                      <section className="bg-card rounded-2xl border border-rule-hi shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-rule bg-surface-warm/50 flex justify-between items-center">
+                          <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                            <Brain className="h-4 w-4 text-muted-text" />
                             Clinical Overview
                           </h3>
                           <Button variant="ghost" size="sm" className="h-8 text-xs">Edit Clinical Data</Button>
                         </div>
                         <div className="p-6 grid grid-cols-4 gap-8">
                           {/* Diagnoses */}
-                          <div className="col-span-1 border-r border-zinc-100 pr-6">
-                            <p className="text-xs font-bold text-zinc-400 uppercase mb-3">Diagnoses</p>
+                          <div className="col-span-1 border-r border-rule pr-6">
+                            <p className="text-xs font-bold text-dim uppercase mb-3">Diagnoses</p>
                             <div className="space-y-3">
                               <div>
-                                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded mb-1 inline-block">Primary</span>
-                                <p className="text-sm font-semibold text-zinc-900">{detailData.clinical.diagnoses.primary.description}</p>
-                                <p className="text-xs text-zinc-500 font-mono">{detailData.clinical.diagnoses.primary.code}</p>
+                                <span className="text-xs font-semibold text-action bg-action-light px-1.5 py-0.5 rounded mb-1 inline-block">Primary</span>
+                                <p className="text-sm font-semibold text-ink">{detailData.clinical.diagnoses.primary.description}</p>
+                                <p className="text-xs text-muted-text font-mono">{detailData.clinical.diagnoses.primary.code}</p>
                               </div>
                               {detailData.clinical.diagnoses.secondary.map((diag, i) => (
                                 <div key={i}>
-                                  <span className="text-xs font-semibold text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded mb-1 inline-block">Secondary</span>
-                                  <p className="text-sm font-medium text-zinc-700">{diag.description}</p>
-                                  <p className="text-xs text-zinc-500 font-mono">{diag.code}</p>
+                                  <span className="text-xs font-semibold text-muted-text bg-rule px-1.5 py-0.5 rounded mb-1 inline-block">Secondary</span>
+                                  <p className="text-sm font-medium text-body-text">{diag.description}</p>
+                                  <p className="text-xs text-muted-text font-mono">{diag.code}</p>
                                 </div>
                               ))}
                             </div>
                           </div>
 
                           {/* Medications */}
-                          <div className="col-span-1 border-r border-zinc-100 pr-6">
-                            <p className="text-xs font-bold text-zinc-400 uppercase mb-3">Medications</p>
+                          <div className="col-span-1 border-r border-rule pr-6">
+                            <p className="text-xs font-bold text-dim uppercase mb-3">Medications</p>
                             <div className="space-y-3">
                               {detailData.clinical.medications.map((med, i) => (
-                                <div key={i} className="bg-zinc-50 p-3 rounded-lg border border-zinc-100">
+                                <div key={i} className="bg-surface-warm p-3 rounded-lg border border-rule">
                                   <div className="flex justify-between items-start mb-1">
-                                    <span className="text-sm font-semibold text-zinc-900">{med.name}</span>
+                                    <span className="text-sm font-semibold text-ink">{med.name}</span>
                                   </div>
-                                  <p className="text-xs text-zinc-600 mb-1">{med.dosage}</p>
-                                  <p className="text-[10px] text-zinc-400 uppercase">Rx: {med.prescribedBy}</p>
+                                  <p className="text-xs text-muted-text mb-1">{med.dosage}</p>
+                                  <p className="text-[10px] text-dim uppercase">Rx: {med.prescribedBy}</p>
                                 </div>
                               ))}
                             </div>
                           </div>
 
                           {/* Risk & Safety */}
-                          <div className="col-span-1 border-r border-zinc-100 pr-6">
-                            <p className="text-xs font-bold text-zinc-400 uppercase mb-3">Risk & Safety</p>
+                          <div className="col-span-1 border-r border-rule pr-6">
+                            <p className="text-xs font-bold text-dim uppercase mb-3">Risk & Safety</p>
                             <div className="space-y-4">
                               <div>
-                                <p className="text-xs text-zinc-500 mb-1">Last Safety Assessment</p>
+                                <p className="text-xs text-muted-text mb-1">Last Safety Assessment</p>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-zinc-900">{detailData.clinical.safety.lastSafetyAssessment.date}</span>
-                                  <span className="text-xs bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">{detailData.clinical.safety.lastSafetyAssessment.type}</span>
+                                  <span className="text-sm font-medium text-ink">{detailData.clinical.safety.lastSafetyAssessment.date}</span>
+                                  <span className="text-xs bg-rule text-muted-text px-1.5 py-0.5 rounded">{detailData.clinical.safety.lastSafetyAssessment.type}</span>
                                 </div>
                               </div>
                               <div>
-                                <p className="text-xs text-zinc-500 mb-1">Suicidal Ideation</p>
-                                <span className={`text-sm font-semibold ${detailData.clinical.safety.lastSafetyAssessment.suicidalIdeation === 'yes' ? 'text-red-600' : 'text-zinc-900'}`}>
+                                <p className="text-xs text-muted-text mb-1">Suicidal Ideation</p>
+                                <span className={`text-sm font-semibold ${detailData.clinical.safety.lastSafetyAssessment.suicidalIdeation === 'yes' ? 'text-danger' : 'text-ink'}`}>
                                   {detailData.clinical.safety.lastSafetyAssessment.suicidalIdeation === 'yes' ? 'PRESENT' : 'None Reported'}
                                 </span>
                               </div>
                               <div>
-                                <p className="text-xs text-zinc-500 mb-1">Emergency Contact</p>
-                                <p className="text-sm font-medium text-zinc-900">{detailData.profile.contact.emergencyContact.name}</p>
-                                <p className="text-xs text-zinc-500">{detailData.profile.contact.emergencyContact.phone}</p>
+                                <p className="text-xs text-muted-text mb-1">Emergency Contact</p>
+                                <p className="text-sm font-medium text-ink">{detailData.profile.contact.emergencyContact.name}</p>
+                                <p className="text-xs text-muted-text">{detailData.profile.contact.emergencyContact.phone}</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Sessions & Attendance */}
                           <div className="col-span-1">
-                            <p className="text-xs font-bold text-zinc-400 uppercase mb-3">Attendance</p>
+                            <p className="text-xs font-bold text-dim uppercase mb-3">Attendance</p>
                             <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-zinc-50 p-3 rounded-lg text-center">
-                                <span className="block text-2xl font-bold text-zinc-900">{detailData.sessions.stats.totalSessions}</span>
-                                <span className="text-xs text-zinc-500 uppercase">Total</span>
+                              <div className="bg-surface-warm p-3 rounded-lg text-center">
+                                <span className="block text-2xl font-bold text-ink">{detailData.sessions.stats.totalSessions}</span>
+                                <span className="text-xs text-muted-text uppercase">Total</span>
                               </div>
-                              <div className="bg-zinc-50 p-3 rounded-lg text-center">
-                                <span className="block text-2xl font-bold text-zinc-900">{detailData.sessions.stats.cancelled}</span>
-                                <span className="text-xs text-zinc-500 uppercase">Cancelled</span>
+                              <div className="bg-surface-warm p-3 rounded-lg text-center">
+                                <span className="block text-2xl font-bold text-ink">{detailData.sessions.stats.cancelled}</span>
+                                <span className="text-xs text-muted-text uppercase">Cancelled</span>
                               </div>
                             </div>
                             <div className="mt-4">
-                              <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                              <div className="flex justify-between text-xs text-muted-text mb-1">
                                 <span>Frequency</span>
-                                <span className="font-medium text-zinc-900 capitalize">{detailData.sessions.stats.frequency}</span>
+                                <span className="font-medium text-ink capitalize">{detailData.sessions.stats.frequency}</span>
                               </div>
                             </div>
                           </div>
@@ -1046,49 +1046,49 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       </section>
 
                       {/* 4. Client Background */}
-                      <section className="bg-card rounded-2xl border border-zinc-200 shadow-sm p-6">
-                        <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                          <User className="h-4 w-4 text-zinc-500" />
+                      <section className="bg-card rounded-2xl border border-rule-hi shadow-sm p-6">
+                        <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-text" />
                           Client Background
                         </h3>
                         <div className="grid grid-cols-3 gap-8">
                           <div className="col-span-2">
-                            <p className="text-xs font-bold text-zinc-400 uppercase mb-2">Presenting Problem</p>
-                            <p className="text-sm text-zinc-700 leading-relaxed mb-4">
+                            <p className="text-xs font-bold text-dim uppercase mb-2">Presenting Problem</p>
+                            <p className="text-sm text-body-text leading-relaxed mb-4">
                               {detailData.background.presentingProblem}
                             </p>
                             <div className="grid grid-cols-2 gap-6">
                               <div>
-                                <p className="text-xs font-bold text-zinc-400 uppercase mb-2">History</p>
-                                <ul className="space-y-1 text-sm text-zinc-600">
-                                  <li><span className="text-zinc-400">•</span> {detailData.background.clientHistory.previousTherapy}</li>
-                                  <li><span className="text-zinc-400">•</span> {detailData.background.clientHistory.traumaHistory}</li>
+                                <p className="text-xs font-bold text-dim uppercase mb-2">History</p>
+                                <ul className="space-y-1 text-sm text-muted-text">
+                                  <li><span className="text-dim">•</span> {detailData.background.clientHistory.previousTherapy}</li>
+                                  <li><span className="text-dim">•</span> {detailData.background.clientHistory.traumaHistory}</li>
                                 </ul>
                               </div>
                               <div>
-                                <p className="text-xs font-bold text-zinc-400 uppercase mb-2">Context</p>
-                                <ul className="space-y-1 text-sm text-zinc-600">
-                                  <li><span className="text-zinc-400">•</span> {detailData.background.personalContext.employment.occupation}</li>
-                                  <li><span className="text-zinc-400">•</span> {detailData.background.personalContext.household}</li>
+                                <p className="text-xs font-bold text-dim uppercase mb-2">Context</p>
+                                <ul className="space-y-1 text-sm text-muted-text">
+                                  <li><span className="text-dim">•</span> {detailData.background.personalContext.employment.occupation}</li>
+                                  <li><span className="text-dim">•</span> {detailData.background.personalContext.household}</li>
                                 </ul>
                               </div>
                             </div>
                           </div>
-                          <div className="col-span-1 bg-zinc-50 rounded-xl p-4 border border-zinc-100">
-                            <p className="text-xs font-bold text-zinc-400 uppercase mb-3">Insurance & Billing</p>
+                          <div className="col-span-1 bg-surface-warm rounded-xl p-4 border border-rule">
+                            <p className="text-xs font-bold text-dim uppercase mb-3">Insurance & Billing</p>
                             <div className="space-y-3">
                               <div className="flex justify-between">
-                                <span className="text-sm text-zinc-600">Provider</span>
-                                <span className="text-sm font-medium text-zinc-900">{detailData.billing.insuranceProvider}</span>
+                                <span className="text-sm text-muted-text">Provider</span>
+                                <span className="text-sm font-medium text-ink">{detailData.billing.insuranceProvider}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-sm text-zinc-600">Copay</span>
-                                <span className="text-sm font-medium text-zinc-900">${detailData.billing.copay}</span>
+                                <span className="text-sm text-muted-text">Copay</span>
+                                <span className="text-sm font-medium text-ink">${detailData.billing.copay}</span>
                               </div>
-                              <div className="h-px bg-zinc-200 my-1" />
+                              <div className="h-px bg-rule-hi my-1" />
                               <div className="flex justify-between">
-                                <span className="text-sm text-zinc-600">Outstanding</span>
-                                <span className="text-sm font-bold text-zinc-900">${detailData.billing.outstandingBalance}</span>
+                                <span className="text-sm text-muted-text">Outstanding</span>
+                                <span className="text-sm font-bold text-ink">${detailData.billing.outstandingBalance}</span>
                               </div>
                             </div>
                           </div>
@@ -1096,10 +1096,10 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                       </section>
 
                       {/* 5. Communication & Documents Area (Tabs) */}
-                      <section className="bg-card rounded-2xl border border-zinc-200 shadow-sm overflow-hidden min-h-[500px]">
+                      <section className="bg-card rounded-2xl border border-rule-hi shadow-sm overflow-hidden min-h-[500px]">
                         <Tabs defaultValue="notes" className="w-full">
-                          <div className="px-6 py-3 border-b border-zinc-100 bg-zinc-50/50">
-                            <TabsList className="bg-zinc-100/50 p-1">
+                          <div className="px-6 py-3 border-b border-rule bg-surface-warm/50">
+                            <TabsList className="bg-rule/50 p-1">
                               <TabsTrigger value="notes" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">
                                 <FileText className="h-4 w-4 mr-2" />
                                 Notes
@@ -1122,19 +1122,19 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                           <div className="p-6">
                             <TabsContent value="notes" className="mt-0 space-y-4">
                               <div className="flex justify-between items-center mb-4">
-                                <h4 className="text-sm font-bold text-zinc-900">Session Notes</h4>
+                                <h4 className="text-sm font-bold text-ink">Session Notes</h4>
                                 <Button size="sm" className="h-8"><Plus className="h-3 w-3 mr-2" /> New Note</Button>
                               </div>
                               {[1, 2, 3].map((_, i) => (
-                                <div key={i} className="border border-zinc-100 rounded-lg p-4 hover:bg-zinc-50 transition-colors cursor-pointer">
+                                <div key={i} className="border border-rule rounded-lg p-4 hover:bg-surface-warm transition-colors cursor-pointer">
                                   <div className="flex justify-between items-start mb-2">
                                     <div>
-                                      <span className="text-sm font-semibold text-zinc-900">Psychotherapy Session</span>
-                                      <span className="text-xs text-zinc-500 ml-2">Oct {20 - i * 7}, 2025</span>
+                                      <span className="text-sm font-semibold text-ink">Psychotherapy Session</span>
+                                      <span className="text-xs text-muted-text ml-2">Oct {20 - i * 7}, 2025</span>
                                     </div>
-                                    <span className="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-medium">Signed</span>
+                                    <span className="text-xs bg-action-light text-action px-2 py-0.5 rounded-full font-medium">Signed</span>
                                   </div>
-                                  <p className="text-sm text-zinc-600 line-clamp-2">
+                                  <p className="text-sm text-muted-text line-clamp-2">
                                     Patient discussed progress with anxiety management techniques. Reported reduced frequency of panic attacks...
                                   </p>
                                 </div>
@@ -1143,18 +1143,18 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
 
                             <TabsContent value="documents" className="mt-0">
                               <div className="flex justify-between items-center mb-4">
-                                <h4 className="text-sm font-bold text-zinc-900">Clinical Documents</h4>
+                                <h4 className="text-sm font-bold text-ink">Clinical Documents</h4>
                                 <Button size="sm" variant="outline" className="h-8"><Upload className="h-3 w-3 mr-2" /> Upload</Button>
                               </div>
                               <div className="grid grid-cols-3 gap-4">
                                 {['Intake Assessment', 'Safety Plan', 'Consent to Treat', 'Release of Information'].map((doc, i) => (
-                                  <div key={i} className="border border-zinc-100 rounded-lg p-4 flex items-center gap-3 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all cursor-pointer group">
-                                    <div className="h-10 w-10 bg-zinc-100 rounded-lg flex items-center justify-center group-hover:bg-card group-hover:shadow-sm transition-all">
-                                      <FileText className="h-5 w-5 text-zinc-400 group-hover:text-indigo-500" />
+                                  <div key={i} className="border border-rule rounded-lg p-4 flex items-center gap-3 hover:border-info/30 hover:bg-info/10/30 transition-all cursor-pointer group">
+                                    <div className="h-10 w-10 bg-rule rounded-lg flex items-center justify-center group-hover:bg-card group-hover:shadow-sm transition-all">
+                                      <FileText className="h-5 w-5 text-dim group-hover:text-info" />
                                     </div>
                                     <div>
-                                      <p className="text-sm font-medium text-zinc-900">{doc}</p>
-                                      <p className="text-xs text-zinc-500">PDF • 1.2 MB</p>
+                                      <p className="text-sm font-medium text-ink">{doc}</p>
+                                      <p className="text-xs text-muted-text">PDF • 1.2 MB</p>
                                     </div>
                                   </div>
                                 ))}
@@ -1163,10 +1163,10 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
 
                             <TabsContent value="assessments" className="mt-0">
                               <div className="flex justify-between items-center mb-6">
-                                <h4 className="text-sm font-bold text-zinc-900">Assessment History</h4>
+                                <h4 className="text-sm font-bold text-ink">Assessment History</h4>
                                 <Button size="sm" variant="outline" className="h-8">Send Assessment</Button>
                               </div>
-                              <div className="h-[300px] w-full border border-zinc-100 rounded-xl p-4 mb-6">
+                              <div className="h-[300px] w-full border border-rule rounded-xl p-4 mb-6">
                                 <ResponsiveContainer width="100%" height="100%">
                                   <LineChart data={detailData.assessments.history.dates.map((date, i) => ({
                                     date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -1187,9 +1187,9 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
 
                             <TabsContent value="messages" className="mt-0">
                               <div className="text-center py-12">
-                                <MessageSquare className="h-12 w-12 text-zinc-200 mx-auto mb-3" />
-                                <h3 className="text-lg font-medium text-zinc-900">Secure Messaging</h3>
-                                <p className="text-zinc-500 max-w-sm mx-auto mt-2">
+                                <MessageSquare className="h-12 w-12 text-rule-hi mx-auto mb-3" />
+                                <h3 className="text-lg font-medium text-ink">Secure Messaging</h3>
+                                <p className="text-muted-text max-w-sm mx-auto mt-2">
                                   Encrypted communication channel with {detailData.profile.identity.firstName}. All messages are HIPAA compliant.
                                 </p>
                                 <Button className="mt-6">Start New Conversation</Button>
@@ -1293,8 +1293,8 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                   className="bg-muted/30 rounded-xl p-4 border border-border/50"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <Mail className="h-4 w-4 text-blue-600" />
+                    <div className="h-8 w-8 rounded-full bg-info/15 flex items-center justify-center flex-shrink-0">
+                      <Mail className="h-4 w-4 text-info" />
                     </div>
                     <div className="space-y-1 flex-1">
                       <p className="text-sm font-medium text-foreground">Email Preview</p>
@@ -1422,21 +1422,21 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col p-0 overflow-hidden gap-0 border-0 shadow-2xl z-[100]">
-        <div className="bg-emerald-50 p-6 border-b border-emerald-100 flex-shrink-0 relative">
+        <div className="bg-action-light p-6 border-b border-action-light flex-shrink-0 relative">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-200 uppercase tracking-widest text-[10px]">
+              <Badge variant="outline" className="bg-action-light text-action-dark border-action/30 uppercase tracking-widest text-[10px]">
                 Active Plan
               </Badge>
-              <Badge variant="outline" className="bg-card text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
+              <Badge variant="outline" className="bg-card text-muted-text border-rule-hi uppercase tracking-widest text-[10px]">
                 Review: {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}
               </Badge>
             </div>
-            <DialogTitle className="text-2xl font-semibold flex items-center gap-2 text-emerald-900">
-              <Target className="h-6 w-6 text-emerald-600" />
+            <DialogTitle className="text-2xl font-semibold flex items-center gap-2 text-ink">
+              <Target className="h-6 w-6 text-action" />
               Treatment Plan
             </DialogTitle>
-            <DialogDescription className="text-emerald-800">
+            <DialogDescription className="text-action-dark">
               Comprehensive clinical roadmap and progress tracking.
             </DialogDescription>
           </DialogHeader>
@@ -1453,47 +1453,47 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
         <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-card">
           {/* 1. Primary Goal */}
           <section>
-            <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2 mb-3">
-              <Target className="h-4 w-4 text-zinc-500" />
+            <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2 mb-3">
+              <Target className="h-4 w-4 text-muted-text" />
               Primary Goal
             </h3>
-            <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100">
-              <p className="text-lg font-medium text-zinc-900 mb-2">{plan.mainGoal}</p>
+            <div className="bg-surface-warm p-4 rounded-xl border border-rule">
+              <p className="text-lg font-medium text-ink mb-2">{plan.mainGoal}</p>
               <div className="flex gap-2">
-                <Badge variant="secondary" className="bg-card border-zinc-200">{plan.modality}</Badge>
-                <Badge variant="secondary" className="bg-card border-zinc-200">Weekly Sessions</Badge>
+                <Badge variant="secondary" className="bg-card border-rule-hi">{plan.modality}</Badge>
+                <Badge variant="secondary" className="bg-card border-rule-hi">Weekly Sessions</Badge>
               </div>
             </div>
           </section>
 
           {/* 2. Objectives */}
           <section>
-            <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2 mb-3">
-              <CheckCircle2 className="h-4 w-4 text-zinc-500" />
+            <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2 mb-3">
+              <CheckCircle2 className="h-4 w-4 text-muted-text" />
               Objectives & Interventions
             </h3>
             <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-lg border border-zinc-100 hover:bg-zinc-50 transition-colors">
-                <div className="mt-1 h-5 w-5 rounded-full border-2 border-emerald-500 flex items-center justify-center">
-                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-rule hover:bg-surface-warm transition-colors">
+                <div className="mt-1 h-5 w-5 rounded-full border-2 border-action flex items-center justify-center">
+                  <div className="h-2.5 w-2.5 rounded-full bg-action" />
                 </div>
                 <div>
-                  <p className="font-medium text-zinc-900">Identify Anxiety Triggers</p>
-                  <p className="text-sm text-zinc-600">Log daily anxiety levels and associated context.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg border border-zinc-100 hover:bg-zinc-50 transition-colors">
-                <div className="mt-1 h-5 w-5 rounded-full border-2 border-zinc-300" />
-                <div>
-                  <p className="font-medium text-zinc-900">Practice Grounding Techniques</p>
-                  <p className="text-sm text-zinc-600">Apply 5-4-3-2-1 technique during high stress moments.</p>
+                  <p className="font-medium text-ink">Identify Anxiety Triggers</p>
+                  <p className="text-sm text-muted-text">Log daily anxiety levels and associated context.</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg border border-zinc-100 hover:bg-zinc-50 transition-colors">
-                <div className="mt-1 h-5 w-5 rounded-full border-2 border-zinc-300" />
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-rule hover:bg-surface-warm transition-colors">
+                <div className="mt-1 h-5 w-5 rounded-full border-2 border-rule-hi" />
                 <div>
-                  <p className="font-medium text-zinc-900">Sleep Hygiene Improvement</p>
-                  <p className="text-sm text-zinc-600">Establish consistent 11 PM bedtime routine.</p>
+                  <p className="font-medium text-ink">Practice Grounding Techniques</p>
+                  <p className="text-sm text-muted-text">Apply 5-4-3-2-1 technique during high stress moments.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-rule hover:bg-surface-warm transition-colors">
+                <div className="mt-1 h-5 w-5 rounded-full border-2 border-rule-hi" />
+                <div>
+                  <p className="font-medium text-ink">Sleep Hygiene Improvement</p>
+                  <p className="text-sm text-muted-text">Establish consistent 11 PM bedtime routine.</p>
                 </div>
               </div>
             </div>
@@ -1501,26 +1501,26 @@ function TreatmentPlanDialog({ open, onOpenChange, plan }: { open: boolean, onOp
 
           {/* 3. Progress */}
           <section>
-            <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2 mb-3">
-              <TrendingUp className="h-4 w-4 text-zinc-500" />
+            <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2 mb-3">
+              <TrendingUp className="h-4 w-4 text-muted-text" />
               Progress Tracking
             </h3>
-            <div className="bg-card rounded-xl border border-zinc-200 p-5">
+            <div className="bg-card rounded-xl border border-rule-hi p-5">
               <div className="flex justify-between items-end mb-2">
-                <span className="text-sm font-medium text-zinc-600">Overall Progress</span>
-                <span className="text-2xl font-bold text-emerald-600">{plan.progressPercent}%</span>
+                <span className="text-sm font-medium text-muted-text">Overall Progress</span>
+                <span className="text-2xl font-bold text-action">{plan.progressPercent}%</span>
               </div>
-              <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden mb-4">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${plan.progressPercent}%` }} />
+              <div className="h-2 w-full bg-rule rounded-full overflow-hidden mb-4">
+                <div className="h-full bg-action rounded-full" style={{ width: `${plan.progressPercent}%` }} />
               </div>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-muted-text">
                 Client is showing consistent improvement in identifying triggers. Sleep hygiene remains a challenge area.
               </p>
             </div>
           </section>
         </div>
 
-        <div className="p-6 bg-card border-t border-zinc-200 flex justify-end gap-3 flex-shrink-0">
+        <div className="p-6 bg-card border-t border-rule-hi flex justify-end gap-3 flex-shrink-0">
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Export Plan
@@ -1543,21 +1543,21 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 overflow-hidden gap-0 border-0 shadow-2xl z-[100]">
-        <div className="bg-red-50 p-6 border-b border-red-100 flex-shrink-0 relative">
+        <div className="bg-danger-light p-6 border-b border-danger-light flex-shrink-0 relative">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 uppercase tracking-widest text-[10px]">
+              <Badge variant="outline" className="bg-danger-light text-danger border-danger/30 uppercase tracking-widest text-[10px]">
                 Legal Record
               </Badge>
-              <Badge variant="outline" className="bg-card text-zinc-600 border-zinc-200 uppercase tracking-widest text-[10px]">
+              <Badge variant="outline" className="bg-card text-muted-text border-rule-hi uppercase tracking-widest text-[10px]">
                 Established: {new Date().toLocaleDateString()}
               </Badge>
             </div>
-            <DialogTitle className="text-2xl font-semibold flex items-center gap-2 text-red-900">
-              <ShieldAlert className="h-6 w-6 text-red-600" />
+            <DialogTitle className="text-2xl font-semibold flex items-center gap-2 text-ink">
+              <ShieldAlert className="h-6 w-6 text-danger" />
               Active Safety Plan
             </DialogTitle>
-            <DialogDescription className="text-red-800">
+            <DialogDescription className="text-danger">
               Current active safety protocol. Digitally signed and locked.
             </DialogDescription>
           </DialogHeader>
@@ -1571,43 +1571,43 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </Button>
         </div>
 
-        <div className="p-6 flex-1 overflow-y-auto space-y-8 bg-zinc-50/50">
+        <div className="p-6 flex-1 overflow-y-auto space-y-8 bg-surface-warm/50">
 
           {/* 1. Risk Overview */}
-          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-rule-hi p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                <Activity className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <Activity className="h-4 w-4 text-muted-text" />
                 1. Risk Overview
               </h3>
               <Badge variant="secondary" className="text-[10px]">Clinician Verified</Badge>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100">
-                <span className="text-xs text-zinc-500 uppercase font-semibold">Current Risk Status</span>
+              <div className="bg-surface-warm p-3 rounded-lg border border-rule">
+                <span className="text-xs text-muted-text uppercase font-semibold">Current Risk Status</span>
                 <div className="mt-1 flex items-center gap-2">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clientData.profile.status.riskLevel === 'high' ? 'bg-red-100 text-red-800' : 'bg-action-light text-action-dark'}`}>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${clientData.profile.status.riskLevel === 'high' ? 'bg-danger-light text-danger' : 'bg-action-light text-action-dark'}`}>
                     {clientData.profile.status.riskLevel.toUpperCase()} Risk
                   </span>
                 </div>
               </div>
-              <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100">
-                <span className="text-xs text-zinc-500 uppercase font-semibold">Clinical Basis</span>
-                <div className="mt-1 text-sm font-medium text-zinc-900">Clinical Interview & Assessment</div>
+              <div className="bg-surface-warm p-3 rounded-lg border border-rule">
+                <span className="text-xs text-muted-text uppercase font-semibold">Clinical Basis</span>
+                <div className="mt-1 text-sm font-medium text-ink">Clinical Interview & Assessment</div>
               </div>
             </div>
           </section>
 
           {/* 2. Warning Signs */}
-          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-rule-hi p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-muted-text" />
                 2. Warning Signs
               </h3>
               <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
             </div>
-            <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
+            <ul className="list-disc list-inside space-y-2 text-sm text-body-text">
               <li>Increased isolation and withdrawal from social activities</li>
               <li>Changes in sleep patterns</li>
               <li>Expressing feelings of hopelessness</li>
@@ -1615,15 +1615,15 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 3. Internal Coping Strategies */}
-          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-rule-hi p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                <Brain className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <Brain className="h-4 w-4 text-muted-text" />
                 3. Internal Coping Strategies
               </h3>
               <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
             </div>
-            <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
+            <ul className="list-disc list-inside space-y-2 text-sm text-body-text">
               <li>Deep breathing exercises</li>
               <li>Listening to calming music</li>
               <li>Journaling thoughts and feelings</li>
@@ -1631,40 +1631,40 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 4. Social Distractions */}
-          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-rule-hi p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                <User className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-text" />
                 4. Social Distractions
               </h3>
               <Badge variant="secondary" className="text-[10px]">Patient Reported</Badge>
             </div>
-            <div className="text-sm text-zinc-700 space-y-2">
-              <p><span className="font-semibold text-zinc-900">People:</span> Family and Friends</p>
-              <p><span className="font-semibold text-zinc-900">Places:</span> Public places, Parks</p>
+            <div className="text-sm text-body-text space-y-2">
+              <p><span className="font-semibold text-ink">People:</span> Family and Friends</p>
+              <p><span className="font-semibold text-ink">Places:</span> Public places, Parks</p>
             </div>
           </section>
 
           {/* 5. Contacts in Crisis */}
-          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-rule-hi p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                <Phone className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-text" />
                 5. Contacts in Crisis
               </h3>
               <Badge variant="secondary" className="text-[10px]">Verified</Badge>
             </div>
             <div className="space-y-3">
-              <div className="flex justify-between items-center bg-zinc-50 p-3 rounded-lg border border-zinc-100">
+              <div className="flex justify-between items-center bg-surface-warm p-3 rounded-lg border border-rule">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-900">{clientData.profile.contact.emergencyContact.name || 'Emergency Contact'}</p>
-                  <p className="text-xs text-zinc-500">Emergency Contact</p>
+                  <p className="text-sm font-semibold text-ink">{clientData.profile.contact.emergencyContact.name || 'Emergency Contact'}</p>
+                  <p className="text-xs text-muted-text">Emergency Contact</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {showEmergencyContact ? (
-                    <span className="text-sm font-mono text-zinc-900 bg-card px-2 py-1 rounded border border-zinc-200">{clientData.profile.contact.emergencyContact.phone || 'N/A'}</span>
+                    <span className="text-sm font-mono text-ink bg-card px-2 py-1 rounded border border-rule-hi">{clientData.profile.contact.emergencyContact.phone || 'N/A'}</span>
                   ) : (
-                    <span className="text-sm text-zinc-400 italic">Hidden for privacy</span>
+                    <span className="text-sm text-dim italic">Hidden for privacy</span>
                   )}
                   <Button
                     variant="ghost"
@@ -1680,63 +1680,63 @@ function SafetyPlanDialog({ open, onOpenChange, clientData }: { open: boolean, o
           </section>
 
           {/* 6. Professional Support */}
-          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-rule-hi p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                <Stethoscope className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <Stethoscope className="h-4 w-4 text-muted-text" />
                 6. Professional Support
               </h3>
               <Badge variant="secondary" className="text-[10px]">Verified</Badge>
             </div>
-            <div className="text-sm text-zinc-700 space-y-1">
-              <p className="font-semibold text-zinc-900">Assigned Therapist</p>
-              <div className="mt-3 pt-3 border-t border-zinc-100">
-                <p className="font-semibold text-zinc-900">National Suicide Prevention Lifeline</p>
-                <p className="text-lg font-mono text-zinc-900">988</p>
+            <div className="text-sm text-body-text space-y-1">
+              <p className="font-semibold text-ink">Assigned Therapist</p>
+              <div className="mt-3 pt-3 border-t border-rule">
+                <p className="font-semibold text-ink">National Suicide Prevention Lifeline</p>
+                <p className="text-lg font-mono text-ink">988</p>
               </div>
             </div>
           </section>
 
           {/* 7. Safe Environment Steps */}
-          <section className="bg-card rounded-xl border border-zinc-200 p-5 shadow-sm">
+          <section className="bg-card rounded-xl border border-rule-hi p-5 shadow-sm">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                <Shield className="h-4 w-4 text-zinc-500" />
+              <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <Shield className="h-4 w-4 text-muted-text" />
                 7. Safe Environment Steps
               </h3>
               <Badge variant="secondary" className="text-[10px]">Agreed</Badge>
             </div>
-            <ul className="list-disc list-inside space-y-2 text-sm text-zinc-700">
+            <ul className="list-disc list-inside space-y-2 text-sm text-body-text">
               <li>Remove access to lethal means</li>
               <li>Ensure environment is safe and supportive</li>
             </ul>
           </section>
 
           {/* 8. Signatures & Validation */}
-          <section className="bg-zinc-100 rounded-xl border border-zinc-200 p-6">
-            <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider mb-6">
+          <section className="bg-rule rounded-xl border border-rule-hi p-6">
+            <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-6">
               8. Validation & Signatures
             </h3>
 
             <div className="grid grid-cols-2 gap-8">
               <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Client Signature</p>
-                <div className="font-handwriting text-2xl text-zinc-800 mb-1">{clientData.profile.identity.firstName} {clientData.profile.identity.lastName}</div>
-                <div className="text-xs text-zinc-500">Digitally signed on {new Date().toLocaleDateString()}</div>
-                <div className="text-[10px] text-zinc-400 font-mono mt-1">IP: Verified • ID: sig_{clientData.clientId.substring(0, 8)}</div>
+                <p className="text-xs text-muted-text uppercase tracking-wider mb-2">Client Signature</p>
+                <div className="font-handwriting text-2xl text-ink mb-1">{clientData.profile.identity.firstName} {clientData.profile.identity.lastName}</div>
+                <div className="text-xs text-muted-text">Digitally signed on {new Date().toLocaleDateString()}</div>
+                <div className="text-[10px] text-dim font-mono mt-1">IP: Verified • ID: sig_{clientData.clientId.substring(0, 8)}</div>
               </div>
               <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Clinician Signature</p>
-                <div className="font-handwriting text-2xl text-zinc-800 mb-1">Clinician Signature</div>
-                <div className="text-xs text-zinc-500">Digitally signed on {new Date().toLocaleDateString()}</div>
-                <div className="text-[10px] text-zinc-400 font-mono mt-1">License: Verified • ID: sig_admin</div>
+                <p className="text-xs text-muted-text uppercase tracking-wider mb-2">Clinician Signature</p>
+                <div className="font-handwriting text-2xl text-ink mb-1">Clinician Signature</div>
+                <div className="text-xs text-muted-text">Digitally signed on {new Date().toLocaleDateString()}</div>
+                <div className="text-[10px] text-dim font-mono mt-1">License: Verified • ID: sig_admin</div>
               </div>
             </div>
           </section>
 
         </div>
-        <div className="p-6 bg-card border-t border-zinc-200 flex justify-between items-center flex-shrink-0">
-          <div className="text-xs text-zinc-500">
+        <div className="p-6 bg-card border-t border-rule-hi flex justify-between items-center flex-shrink-0">
+          <div className="text-xs text-muted-text">
             Document ID: SP-{new Date().getFullYear()}-{clientData.clientId.substring(0, 4)} • Version 1.0
           </div>
           <div className="flex gap-3">

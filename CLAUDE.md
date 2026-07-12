@@ -141,6 +141,42 @@ npm run typecheck    # tsc --noEmit  (must be clean — CI gate)
 
 ---
 
+## Design System — "Ink on Parchment" (enforced, not optional)
+
+Tokens are defined once in `src/styles/globals.css` and exposed as Tailwind utilities via `@theme
+inline` (`bg-action`, `text-ink`, `border-rule`, etc. — zero setup cost to use them). Verified via
+design audit 2026-07: roughly half the screens bypassed these tokens for default Tailwind
+slate/indigo/zinc, which is why the product read as inconsistent. Five files were swept clean
+(`ui/card.tsx`, `ui/dialog.tsx`, `ui/table.tsx`, `ProfessionalClientsView.tsx`, `AdminDashboardView.tsx`,
+`BillingView.tsx`, `ClientDashboardView.tsx`, `TherapistHomeView.tsx`); **~750 hits remain in the rest
+of the codebase** — tracked as a shrinking baseline in `scripts/.design-token-baseline`, not silently
+ignored. Four rules, enforced by `npm run check:design-tokens` (`scripts/check-design-tokens.sh`,
+CI-gated — fails only on *new* drift above the baseline; run `--update-baseline` after cleaning a file):
+
+1. **No raw Tailwind color utilities.** `slate-*`, `zinc-*`, `gray-*`, `indigo-*`, `blue-*`, `red-*`,
+   `green-*`, `emerald-*`, `purple-*`, `violet-*`, `rose-*`, `amber-*`, `orange-*` — banned in
+   `src/components/**`, `src/**/*.tsx`, outside of Recharts/chart-library config props (which require
+   literal color strings — use `var(--chart-1..5)` / `var(--action)` / etc. there instead of hex).
+   Every color reaches the DOM through a token utility. Deliberate multi-color semantic content (a mood
+   scale, a time-of-day gradient) is the one legitimate exception — flag it in review, don't silently
+   allow it to become a pattern.
+2. **One shadow vocabulary.** Only the named `--shadow-*` tokens (`shadow-card`, `shadow-card-hi`,
+   `shadow-sheet`, `shadow-fab`, `shadow-action`, `shadow-sage`). No inline dual-stack
+   `shadow-[…,…]` values invented per component, no generic `rgba(0,0,0,…)` — the brand's shadows are
+   ink-tinted (`rgba(28, 24, 18, …)`).
+3. **The `Card` primitive is not a suggestion.** Consumers may set spacing/size props; they may not
+   override its radius, border, or shadow via `className`. A screen that needs a different treatment
+   gets a new variant on the primitive, not a one-off override — this is why 6+ different "card" looks
+   accumulated across the dashboards.
+4. **Semantic color ≠ brand color.** Success/warning/danger/info states use their own tokens
+   (`--success`, `--warning`, `--danger`, `--info` — mapped to `action`/`ochre`/`danger`/`lavender`
+   respectively). `--action` means "primary action," never "this number is good."
+
+No raw emoji as UI markers (✨ 🎉 etc.) — use the matching Lucide icon; the codebase is icon-driven
+everywhere else, and emoji is the fastest tell that a screen wasn't designed, it was assembled.
+
+---
+
 ## Known Gotchas
 
 1. **Gateway has no stage prefix** — URL is `https://{id}.execute-api.{region}.amazonaws.com/<route>`,

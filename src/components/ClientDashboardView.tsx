@@ -106,7 +106,7 @@ export function ClientDashboardView({ userId, userName }: ClientDashboardViewPro
                     className="flex items-center justify-between"
                 >
                     <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-action bg-clip-text text-transparent">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-action-dark to-action bg-clip-text text-transparent">
                             Welcome back, {userName?.split(' ')[0] || 'there'}
                         </h1>
                         <p className="text-muted-foreground mt-1">How are you feeling today?</p>
@@ -168,8 +168,8 @@ export function ClientDashboardView({ userId, userName }: ClientDashboardViewPro
                                     animate={{ opacity: 1, height: 'auto' }}
                                     className="mt-6 p-4 bg-action-light rounded-xl border border-action-light"
                                 >
-                                    <p className="text-sm text-action-dark">
-                                        ✨ Thank you for sharing. Your mood has been logged.
+                                    <p className="text-sm text-action-dark flex items-center gap-1.5">
+                                        <Sparkles className="h-4 w-4 shrink-0" /> Thank you for sharing. Your mood has been logged.
                                     </p>
                                 </motion.div>
                             )}
@@ -188,7 +188,7 @@ export function ClientDashboardView({ userId, userName }: ClientDashboardViewPro
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <Card className="border-2 border-action-light bg-gradient-to-br from-action to-orange-600 text-white shadow-2xl">
+                            <Card className="border-2 border-action-light bg-gradient-to-br from-action to-action-dark text-white shadow-2xl">
                                 <CardContent className="p-8">
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-4 flex-1">
@@ -243,7 +243,7 @@ export function ClientDashboardView({ userId, userName }: ClientDashboardViewPro
                                         <motion.button
                                             key={index}
                                             whileHover={{ x: 4 }}
-                                            className="w-full text-left p-4 rounded-xl bg-gradient-to-r from-gray-50 to-action-light/30 border border-border hover:border-action-border transition-all group"
+                                            className="w-full text-left p-4 rounded-xl bg-gradient-to-r from-surface-warm to-action-light/30 border border-border hover:border-action-border transition-all group"
                                         >
                                             <div className="flex items-center justify-between">
                                                 <p className="text-foreground font-medium">{prompt}</p>
@@ -252,7 +252,7 @@ export function ClientDashboardView({ userId, userName }: ClientDashboardViewPro
                                         </motion.button>
                                     ))}
                                     <Button
-                                        className="w-full bg-gradient-to-r from-action to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
+                                        className="w-full bg-gradient-to-r from-action to-action-dark hover:from-action-dark hover:to-action text-white shadow-lg"
                                         size="lg"
                                     >
                                         <MessageSquare className="w-4 h-4 mr-2" />
@@ -353,10 +353,10 @@ export function ClientDashboardView({ userId, userName }: ClientDashboardViewPro
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
                         >
-                            <Card className="shadow-lg border-border bg-gradient-to-br from-green-50 to-emerald-50/30">
+                            <Card className="shadow-lg border-border bg-gradient-to-br from-action-light to-action-light/30">
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Sparkles className="w-5 h-5 text-green-600" />
+                                        <Sparkles className="w-5 h-5 text-action-dark" />
                                         Your Journey
                                     </CardTitle>
                                 </CardHeader>
@@ -364,20 +364,20 @@ export function ClientDashboardView({ userId, userName }: ClientDashboardViewPro
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
                                             <span className="text-muted-foreground">Sessions Completed</span>
-                                            <span className="font-bold text-green-600">8/12</span>
+                                            <span className="font-bold text-action-dark">8/12</span>
                                         </div>
                                         <Progress value={67} className="h-2" />
                                     </div>
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
                                             <span className="text-muted-foreground">Journal Entries</span>
-                                            <span className="font-bold text-green-600">24</span>
+                                            <span className="font-bold text-action-dark">24</span>
                                         </div>
                                         <Progress value={80} className="h-2" />
                                     </div>
                                     <div className="pt-4 border-t">
-                                        <p className="text-sm text-muted-foreground">
-                                            🎉 You're making great progress! Keep it up.
+                                        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                            <TrendingUp className="h-4 w-4 shrink-0 text-action" /> You're making great progress! Keep it up.
                                         </p>
                                     </div>
                                 </CardContent>
@@ -390,14 +390,14 @@ export function ClientDashboardView({ userId, userName }: ClientDashboardViewPro
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 }}
                         >
-                            <Card className="shadow-lg border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-50/30">
+                            <Card className="shadow-lg border-2 border-danger/30 bg-gradient-to-br from-danger-light to-danger-light/50">
                                 <CardContent className="p-6">
-                                    <h3 className="font-bold text-red-900 mb-2">Need Immediate Support?</h3>
-                                    <p className="text-sm text-red-700 mb-4">
+                                    <h3 className="font-bold text-ink mb-2">Need Immediate Support?</h3>
+                                    <p className="text-sm text-danger mb-4">
                                         If you're in crisis, help is available 24/7
                                     </p>
                                     <Button
-                                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                                        className="w-full bg-danger hover:bg-danger/90 text-white"
                                         size="lg"
                                     >
                                         Crisis Hotline

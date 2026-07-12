@@ -56,7 +56,7 @@ const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, coun
   } else if (hour >= 17) {
     greeting = "Good evening";
     Icon = Moon;
-    bgGradient = "from-indigo-900 via-slate-800 to-slate-900";
+    bgGradient = "from-indigo-900 via-slate-800 to-ink";
     message = "Time to wrap up and rest.";
   }
 
@@ -118,7 +118,7 @@ const BreathingStatCard = ({ icon: Icon, label, value, trend, delay }: any) => (
           <Icon className="w-6 h-6" />
         </div>
         {trend && (
-          <Badge variant="secondary" className="bg-green-50 text-green-700 border-0">
+          <Badge variant="secondary" className="bg-action-light text-action-dark border-0">
             {trend}
           </Badge>
         )}
@@ -168,10 +168,10 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
 
   return (
     <div className="col-span-12 mb-12 animate-in slide-in-from-bottom-4 duration-700 fade-in">
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-card border border-slate-100 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-card border border-rule shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
         {/* Subtle Background Decor */}
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-action-light/30 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-50/50 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-info/10 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none" />
 
         <div className="relative z-10 p-8 lg:p-10">
           <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
@@ -186,17 +186,17 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                   text={`${progress}%`}
                   styles={buildStyles({
                     textSize: '20px',
-                    pathColor: '#1E7048', // Orange-500
-                    textColor: '#0f172a', // Slate-900 (High contrast)
-                    trailColor: '#f1f5f9', // Slate-100
-                    backgroundColor: '#ffffff',
+                    pathColor: 'var(--action)',
+                    textColor: 'var(--ink)',
+                    trailColor: 'var(--rule)',
+                    backgroundColor: 'var(--surface)',
                     pathTransitionDuration: 1.5,
                   })}
                   strokeWidth={8}
                 />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold tracking-tight text-slate-900">
+                <h3 className="text-2xl font-bold tracking-tight text-ink">
                   Complete Profile
                 </h3>
                 <p className="text-dim leading-relaxed max-w-xs mx-auto lg:mx-0">
@@ -206,7 +206,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
             </div>
 
             {/* Divider */}
-            <div className="hidden lg:block w-px h-48 bg-gradient-to-b from-transparent via-slate-200 to-transparent" />
+            <div className="hidden lg:block w-px h-48 bg-gradient-to-b from-transparent via-rule-hi to-transparent" />
 
             {/* Right: Action Grid */}
             <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,7 +225,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                     className={`
                       relative flex items-center gap-5 p-5 rounded-2xl border transition-all duration-300 w-full text-left group
                       ${isCompleted
-                        ? 'bg-slate-50/50 border-slate-100 opacity-60 cursor-default'
+                        ? 'bg-surface-warm/50 border-rule opacity-60 cursor-default'
                         : 'bg-surface border-rule shadow-sm hover:border-action-border'
                       }
                     `}
@@ -234,7 +234,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                     <div className={`
                       flex items-center justify-center w-12 h-12 rounded-xl text-lg shadow-sm transition-all duration-300 shrink-0
                       ${isCompleted
-                        ? 'bg-green-100 text-green-600 ring-1 ring-green-100' // Completed State
+                        ? 'bg-action-light text-action ring-1 ring-action-light' // Completed State
                         : 'bg-action-light text-action ring-1 ring-action-border group-hover:from-action group-hover:to-action-dark group-hover:text-white group-hover:shadow-lg group-hover:shadow-action/20' // Active State
                       }
                     `}>
@@ -251,7 +251,7 @@ const ProfileCompletion = ({ onNavigate, userId }: { onNavigate: (tab: string, s
                           <span className="flex h-2 w-2 rounded-full bg-action animate-pulse shadow-[0_0_8px_rgba(30,112,72,0.6)]" />
                         )}
                       </div>
-                      <span className={`text-sm font-medium ${isCompleted ? 'text-slate-400' : 'text-dim group-hover:text-slate-600'}`}>
+                      <span className={`text-sm font-medium ${isCompleted ? 'text-dim' : 'text-dim group-hover:text-muted-text'}`}>
                         {isCompleted ? 'Completed' : 'Action Required'}
                       </span>
                     </div>
@@ -504,7 +504,7 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
                             Video Call
                           </div>
                         </div>
-                        <Badge variant="outline" className={`border-0 ${session.status === 'confirmed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-secondary text-muted-foreground'}`}>
+                        <Badge variant="outline" className={`border-0 ${session.status === 'confirmed' ? 'bg-action-light text-action-dark dark:bg-ink/30 dark:text-action' : 'bg-secondary text-muted-foreground'}`}>
                           {session.status}
                         </Badge>
                       </div>
@@ -546,27 +546,27 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
                 <div className="h-[250px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={weeklyData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--rule)" vertical={false} />
                       <XAxis
                         dataKey="day"
-                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                        tick={{ fill: 'var(--muted-text)', fontSize: 12 }}
                         axisLine={false}
                         tickLine={false}
                         dy={10}
                       />
                       <Tooltip
-                        cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                        cursor={{ fill: 'var(--surface-warm)' }}
                         contentStyle={{
-                          backgroundColor: '#ffffff',
-                          border: '1px solid #e5e7eb',
+                          backgroundColor: 'var(--surface)',
+                          border: '1px solid var(--rule)',
                           borderRadius: '12px',
-                          color: '#1a1a2e',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          color: 'var(--ink)',
+                          boxShadow: 'var(--shadow-card-hi)'
                         }}
                       />
                       <Bar
                         dataKey="sessions"
-                        fill="#1E7048"
+                        fill="var(--action)"
                         radius={[6, 6, 6, 6]}
                         barSize={12}
                       />

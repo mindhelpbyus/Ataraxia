@@ -12,6 +12,7 @@ frontend:
     build:
       commands:
         - npm run typecheck   # fail the build on type errors
+        - npm run check:design-tokens   # fail the build on new design-token drift
         - npm run build
   artifacts:
     baseDirectory: build
