@@ -67,9 +67,13 @@ export async function apiRequest<T>(
   };
 
   // ✅ Attach the Cognito access token (the API Gateway validates this JWT).
-  const accessToken = await getCognitoAccessToken();
-  if (accessToken) {
-    requestHeaders['Authorization'] = `Bearer ${accessToken}`;
+  // A caller-supplied Authorization header wins — billing_payment requires the
+  // ID token (its Lambda reads custom:* claims), which api/billing.ts supplies.
+  if (!requestHeaders['Authorization']) {
+    const accessToken = await getCognitoAccessToken();
+    if (accessToken) {
+      requestHeaders['Authorization'] = `Bearer ${accessToken}`;
+    }
   }
 
   if (!isFormData) {

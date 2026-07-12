@@ -1,131 +1,65 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+/**
+ * InvoicesView — real RBI-numbered invoices from billing_payment
+ * (GET /billing/invoices). Every value rendered comes from the Invoice record:
+ * docNumber is the gapless RBI sequence, totals are paise, PDFs are 1-hour
+ * presigned S3 URLs (each download is access-logged for DPDP).
+ */
+import { useEffect, useState } from 'react';
+import { Card, CardContent } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogTitle, DialogHeader } from './ui/dialog';
-import { FileText, DollarSign, Clock, CheckCircle, FileSearch } from 'lucide-react';
-import { get } from '../api/client';
+import { FileText, IndianRupee, Clock, Download, Loader2 } from 'lucide-react';
+import { listInvoices, getInvoiceDownload, type Invoice } from '../api/billing';
 import { UserRole } from '../types/appointment';
-import { TherapyInvoice, InvoiceData } from './TherapyInvoice';
+import { toast } from 'sonner';
 
 interface InvoicesViewProps {
   userRole: UserRole;
   currentUserId: string;
 }
 
-// ── Helper: build InvoiceData from a raw DB invoice row ──────────────────────
-function toInvoiceData(inv: any): InvoiceData {
-  const statusLabel =
-    inv.status === 'paid' ? 'Paid'
-      : inv.status === 'pending' ? 'Pending'
-        : inv.status === 'overdue' ? 'Overdue'
-          : inv.status;
+const paiseToRupees = (paise: number | null | undefined) =>
+  `₹${((paise ?? 0) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
-  return {
-    invoiceNumber: `INV-2026-${inv.id.split('-')[0].toUpperCase()}`,
-    issuedDate: new Date(
-      new Date(inv.createdAt).getTime() - 86400000 * 5
-    ).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-    dueDate: new Date(inv.createdAt).toLocaleDateString('en-US', {
-      year: 'numeric', month: 'long', day: 'numeric',
-    }),
-    status: statusLabel,
-    // Only attach a payment ID for paid invoices
-    razorpayPaymentId:
-      inv.status === 'paid'
-        ? `pay_${Math.random().toString(36).substr(2, 10).toUpperCase()}`
-        : undefined,
-    razorpayOrderId:
-      inv.status === 'paid'
-        ? `order_${Math.random().toString(36).substr(2, 10).toUpperCase()}`
-        : undefined,
-    organization: {
-      name: 'Ataraxia Health',
-      tagline: 'Mental wellness platform',
-      email: 'billing@ataraxia.health',
-      gstin: '27AABCA1234C1Z5',
-      website: 'ataraxia.health',
-    },
-    client: {
-      name: inv.clientName || 'Valued Client',
-      email: inv.clientEmail || 'client@example.com',
-      phone: inv.clientPhone || '+1 555-0100',
-      initials: (inv.clientName || 'VC').substring(0, 2).toUpperCase(),
-    },
-    therapist: {
-      name:
-        inv.therapistName && inv.therapistName !== 'Organization' && inv.therapistName !== 'Platform'
-          ? inv.therapistName
-          : 'Dr. Sarah Jenkins',
-      credentials: inv.therapistCredentials || 'PhD, LMFT',
-      clinic: inv.organizationId ? 'Ataraxia Clinic' : 'Independent Practice',
-      email: inv.therapistEmail || 'billing@ataraxia.com',
-      license: inv.therapistLicense,
-    },
-    session: inv.sessionDate
-      ? {
-        type: inv.description || 'Individual Therapy Session',
-        modality: inv.modality || 'Video Call (50 min)',
-        date: new Date(inv.sessionDate).toLocaleDateString('en-US', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-        }),
-        time: inv.sessionTime || '—',
-        sessionNo: inv.sessionNumber || 1,
-      }
-      : undefined,
-    lineItems: [
-      {
-        description: inv.description || 'Therapy session',
-        qty: 1,
-        rate: inv.amount,
-        amount: inv.amount,
-      },
-    ],
-    tax: { label: 'Tax (0%)', rate: 0 },
-    discount: 0,
-    currency: '$',
-  };
+const TYPE_LABELS: Record<string, string> = {
+  session: 'Session invoice',
+  credit_note: 'Credit note',
+  receipt: 'Payment receipt',
+  payout_statement: 'Payout statement',
+  payout_batch: 'Payout statement',
+  dispute_statement: 'Dispute statement',
+  settlement_statement: 'Settlement statement',
+};
+
+function StatusBadge({ invoice }: { invoice: Invoice }) {
+  const status = invoice.status ?? 'issued';
+  if (status === 'paid') return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Paid</Badge>;
+  if (status === 'issued') return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200">Issued</Badge>;
+  if (status === 'cancelled') return <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-200">Cancelled</Badge>;
+  return <Badge variant="outline">{status}</Badge>;
 }
 
-// ── Status badge ─────────────────────────────────────────────────────────────
-function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case 'paid':
-      return (
-        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
-          <CheckCircle className="w-3 h-3 mr-1" /> Paid
-        </Badge>
-      );
-    case 'pending':
-      return (
-        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200">
-          <Clock className="w-3 h-3 mr-1" /> Pending
-        </Badge>
-      );
-    case 'overdue':
-      return <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-200">Overdue</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
 export function InvoicesView({ userRole, currentUserId }: InvoicesViewProps) {
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        // billing_payment: GET /api/invoices — backend scopes by the authenticated
-        // Cognito identity/role, so no client-side ownership filtering is needed.
-        const data = await get<any[]>('/api/invoices');
+        // Admin sees all; therapist/client see their own documents.
+        const query = userRole === 'admin' || userRole === 'superadmin'
+          ? { limit: 200 }
+          : { recipientId: currentUserId, limit: 200 };
+        const data = await listInvoices(query);
         setInvoices(Array.isArray(data) ? data : []);
+        setLoadError(null);
       } catch (err) {
         console.error('Failed to load invoices', err);
+        setLoadError('Could not load invoices. The billing service may be unreachable.');
       } finally {
         setLoading(false);
       }
@@ -133,42 +67,37 @@ export function InvoicesView({ userRole, currentUserId }: InvoicesViewProps) {
     load();
   }, [userRole, currentUserId]);
 
-  const totalAmount = invoices.reduce((acc, i) => acc + i.amount, 0);
-  const paidAmount = invoices.filter(i => i.status === 'paid').reduce((acc, i) => acc + i.amount, 0);
-  const outstanding = totalAmount - paidAmount;
+  const handleDownload = async (invoice: Invoice) => {
+    setDownloadingId(invoice.id);
+    try {
+      const res = await getInvoiceDownload(invoice.id);
+      if (res.downloadUrl) {
+        window.open(res.downloadUrl, '_blank', 'noopener,noreferrer');
+      } else if (res.pdfStatus === 'pending') {
+        toast.info('PDF is still being generated — try again in a minute.');
+      } else {
+        toast.error(`PDF unavailable (${res.pdfStatus})${res.pdfFailureReason ? `: ${res.pdfFailureReason}` : ''}`);
+      }
+    } catch {
+      toast.error('Could not fetch the download link.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
-  const colSpan = userRole !== 'therapist' ? 7 : 6;
+  const totalPaise = invoices.reduce((acc, i) => acc + (i.totalPaise ?? i.total ?? 0), 0);
+  const paidPaise = invoices
+    .filter(i => (i.status ?? '') === 'paid')
+    .reduce((acc, i) => acc + (i.totalPaise ?? i.total ?? 0), 0);
 
   return (
     <div className="space-y-6">
-
       {/* ── Summary cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          {
-            label: 'Total invoiced',
-            value: `$${totalAmount.toLocaleString()}`,
-            icon: FileText,
-            iconBg: 'bg-blue-50',
-            iconColor: 'text-blue-500',
-            valueColor: 'text-slate-900',
-          },
-          {
-            label: 'Amount paid',
-            value: `$${paidAmount.toLocaleString()}`,
-            icon: DollarSign,
-            iconBg: 'bg-emerald-50',
-            iconColor: 'text-emerald-500',
-            valueColor: 'text-emerald-600',
-          },
-          {
-            label: 'Pending / overdue',
-            value: `$${outstanding.toLocaleString()}`,
-            icon: Clock,
-            iconBg: 'bg-amber-50',
-            iconColor: 'text-amber-500',
-            valueColor: 'text-amber-600',
-          },
+          { label: 'Documents', value: String(invoices.length), icon: FileText, iconBg: 'bg-blue-50', iconColor: 'text-blue-500', valueColor: 'text-slate-900' },
+          { label: 'Total invoiced', value: paiseToRupees(totalPaise), icon: IndianRupee, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-500', valueColor: 'text-emerald-600' },
+          { label: 'Marked paid', value: paiseToRupees(paidPaise), icon: Clock, iconBg: 'bg-amber-50', iconColor: 'text-amber-500', valueColor: 'text-amber-600' },
         ].map(({ label, value, icon: Icon, iconBg, iconColor, valueColor }) => (
           <Card key={label} className="border-slate-100 shadow-sm">
             <CardContent className="p-6">
@@ -177,8 +106,8 @@ export function InvoicesView({ userRole, currentUserId }: InvoicesViewProps) {
                   <p className="text-sm font-medium text-slate-500">{label}</p>
                   <h3 className={`text-2xl font-bold mt-1 ${valueColor}`}>{value}</h3>
                 </div>
-                <div className={`h-12 w-12 rounded-full ${iconBg} flex items-center justify-center`}>
-                  <Icon className={`h-6 w-6 ${iconColor}`} />
+                <div className={`rounded-xl p-3 ${iconBg}`}>
+                  <Icon className={`h-5 w-5 ${iconColor}`} />
                 </div>
               </div>
             </CardContent>
@@ -188,108 +117,68 @@ export function InvoicesView({ userRole, currentUserId }: InvoicesViewProps) {
 
       {/* ── Invoice table ── */}
       <Card className="border-slate-100 shadow-sm">
-        <CardHeader>
-          <CardTitle>Invoices</CardTitle>
-          <CardDescription>
-            {userRole === 'admin'
-              ? 'Consolidated billing across the organisation'
-              : 'Billing history and current invoices'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border border-slate-200">
-            <Table>
-              <TableHeader className="bg-slate-50">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Document №</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">PDF</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading && (
                 <TableRow>
-                  <TableHead>Invoice ID</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Client</TableHead>
-                  {userRole !== 'therapist' && <TableHead>Provider</TableHead>}
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableCell colSpan={7} className="text-center py-10 text-slate-400">
+                    <Loader2 className="h-5 w-5 animate-spin inline mr-2" /> Loading invoices…
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={colSpan} className="text-center py-8 text-slate-400">
-                      Loading invoices…
-                    </TableCell>
-                  </TableRow>
-                ) : invoices.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={colSpan} className="text-center py-8 text-slate-500">
-                      No invoices found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  invoices.map((inv) => (
-                    <TableRow key={inv.id}>
-                      <TableCell className="font-medium text-slate-900">
-                        {inv.id.split('-')[0].toUpperCase()}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(inv.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>{inv.clientName || inv.clientId}</TableCell>
-                      {userRole !== 'therapist' && (
-                        <TableCell>{inv.therapistName || inv.therapistId}</TableCell>
-                      )}
-                      <TableCell className="font-semibold">
-                        ${inv.amount.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={inv.status} />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedInvoice(inv)}
-                        >
-                          <FileSearch className="w-4 h-4 text-indigo-500 mr-1" />
-                          View PDF
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              )}
+              {!loading && loadError && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-rose-600">{loadError}</TableCell>
+                </TableRow>
+              )}
+              {!loading && !loadError && invoices.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-slate-400">
+                    No invoices yet — documents appear here after the first payment.
+                  </TableCell>
+                </TableRow>
+              )}
+              {!loading && invoices.map(invoice => (
+                <TableRow key={invoice.id} className="hover:bg-slate-50">
+                  <TableCell className="font-mono text-sm font-medium">{invoice.docNumber}</TableCell>
+                  <TableCell className="text-sm">{TYPE_LABELS[invoice.type] ?? invoice.type}</TableCell>
+                  <TableCell className="text-sm text-slate-600">{invoice.title ?? '—'}</TableCell>
+                  <TableCell className="font-medium">{paiseToRupees(invoice.totalPaise ?? invoice.total)}</TableCell>
+                  <TableCell><StatusBadge invoice={invoice} /></TableCell>
+                  <TableCell className="text-sm text-slate-500">
+                    {new Date(invoice.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={downloadingId === invoice.id || invoice.pdfStatus === 'failed'}
+                      onClick={() => handleDownload(invoice)}
+                      className="text-indigo-600 hover:text-indigo-700"
+                    >
+                      {downloadingId === invoice.id
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <Download className="h-4 w-4" />}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-
-      {/* ── Invoice Dialog ── */}
-      <Dialog
-        open={!!selectedInvoice}
-        onOpenChange={(open) => !open && setSelectedInvoice(null)}
-      >
-        <DialogContent
-          className="p-0 border-none bg-transparent shadow-none"
-          style={{
-            maxWidth: 780,
-            width: '95vw',
-            maxHeight: '92vh',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <DialogHeader className="sr-only">
-            <DialogTitle>Invoice</DialogTitle>
-          </DialogHeader>
-
-          {/* Scrollable inner area — TherapyInvoice renders without page wrapper */}
-          <div style={{ flex: 1, overflowY: 'auto', borderRadius: 16 }}>
-            {selectedInvoice && (
-              <TherapyInvoice invoiceData={toInvoiceData(selectedInvoice)} compact />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
     </div>
   );
 }

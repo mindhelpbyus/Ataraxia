@@ -136,7 +136,22 @@ product risk and unblocks every later phase.
 - New typed module `src/api/admin.ts`; fix the wrong route table in Ataraxia `CLAUDE.md`.
 - **Exit:** zero `Mock Data` blocks in `src/`; every number on screen traceable to a route.
 
-### 0.3 Billing transport unblock (prereq for all billing UI)
+### 0.3 Billing transport unblock (prereq for all billing UI) — ✅ CODE DONE 2026-07-11 (deploys pending)
+- [x] backend-initial publishes `/shared/cognito/admin-web-client-id` (shared-exports-stack).
+- [x] billing authorizer trusts the Ataraxia web client (optional SSM read — deploy-order safe).
+- [x] **Role gating**: `/billing/admin/*` + payout batches now require the Cognito `Admin`/`SuperAdmin`
+  group (403 `ADMIN_GROUP_REQUIRED`) — authentication is no longer authorization.
+- [x] **New route** `GET /billing/invoices` (filters: recipientId/recipientType/type/sessionId/limit;
+  never returns htmlDocument) — controller + pgStore + CDK + `billing_routes.md` row. 107/107 targeted
+  billing tests green.
+- [x] Ataraxia `src/api/billing.ts` — ID token, `Idempotency-Key` on every mutation, `/billing/*` paths;
+  `client.ts` now respects a caller-supplied Authorization header.
+- [x] `InvoicesView` rewired to real RBI doc numbers + presigned PDF downloads; `BillingView` rewired to
+  real wallet/payments/billing-sessions — **all fabricated content deleted** (random Razorpay IDs, fake
+  GSTIN, fake "Dr. Sarah Jenkins", $79/$149/$399 SaaS plan tiers → honest marketplace-pricing statement).
+- ⚠️ **Deploy order to activate**: (1) backend-initial `deploy:dev` (SSM param), (2) billing
+  `deploy:dev` (authorizer + route + gating), (3) then 0.4 smoke. Until then /billing/* still 401s.
+- Original scope for reference:
 1. **Authorizer fix (cross-repo, must land first):** billing's `HttpUserPoolAuthorizer`
    (`billing_payment/infrastructure/lib/billing-api-stack.ts`) trusts only the mobile app client —
    **not** Ataraxia's `adminWebClientId` (`3v6g7vb88tm8e89d3md65e5ic9`). Publish
