@@ -84,9 +84,9 @@ Ataraxia/
 |-------------|---------|
 | `/appointments/*`, `/clients/*`, `/therapists/*`, `/therapist-availability/*` | backend-initial |
 | `/clinical-notes/*`, `/intake-forms/*`, `/notifications/*`, `/file-upload` | backend-initial |
+| `/admin/*`, `/roles`, `/users/me/role` | backend-initial |
 | chat (WebSocket) | backend-initial (community-stack) |
-| `/api/payments/*`, `/api/wallet/*`, `/api/payouts/*` | billing_payment |
-| `/api/refunds`, `/api/disputes*`, `/api/invoices`, `/api/pricing/quote` | billing_payment |
+| `/billing/*` (payments, wallet, payouts, refunds, disputes, invoices, ledger, pricing) | billing_payment — **not** `/api/*`; requires the Cognito **ID token** + `Idempotency-Key` header on mutations |
 
 The full, current map lives in `.claude/context/domain-model.md` — **start there** for any API work.
 

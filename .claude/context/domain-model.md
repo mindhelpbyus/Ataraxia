@@ -4,7 +4,7 @@
 > auth flow. Keep current via the `ai-maintenance` skill after structural changes. Repo-specific — never
 > shared with `backend-initial` / `billing_payment`.
 
-Last updated: 2026-05-30 (initial — created during the cleanup/standardization effort).
+Last updated: 2026-07-12 (MVP0 mock-data eradication + billing transport unblock + design-system pass).
 
 ---
 
@@ -31,65 +31,65 @@ Dashboard views: `AdminDashboardView`, `ProfessionalDashboard`, `ClientDashboard
 
 ## 2. API clients → backend ownership (`src/api/`)
 
-> ⚠️ **VERIFIED route map (2026-05-30).** `backend-initial` routes have **NO `/api/` prefix**
-> (`/clients`, `/appointments`, `/therapists`, `/clinical-notes`, `/admin/dashboard/counts`, `/payouts`…).
-> `billing_payment` routes **DO** use `/api/` (`/api/payments`, `/api/wallet/*`, `/api/invoices/*`,
-> `/api/refunds`, `/api/disputes`, `/api/sessions/*`, `/api/pricing/quote`, `/api/clients/:id/wallet`).
-> The legacy `/api/v1/*` paths in old FE code are **fiction — none exist**.
+> ⚠️ **VERIFIED route map (2026-07-12 — corrected from the 2026-05-30 version, which had the billing
+> prefix wrong).** `backend-initial` routes have **NO `/api/` prefix** (`/clients`, `/appointments`,
+> `/therapists`, `/clinical-notes`, `/admin/dashboard/counts`, `/roles`, `/users/me/role`…).
+> `billing_payment` routes use **`/billing/*`** (NOT `/api/*` — that was a documentation error; the
+> Lambda internally rewrites `/billing/…` → `/api/…`, which is why old docs/code confused the two).
+> The legacy `/api/v1/*` and `/api/invoices`-style paths in old FE code were **fiction — none exist**.
 >
 > **backend-initial** (shared gateway, no `/api/` prefix): `/appointments`, `/clients`, `/therapists`,
-> `/therapists/availability`, `/clinical-notes`, `/intake-forms`, `/homework`, `/journal/entries`,
-> `/moods`, `/quick-notes`, `/chat/*`, `/notifications/*`, `/files`, `/session-recordings/*`,
-> `/admin/dashboard/counts`, `/admin/{clients,therapists,appointments}`, `/therapists/{id}/approve|reject`,
-> `/payouts`.
-> **billing_payment** (shared gateway, `/api/` prefix): `/api/sessions/*`, `/api/payments/*`,
-> `/api/wallet/*`, `/api/invoices/*`, `/api/refunds`, `/api/disputes/*`, `/api/payouts`,
-> `/api/payout-batches`, `/api/pricing/*`, `/api/clients/:id/wallet`.
+> `/therapists/availability`, `/therapists/me/earnings-summary`, `/clinical-notes`, `/intake-forms`,
+> `/homework`, `/journal/entries`, `/moods`, `/quick-notes`, `/chat/*`, `/notifications/*`, `/files`,
+> `/session-recordings/*`, `/admin/dashboard/counts`, `/admin/{clients,therapists,appointments,activity}`,
+> `/therapists/{id}/approve|reject`, `/roles`, `/users/me/role`.
+> **billing_payment** (shared gateway, `/billing/*` prefix): `/billing/wallet/balance`,
+> `/billing/clients/{id}/wallet[/transactions]`, `/billing/payments`, `/billing/sessions[/{id}]`,
+> `/billing/invoices` (list — added 2026-07-12) `[/{id}[/download]]`, `/billing/refunds`,
+> `/billing/disputes[/rate-check]`, `/billing/ledger`, `/billing/payouts[/batches[/{id}/process]]`,
+> `/billing/admin/billing-config`. **Auth contract differs from backend-initial: billing requires the
+> Cognito ID token (not access token — its Lambda reads `custom:role`/`custom:clientId` claims) and an
+> `Idempotency-Key` header on every POST/PUT/DELETE.** `/billing/admin/*` + payout-batch routes require
+> the Cognito `Admin`/`SuperAdmin` group (403 otherwise, added 2026-07-12 — previously any authenticated
+> user could hit admin billing routes).
 > **video-service** (SEPARATE backend, `VITE_VIDEO_API_BASE_URL`, via `videoGet`/`videoPost`):
 > `/rooms`, `/rooms/:id/end`, `/appointments/:id/join` (→ LiveKit token), `/rooms/:id/transcript/*`.
 > Note: video-service currently uses a shared-secret JWT, not Cognito JWKS — reconcile server-side.
 
-> **Three-backend model (2026-05-30):** Ataraxia calls ONLY backend-initial + billing_payment (one shared
-> gateway, `VITE_API_BASE_URL`) and video-service (`VITE_VIDEO_API_BASE_URL`). All fictional `/api/v1/*`
-> paths and stale `localhost:300x`/`*_SERVICE_URL` references have been removed. `api/calls.ts` and
-> `useVideoToken` now hit video-service; verification hits backend-initial `/admin/therapists` +
-> `/therapists/{id}/approve|reject`. `HomeView` uses `/admin/dashboard/counts` + `/appointments` + `/clients`.
-> Deleted dead duplicate clients: `secureSessions.ts`, `secureVideo.ts`, `video.ts`.
-> Routes with NO backend home yet (TODO): `/organizations`, call-logs/invitations/SSE, recording-consent.
+> **Three-backend model:** Ataraxia calls ONLY backend-initial + billing_payment (one shared gateway,
+> `VITE_API_BASE_URL`) and video-service (`VITE_VIDEO_API_BASE_URL`). No fictional `/api/v1/*` paths
+> remain. Routes with NO backend home yet (TODO): `/organizations`.
 
-All clients go through `src/api/client.ts` (Bearer token, one base URL). Path prefix selects the backend.
+All clients go through `src/api/client.ts` (Bearer token, one base URL, defaults to Cognito **access**
+token — overridable per-request via a caller-supplied `Authorization` header, which `api/billing.ts` uses
+to send the **ID** token instead). Path prefix selects the backend.
 
 | Module | Path(s) | Backend |
 |--------|---------|---------|
 | `auth.ts` | — (Cognito SRP, client-side) | **AWS Cognito** directly |
-| `appointments.ts` | `/appointments/*` | backend-initial |
+| `appointments.ts` (re-exports `appointmentsBackend.ts` + legacy `appointmentsApi` shim) | `/appointments/*` | backend-initial |
 | `sessions.ts` | session/booking | backend-initial |
-| `roles.ts` | roles/permissions | backend-initial |
-| `verification.ts` | identity verification | backend-initial |
+| `admin.ts` (added 2026-07-12) | `/admin/dashboard/counts`, `/admin/therapists`, `/admin/clients`, `/admin/appointments`, `/admin/activity`, approve/reject | backend-initial |
+| `roles.ts` | `/roles`, `/users/me/role` — thin client; role catalog + resolution both live server-side | backend-initial |
+| `verification.ts` | `/admin/therapists?status=pending` + approve/reject; own-status via `/therapists/me` | backend-initial |
+| `billing.ts` (added 2026-07-12, replaces `subscription.ts` as the billing surface) | `/billing/*` — wallet, payments, sessions, invoices, refunds, disputes, ledger, payouts, config | **billing_payment** |
 | `messaging.ts` | chat | backend-initial (WebSocket / community-stack) |
 | `video.ts` | LiveKit token | backend-initial (or video-service) |
 | `recordings.ts`, `waitingRoom.ts`, `calls.ts`, `jitsi.ts` | video/session support | backend-initial / video-service |
 | `health.ts` | health check | backend-initial |
-| `subscription.ts` | `/api/payments/*`, `/api/wallet/*`, `/api/invoices`, `/api/pricing/quote` | **billing_payment** |
+| `subscription.ts` | ⚠️ calls `/api/subscriptions/{userId}` — **no such route exists on any backend** (fictional, same class of bug MVP0 fixed elsewhere). Only consumer is a `DashboardLayout.tsx` lazy `import()` at line 196, which always throws and falls into a hardcoded fallback (`trial`/`enterprise` object). Superseded by `billing.ts`; platform has no subscription tiers (see `BillingView` plans tab — per-session marketplace pricing). Fix = delete the dynamic import + fallback logic in `DashboardLayout.tsx`, then delete this file. | dead / fictional |
 | `data.ts`, `logging.ts` | misc/telemetry | backend-initial |
 
-> **Cleanup note:** `secureSessions.ts`/`secureVideo.ts`/`appointmentsBackend.ts` are duplicate variants
-> being collapsed into `sessions.ts`/`video.ts`/`appointments.ts`. Once merged, remove this note.
+> **MVP0 mock-data eradication (2026-07-12):** `AdminDashboardView`, `SuperAdminDashboardView`,
+> `reports/{Therapist,Admin,SuperAdmin}Reports`, `BillingView`, `InvoicesView` were rewired from
+> hardcoded/mock data to the routes above. `verification.ts` and `roles.ts` were rewritten from fictional
+> endpoints (`/api/verification/pending`, `/api/roles`) to the real ones. `ProfessionalClientsView`'s
+> loader was silently broken (read snake_case fields from an enveloped `{success,data}` response that
+> never matched) — fixed. Dead views deleted: `SessionNotesView`, `ClientJournalView`,
+> `ProfessionalDashboard`, plus Firebase remnants and ~20 unused showcase/diagnostic components.
 
-> **Demo-path removal (Phase 2 — DATA LAYER DONE 2026-05-30):** the legacy `USE_LOCAL_DB`/`localDb`/
-> `apiSwitch` demo source has been removed from ALL view components and data API clients, and every call
-> rewired to the **verified real routes** (backend-initial no-prefix / billing_payment `/api/`). The fake
-> `/api/v1/*` paths are gone from views and appointments/messaging clients. Wired examples:
-> - `DashboardView`/`SuperAdminDashboardView` → `GET /admin/dashboard/counts`, `/appointments`, `/clients`, `/therapists`
-> - `BillingView`/`InvoicesView` → `GET /api/invoices` (billing_payment)
-> - `ProfessionalClientsView` → `/clients` or `/therapist/{id}/clients`; `EnhancedTherapistsTable` → `/therapists`
-> - `ClientDashboardView` → `/appointments/client/{clientId}`; `TasksView` → `/homework`; `QuickNotesView` → `/quick-notes`
-> - `messaging.ts` → `/chat/*`; `appointmentsBackend.ts` → `/appointments*`
-> - `OrganizationManagementView` → `/organizations` is a **TODO(backend)** (no route exists yet); demo "reset DB" button removed.
->
-> **Still pending (Phase 3b):** `api/auth.ts`, `api/client.ts`, `LoginPage.tsx` still use the fictional
-> `/auth/*` backend + `localAuth`/`devMockUser` mock login. These need the Cognito SRP rewrite. The
-> files `src/lib/db/*`, `src/lib/apiSwitch.ts`, `src/lib/devMockUser.ts` are deleted only after that.
+> **Still pending:** `/organizations` has no backend route — `OrganizationManagementView` renders empty.
+> `subscription.ts` should be deleted once confirmed no remaining importers (superseded by `billing.ts`).
 
 ---
 

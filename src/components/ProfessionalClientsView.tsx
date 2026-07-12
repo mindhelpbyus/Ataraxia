@@ -774,13 +774,13 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                           </p>
                           <div className="space-y-3">
                             {detailData.aiInsights.documentationAlerts.map((alert, i) => (
-                              <div key={`doc-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-info/15/50">
+                              <div key={`doc-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-info/40">
                                 <AlertTriangle className="h-4 w-4 text-action flex-shrink-0 mt-0.5" />
                                 <span className="text-sm text-body-text">{alert}</span>
                               </div>
                             ))}
                             {detailData.aiInsights.trendAlerts.map((alert, i) => (
-                              <div key={`trend-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-info/15/50">
+                              <div key={`trend-${i}`} className="flex items-start gap-3 bg-card/60 p-3 rounded-lg border border-info/40">
                                 <TrendingUp className="h-4 w-4 text-danger flex-shrink-0 mt-0.5" />
                                 <span className="text-sm text-body-text">
                                   <span className="font-semibold text-ink">{alert.type}:</span> {alert.message}
@@ -1148,7 +1148,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                               </div>
                               <div className="grid grid-cols-3 gap-4">
                                 {['Intake Assessment', 'Safety Plan', 'Consent to Treat', 'Release of Information'].map((doc, i) => (
-                                  <div key={i} className="border border-rule rounded-lg p-4 flex items-center gap-3 hover:border-info/30 hover:bg-info/10/30 transition-all cursor-pointer group">
+                                  <div key={i} className="border border-rule rounded-lg p-4 flex items-center gap-3 hover:border-info/30 hover:bg-info/15 transition-all cursor-pointer group">
                                     <div className="h-10 w-10 bg-rule rounded-lg flex items-center justify-center group-hover:bg-card group-hover:shadow-sm transition-all">
                                       <FileText className="h-5 w-5 text-dim group-hover:text-info" />
                                     </div>
