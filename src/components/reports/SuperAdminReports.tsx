@@ -1,434 +1,152 @@
-
-import { motion, Variants } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import {
-  Bar, LineChart, Line, AreaChart, Area, ComposedChart,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
-import {
-  Users, UserPlus, Activity, Server, Database,
-  ArrowUpRight, ArrowDownRight, Shield, Globe
-} from 'lucide-react';
-import { Badge } from '../ui/badge';
-import { Progress } from '../ui/progress';
+/**
+ * SuperAdminReports — platform-level report from real sources only:
+ * /admin/dashboard/counts + /admin/appointments. Financial deep-dives arrive
+ * with the billing connection (MVP0.3); no fabricated panels until then.
+ */
+import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Users, UserCheck, CalendarCheck, IndianRupee } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { getDashboardCounts, listAppointments, type DashboardCounts, type AppointmentRow } from '../../api/admin';
+import { logger } from '../../utils/secureLogger';
+import { type ReportDateRange, rangeToDates, formatRupees, bucketByDay } from './reportUtils';
 
 interface SuperAdminReportsProps {
-  dateRange: '7days' | '30days' | '90days' | '1year';
+  dateRange: ReportDateRange;
 }
 
-// --- Mock Data ---
-const onboardingData = [
-  { month: 'Jan', therapists: 12, clients: 145 },
-  { month: 'Feb', therapists: 15, clients: 168 },
-  { month: 'Mar', therapists: 18, clients: 192 },
-  { month: 'Apr', therapists: 14, clients: 215 },
-  { month: 'May', therapists: 22, clients: 248 },
-  { month: 'Jun', therapists: 19, clients: 276 },
-];
-
-const activeUsersData = [
-  { date: 'Mon', dau: 1245, mau: 3850 },
-  { date: 'Tue', dau: 1380, mau: 3925 },
-  { date: 'Wed', dau: 1520, mau: 4015 },
-  { date: 'Thu', dau: 1450, mau: 4080 },
-  { date: 'Fri', dau: 1680, mau: 4150 },
-  { date: 'Sat', dau: 890, mau: 4150 },
-  { date: 'Sun', dau: 720, mau: 4150 },
-];
-
-const retentionData = [
-  { cohort: 'Jan 2024', retention: 87, churn: 13 },
-  { cohort: 'Feb 2024', retention: 85, churn: 15 },
-  { cohort: 'Mar 2024', retention: 89, churn: 11 },
-  { cohort: 'Apr 2024', retention: 91, churn: 9 },
-  { cohort: 'May 2024', retention: 88, churn: 12 },
-  { cohort: 'Jun 2024', retention: 92, churn: 8 },
-];
-
-const systemHealthData = [
-  { service: 'API Gateway', uptime: 99.8, avgResponse: 142 },
-  { service: 'Video Server', uptime: 99.6, avgResponse: 89 },
-  { service: 'Database', uptime: 99.9, avgResponse: 45 },
-  { service: 'Auth Service', uptime: 99.7, avgResponse: 67 },
-  { service: 'Storage', uptime: 99.9, avgResponse: 123 },
-];
-
-const slowEndpoints = [
-  { endpoint: '/api/appointments/list', avgTime: 1850, calls: 12450, p95: 3200 },
-  { endpoint: '/api/sessions/history', avgTime: 1620, calls: 8920, p95: 2800 },
-  { endpoint: '/api/reports/generate', avgTime: 2340, calls: 1250, p95: 4100 },
-  { endpoint: '/api/files/upload', avgTime: 1480, calls: 3680, p95: 2500 },
-];
-
-// --- Animation Variants ---
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants: Variants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
-    }
-  }
-};
-
-const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass, subtitle }: any) => (
-  <motion.div
-    variants={itemVariants}
-    whileHover={{ y: -2 }}
-    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-card p-6 shadow-sm transition-all hover:shadow-md"
-  >
+const StatCard = ({ title, value, subtitle, icon: Icon }: {
+  title: string; value: string; subtitle?: string; icon: typeof Users;
+}) => (
+  <motion.div whileHover={{ y: -2 }} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
     <div className="flex items-center justify-between">
-      <div className={`rounded-xl p-2.5 ${colorClass} bg-opacity-10`}>
-        <Icon className={`h-5 w-5 ${colorClass.replace('bg-', 'text-')}`} />
-      </div>
-      {trend && (
-        <div className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-          {trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-          {trendValue}
-        </div>
-      )}
+      <p className="text-sm font-medium text-muted-foreground">{title}</p>
+      <Icon className="h-4 w-4 text-muted-foreground" />
     </div>
-    <div className="mt-4">
-      <p className="text-sm font-medium text-slate-500">{title}</p>
-      <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</h3>
-      {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
-    </div>
+    <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</h3>
+    {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
   </motion.div>
 );
 
-export function SuperAdminReports(_props: SuperAdminReportsProps) {
+const STATUS_COLORS: Record<string, string> = {
+  completed: '#10b981',
+  confirmed: '#8b5cf6',
+  scheduled: '#3b82f6',
+  initiated: '#f59e0b',
+  cancelled: '#94a3b8',
+  'no-show': '#f43f5e'
+};
+
+export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
+  const [counts, setCounts] = useState<DashboardCounts | null>(null);
+  const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { from, to } = rangeToDates(dateRange);
+      try {
+        const [countsRes, apptRes] = await Promise.all([
+          getDashboardCounts(),
+          listAppointments({ dateFrom: from.toISOString(), dateTo: to.toISOString(), pageSize: 500 })
+        ]);
+        if (cancelled) return;
+        setCounts(countsRes);
+        setAppointments(apptRes.data);
+        setLoadError(null);
+      } catch (e) {
+        if (cancelled) return;
+        logger.error('Super admin reports load failed', { code: (e as { code?: string }).code });
+        setLoadError('Could not load report data.');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [dateRange]);
+
+  const { from, to } = useMemo(() => rangeToDates(dateRange), [dateRange]);
+  const completedRevenuePaise = appointments
+    .filter(a => a.status === 'completed')
+    .reduce((sum, a) => sum + a.price, 0);
+  const volume = useMemo(
+    () => bucketByDay(appointments, a => a.scheduledAt, from, to),
+    [appointments, from, to]
+  );
+
+  const statusMix = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const a of appointments) map.set(a.status, (map.get(a.status) ?? 0) + 1);
+    return [...map.entries()]
+      .sort((x, y) => y[1] - x[1])
+      .map(([status, count]) => ({ status, count }));
+  }, [appointments]);
+
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6 font-sans"
-    >
-      {/* Platform Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          title="Total Therapists"
-          value="125"
-          icon={Users}
-          trend="up"
-          trendValue="+19"
-          colorClass="bg-action"
-        />
-        <MetricCard
-          title="Total Clients"
-          value="1,842"
-          icon={UserPlus}
-          trend="up"
-          trendValue="+276"
-          colorClass="bg-emerald-500"
-        />
-        <MetricCard
-          title="Daily Active Users"
-          value="1,520"
-          icon={Activity}
-          subtitle="4,150 monthly active"
-          colorClass="bg-blue-500"
-        />
-        <MetricCard
-          title="Platform Uptime"
-          value="99.8%"
-          icon={Server}
-          trend="up"
-          trendValue="Above SLA"
-          colorClass="bg-violet-500"
-        />
+    <div className="space-y-6">
+      {loadError && <p className="text-sm text-rose-600">{loadError}</p>}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Therapists" value={counts ? counts.totalTherapists.toLocaleString('en-IN') : '—'} subtitle={counts ? `${counts.pendingTherapists} pending verification` : undefined} icon={UserCheck} />
+        <StatCard title="Total Clients" value={counts ? counts.totalClients.toLocaleString('en-IN') : '—'} icon={Users} />
+        <StatCard title="Sessions in Period" value={String(appointments.length)} icon={CalendarCheck} />
+        <StatCard title="Completed Revenue" value={formatRupees(completedRevenuePaise)} subtitle="sum of completed session fees" icon={IndianRupee} />
       </div>
 
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 border-border shadow-sm">
+          <CardHeader>
+            <CardTitle>Platform Session Volume</CardTitle>
+            <CardDescription>All appointments across the selected period</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={volume}>
+                <defs>
+                  <linearGradient id="sa-volume" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                <Area type="monotone" dataKey="count" name="Appointments" stroke="#6366f1" strokeWidth={2.5} fill="url(#sa-volume)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
-        {/* User Onboarding Trends - Large Card */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-8">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>User Onboarding Trends</CardTitle>
-              <CardDescription>Therapists and clients joining the platform over time</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="p-4 bg-action-light border border-action-light rounded-xl">
-                  <p className="text-sm font-medium text-action-dark mb-1">Therapists</p>
-                  <p className="text-2xl font-bold text-action-dark">125</p>
-                  <p className="text-xs text-action-dark mt-1">Avg 21/month</p>
-                </div>
-                <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                  <p className="text-sm font-medium text-blue-900 mb-1">Clients</p>
-                  <p className="text-2xl font-bold text-blue-900">1,842</p>
-                  <p className="text-xs text-blue-700 mt-1">Avg 307/month</p>
-                </div>
-                <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
-                  <p className="text-sm font-medium text-emerald-900 mb-1">Ratio</p>
-                  <p className="text-2xl font-bold text-emerald-900">14.7:1</p>
-                  <p className="text-xs text-emerald-700 mt-1">Healthy balance</p>
-                </div>
-              </div>
-
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={onboardingData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="therapists" fill="#1E7048" name="Therapists" radius={[4, 4, 0, 0]} barSize={20} />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="clients"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
-                    name="Clients"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Platform Summary - Side Card */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-4">
-          <Card className="h-full border-slate-100 shadow-sm bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Shield className="h-5 w-5 text-emerald-400" />
-                System Status
-              </CardTitle>
-              <CardDescription className="text-slate-300">Real-time platform health</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="p-4 bg-card/10 backdrop-blur-sm border border-white/10 rounded-xl">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="font-medium">All Systems Operational</span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs text-slate-300">
-                      <span>Uptime</span>
-                      <span className="text-emerald-400">99.98%</span>
+        <Card className="border-border shadow-sm">
+          <CardHeader>
+            <CardTitle>Status Mix</CardTitle>
+            <CardDescription>Appointments by state in this period</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {statusMix.length === 0 && <p className="text-sm text-muted-foreground">No appointments in this period.</p>}
+              {statusMix.map(({ status, count }) => {
+                const pct = appointments.length ? Math.round((count / appointments.length) * 100) : 0;
+                return (
+                  <div key={status}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="capitalize text-foreground">{status.replace(/[-_]/g, ' ')}</span>
+                      <span className="text-muted-foreground">{count} · {pct}%</span>
                     </div>
-                    <Progress value={99.9} className="h-1.5 bg-card/10" indicatorClassName="bg-emerald-400" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-card/5 rounded-lg">
-                    <Database className="h-4 w-4 text-blue-400 mb-2" />
-                    <p className="text-xs text-slate-400">Database</p>
-                    <p className="text-lg font-bold">Healthy</p>
-                  </div>
-                  <div className="p-3 bg-card/5 rounded-lg">
-                    <Globe className="h-4 w-4 text-violet-400 mb-2" />
-                    <p className="text-xs text-slate-400">CDN</p>
-                    <p className="text-lg font-bold">Fast</p>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-slate-300">Current Load</span>
-                    <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full">Moderate</span>
-                  </div>
-                  <Progress value={65} className="h-1.5 bg-card/10" indicatorClassName="bg-amber-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Active Users */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-6">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>Active Users</CardTitle>
-              <CardDescription>Daily vs Monthly engagement</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={activeUsersData}>
-                  <defs>
-                    <linearGradient id="colorDau" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1E7048" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#1E7048" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="colorMau" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="dau"
-                    stackId="1"
-                    stroke="#1E7048"
-                    fill="url(#colorDau)"
-                    name="Daily Active"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="mau"
-                    stackId="2"
-                    stroke="#3b82f6"
-                    fill="url(#colorMau)"
-                    name="Monthly Active"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Retention & Churn */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-6">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>Retention & Churn</CardTitle>
-              <CardDescription>User retention trends by cohort</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={retentionData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="cohort" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="retention"
-                    stroke="#10b981"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
-                    name="Retention %"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="churn"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={{ r: 4, fill: '#ef4444', strokeWidth: 2, stroke: '#fff' }}
-                    name="Churn %"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* System Health */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-8">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>System Health</CardTitle>
-              <CardDescription>Service uptime and performance metrics</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {systemHealthData.map((service) => (
-                  <div key={service.service} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
-                          <Server className="h-5 w-5 text-slate-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-slate-900">{service.service}</p>
-                          <p className="text-sm text-slate-500">
-                            Avg response: {service.avgResponse}ms
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge
-                          variant={service.uptime >= 99.5 ? "default" : "destructive"}
-                          className={service.uptime >= 99.5 ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : ""}
-                        >
-                          {service.uptime}% uptime
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${service.uptime >= 99.5 ? 'bg-emerald-500' : 'bg-rose-500'}`}
-                        style={{ width: `${service.uptime}%` }}
+                        className="h-full rounded-full"
+                        style={{ width: `${pct}%`, backgroundColor: STATUS_COLORS[status] ?? '#64748b' }}
                       />
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Slow Endpoints */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-4">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>Slow Endpoints</CardTitle>
-              <CardDescription>Optimization candidates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {slowEndpoints.map((endpoint, _index) => (
-                  <div
-                    key={endpoint.endpoint}
-                    className="p-3 border border-slate-100 rounded-xl hover:border-action-light hover:bg-action-light/50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 overflow-hidden">
-                        <code className="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-1 rounded block truncate">
-                          {endpoint.endpoint}
-                        </code>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">{endpoint.calls.toLocaleString()} calls</span>
-                      <Badge
-                        variant={endpoint.avgTime > 2000 ? "destructive" : "secondary"}
-                        className="rounded-full"
-                      >
-                        {endpoint.avgTime}ms
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </motion.div>
+    </div>
   );
 }

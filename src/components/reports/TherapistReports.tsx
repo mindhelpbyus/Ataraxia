@@ -1,436 +1,185 @@
-
-import { motion, Variants } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart
-} from 'recharts';
-import {
-  DollarSign, Calendar,
-  Clock, AlertCircle, ArrowUpRight, ArrowDownRight, CheckCircle
-} from 'lucide-react';
-import { Badge } from '../ui/badge';
+/**
+ * TherapistReports — the therapist's own practice numbers, all real:
+ * appointments from backend-initial, money from GET /therapists/me/earnings-summary
+ * (Payout projections: period + FY-to-date gross/net/TDS in paise).
+ */
+import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import { CalendarCheck, UserX, IndianRupee, Clock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { getTherapistAppointments, type AppointmentDetails } from '../../api/appointmentsBackend';
+import { get } from '../../api/client';
+import { logger } from '../../utils/secureLogger';
+import { type ReportDateRange, rangeToDates, formatRupees, bucketByDay } from './reportUtils';
 
 interface TherapistReportsProps {
   currentUserId: string;
   userEmail: string;
-  dateRange: '7days' | '30days' | '90days' | '1year';
+  dateRange: ReportDateRange;
 }
 
-// --- Mock Data ---
-const appointmentAttendanceData = [
-  { month: 'Jan', scheduled: 45, completed: 40, noShows: 3, cancellations: 2 },
-  { month: 'Feb', scheduled: 52, completed: 48, noShows: 2, cancellations: 2 },
-  { month: 'Mar', scheduled: 48, completed: 45, noShows: 1, cancellations: 2 },
-  { month: 'Apr', scheduled: 55, completed: 50, noShows: 3, cancellations: 2 },
-  { month: 'May', scheduled: 60, completed: 55, noShows: 2, cancellations: 3 },
-  { month: 'Jun', scheduled: 58, completed: 54, noShows: 2, cancellations: 2 },
-];
+/** GET /therapists/me/earnings-summary — see backend-initial therapists Lambda. */
+interface EarningsSummary {
+  current_period_start: string;
+  current_period_end: string;
+  next_payout_date: string;
+  current_period_sessions: number;
+  current_period_gross_paise: number;
+  current_period_tds_paise: number;
+  current_period_net_paise: number;
+  ytd_gross_paise: number;
+  ytd_net_paise: number;
+  ytd_tds_deducted_paise: number;
+  ytd_session_count: number;
+  last_payout_amount_paise: number | null;
+  last_payout_date: string | null;
+}
 
-const bookingTrendsData = [
-  { week: 'Week 1', bookings: 12, avgPerDay: 2.4 },
-  { week: 'Week 2', bookings: 15, avgPerDay: 3.0 },
-  { week: 'Week 3', bookings: 13, avgPerDay: 2.6 },
-  { week: 'Week 4', bookings: 14, avgPerDay: 2.8 },
-];
-
-const cptCodeData = [
-  { code: '90834', name: 'Individual Therapy (45 min)', count: 85, revenue: 12750 },
-  { code: '90837', name: 'Individual Therapy (60 min)', count: 42, revenue: 7140 },
-  { code: '90791', name: 'Diagnostic Evaluation', count: 15, revenue: 2550 },
-  { code: '90847', name: 'Family Therapy', count: 12, revenue: 1920 },
-  { code: '90853', name: 'Group Therapy', count: 8, revenue: 960 },
-];
-
-const workloadData = [
-  { week: 'Week 1', sessions: 14, hours: 14.5 },
-  { week: 'Week 2', sessions: 16, hours: 16.0 },
-  { week: 'Week 3', sessions: 15, hours: 15.5 },
-  { week: 'Week 4', sessions: 17, hours: 17.5 },
-];
-
-const cptRevenueSplit = [
-  { name: '90834 (45min)', value: 12750, color: '#10b981' }, // Emerald
-  { name: '90837 (60min)', value: 7140, color: '#3b82f6' }, // Blue
-  { name: '90791 (Eval)', value: 2550, color: '#8b5cf6' }, // Violet
-  { name: 'Other', value: 2880, color: '#f59e0b' }, // Amber
-];
-
-// --- Animation Variants ---
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants: Variants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
-    }
-  }
-};
-
-const MetricCard = ({ title, value, trend, trendValue, icon: Icon, colorClass }: any) => (
-  <motion.div
-    variants={itemVariants}
-    whileHover={{ y: -2 }}
-    className="relative overflow-hidden rounded-2xl border border-slate-100 bg-card p-6 shadow-sm transition-all hover:shadow-md"
-  >
+const StatCard = ({ title, value, subtitle, icon: Icon }: {
+  title: string; value: string; subtitle?: string; icon: typeof CalendarCheck;
+}) => (
+  <motion.div whileHover={{ y: -2 }} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
     <div className="flex items-center justify-between">
-      <div className={`rounded-xl p-2.5 ${colorClass} bg-opacity-10`}>
-        <Icon className={`h-5 w-5 ${colorClass.replace('bg-', 'text-')}`} />
-      </div>
-      {trend && (
-        <div className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-          {trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-          {trendValue}
-        </div>
-      )}
+      <p className="text-sm font-medium text-muted-foreground">{title}</p>
+      <Icon className="h-4 w-4 text-muted-foreground" />
     </div>
-    <div className="mt-4">
-      <p className="text-sm font-medium text-slate-500">{title}</p>
-      <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</h3>
-    </div>
+    <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</h3>
+    {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
   </motion.div>
 );
 
-export function TherapistReports(_props: TherapistReportsProps) {
+export function TherapistReports({ currentUserId, dateRange }: TherapistReportsProps) {
+  const [appointments, setAppointments] = useState<AppointmentDetails[]>([]);
+  const [earnings, setEarnings] = useState<EarningsSummary | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { from, to } = rangeToDates(dateRange);
+      try {
+        const [appts, earn] = await Promise.all([
+          getTherapistAppointments(currentUserId, {
+            startDate: from.toISOString(),
+            endDate: to.toISOString()
+          }),
+          get<EarningsSummary>('/therapists/me/earnings-summary')
+        ]);
+        if (cancelled) return;
+        setAppointments(appts);
+        setEarnings(earn);
+        setLoadError(null);
+      } catch (e) {
+        if (cancelled) return;
+        logger.error('Therapist reports load failed', { code: (e as { code?: string }).code });
+        setLoadError('Could not load your report data.');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [currentUserId, dateRange]);
+
+  const { from, to } = useMemo(() => rangeToDates(dateRange), [dateRange]);
+  const completed = appointments.filter(a => a.status === 'completed').length;
+  const noShows = appointments.filter(a => a.status === 'no-show').length;
+  const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
+  const noShowRate = appointments.length ? Math.round((noShows / appointments.length) * 100) : 0;
+  const volume = useMemo(
+    () => bucketByDay(appointments, a => a.startTime, from, to),
+    [appointments, from, to]
+  );
+
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6 font-sans"
-    >
-      {/* Key Metrics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
+    <div className="space-y-6">
+      {loadError && <p className="text-sm text-rose-600">{loadError}</p>}
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
           title="Total Sessions"
-          value="162"
-          icon={Calendar}
-          trend="up"
-          trendValue="+12%"
-          colorClass="bg-blue-500"
+          value={String(appointments.length)}
+          subtitle={`${completed} completed`}
+          icon={CalendarCheck}
         />
-        <MetricCard
+        <StatCard
           title="No-Show Rate"
-          value="3.2%"
-          icon={AlertCircle}
-          trend="down"
-          trendValue="-1.5%"
-          colorClass="bg-rose-500"
+          value={`${noShowRate}%`}
+          subtitle={`${noShows} no-shows · ${cancelledCount} cancelled`}
+          icon={UserX}
         />
-        <MetricCard
-          title="Total Billed"
-          value="$25,320"
-          icon={DollarSign}
-          trend="up"
-          trendValue="+8%"
-          colorClass="bg-emerald-500"
+        <StatCard
+          title="Period Net Earnings"
+          value={earnings ? formatRupees(earnings.current_period_net_paise) : '—'}
+          subtitle={earnings ? `${earnings.current_period_sessions} paid sessions this cycle` : undefined}
+          icon={IndianRupee}
         />
-        <MetricCard
-          title="Hours Worked"
-          value="63.5"
+        <StatCard
+          title="Next Payout"
+          value={earnings ? new Date(earnings.next_payout_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}
+          subtitle={earnings?.last_payout_amount_paise != null
+            ? `Last: ${formatRupees(earnings.last_payout_amount_paise)}`
+            : 'No payouts yet'}
           icon={Clock}
-          trend="up"
-          trendValue="Avg 15.9/wk"
-          colorClass="bg-violet-500"
         />
       </div>
 
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Session volume */}
+        <Card className="lg:col-span-2 border-border shadow-sm">
+          <CardHeader>
+            <CardTitle>Appointments & Attendance</CardTitle>
+            <CardDescription>Your session volume across the selected period</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={volume} barSize={18}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                <Bar dataKey="count" name="Appointments" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
-        {/* Appointments & Attendance Analytics - Large Card */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-8">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>Appointments & Attendance</CardTitle>
-              <CardDescription>Track scheduling patterns, no-shows, and cancellations</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <div className="bg-rose-50 border border-rose-100 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-rose-900">No-Shows</p>
-                    <AlertCircle className="h-5 w-5 text-rose-600" />
-                  </div>
-                  <p className="text-2xl font-bold text-rose-900 mb-1">13</p>
-                  <p className="text-xs text-rose-700">3.2% of scheduled appointments</p>
-                </div>
-                <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-amber-900">Cancellations</p>
-                    <Calendar className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <p className="text-2xl font-bold text-amber-900 mb-1">13</p>
-                  <p className="text-xs text-amber-700">3.2% of scheduled appointments</p>
-                </div>
-                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-emerald-900">Completion Rate</p>
-                    <CheckCircle className="h-5 w-5 text-emerald-600" />
-                  </div>
-                  <p className="text-2xl font-bold text-emerald-900 mb-1">93.6%</p>
-                  <p className="text-xs text-emerald-700">Above industry average</p>
-                </div>
-              </div>
-
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={appointmentAttendanceData} barSize={20}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    cursor={{ fill: '#f1f5f9' }}
-                  />
-                  <Legend iconType="circle" />
-                  <Bar dataKey="completed" fill="#10b981" name="Completed" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="noShows" fill="#f43f5e" name="No-Shows" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="cancellations" fill="#f59e0b" name="Cancellations" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Revenue Summary - Side Card */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-4">
-          <Card className="h-full border-slate-100 shadow-sm bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-            <CardHeader>
-              <CardTitle className="text-white">Revenue Summary</CardTitle>
-              <CardDescription className="text-slate-300">Financial overview for the selected period</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-card/10 backdrop-blur-sm border border-white/10 rounded-xl">
-                  <div>
-                    <p className="text-sm text-slate-300">Total Billed</p>
-                    <p className="text-3xl font-bold text-white">$25,320</p>
-                  </div>
-                  <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-emerald-400" />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-300">Collected</span>
-                    <span className="text-sm font-medium text-white">$23,150</span>
-                  </div>
-                  <div className="h-2 w-full bg-card/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 w-[91.4%]" />
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>91.4% Collection Rate</span>
-                    <span>Target: 95%</span>
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-slate-300">Outstanding</span>
-                    <span className="text-sm font-medium text-amber-400">$2,170</span>
-                  </div>
-                  <p className="text-xs text-slate-400">
-                    3 invoices overdue by 30+ days
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Booking Trends */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-6">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>Booking Trends</CardTitle>
-              <CardDescription>Weekly appointment booking patterns</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={bookingTrendsData}>
-                  <defs>
-                    <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="bookings"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorBookings)"
-                    name="Bookings"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* CPT Revenue Split */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-6">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>Revenue by Procedure</CardTitle>
-              <CardDescription>Distribution by CPT code</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <div className="w-1/2">
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={cptRevenueSplit}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {cptRevenueSplit.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="w-1/2 space-y-3">
-                  {cptRevenueSplit.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-700">{item.name}</p>
-                        <p className="text-xs text-slate-500">${item.value.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Most Used CPT Codes */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-6">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>Top Procedure Codes</CardTitle>
-              <CardDescription>Frequency and revenue by CPT code</CardDescription>
-            </CardHeader>
-            <CardContent>
+        {/* Earnings summary (real payout projection) */}
+        <Card className="border-border shadow-sm bg-gradient-to-br from-indigo-600 to-violet-700 text-white">
+          <CardHeader>
+            <CardTitle className="text-white">Earnings Summary</CardTitle>
+            <CardDescription className="text-indigo-100">
+              {earnings
+                ? `Cycle ${new Date(earnings.current_period_start).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} – ${new Date(earnings.current_period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`
+                : 'Current payout cycle'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {earnings ? (
               <div className="space-y-4">
-                {cptCodeData.map((cpt, index) => (
-                  <div key={cpt.code} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                    <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-100 text-slate-600 font-bold text-sm">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="font-mono text-xs bg-card">
-                          {cpt.code}
-                        </Badge>
-                        <span className="text-sm font-medium text-slate-900">{cpt.name}</span>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-slate-500">
-                        <span>{cpt.count} sessions</span>
-                        <span className="text-emerald-600 font-medium">${cpt.revenue.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs font-medium text-slate-900">${(cpt.revenue / cpt.count).toFixed(0)}</p>
-                      <p className="text-[10px] text-slate-500">avg/session</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Workload Analysis */}
-        <motion.div variants={itemVariants} className="col-span-1 lg:col-span-6">
-          <Card className="h-full border-slate-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>Workload Analysis</CardTitle>
-              <CardDescription>Sessions delivered vs. hours worked</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="p-3 bg-blue-50 rounded-lg text-center">
-                  <p className="text-xs text-blue-600 font-medium uppercase tracking-wider mb-1">Sessions/Wk</p>
-                  <p className="text-xl font-bold text-blue-900">15.5</p>
+                <div className="flex justify-between text-sm">
+                  <span className="opacity-80">Gross</span>
+                  <span className="font-bold">{formatRupees(earnings.current_period_gross_paise)}</span>
                 </div>
-                <div className="p-3 bg-violet-50 rounded-lg text-center">
-                  <p className="text-xs text-violet-600 font-medium uppercase tracking-wider mb-1">Hours/Wk</p>
-                  <p className="text-xl font-bold text-violet-900">15.9</p>
+                <div className="flex justify-between text-sm">
+                  <span className="opacity-80">TDS deducted</span>
+                  <span className="font-bold">−{formatRupees(earnings.current_period_tds_paise)}</span>
                 </div>
-                <div className="p-3 bg-indigo-50 rounded-lg text-center">
-                  <p className="text-xs text-indigo-600 font-medium uppercase tracking-wider mb-1">Avg Duration</p>
-                  <p className="text-xl font-bold text-indigo-900">61m</p>
+                <div className="flex justify-between border-t border-white/20 pt-3">
+                  <span className="font-semibold">Net</span>
+                  <span className="text-xl font-bold">{formatRupees(earnings.current_period_net_paise)}</span>
+                </div>
+                <div className="rounded-lg bg-card/10 p-3 backdrop-blur-sm mt-4">
+                  <p className="text-xs opacity-70">Financial year to date</p>
+                  <p className="text-lg font-bold">{formatRupees(earnings.ytd_net_paise)} net</p>
+                  <p className="text-xs opacity-70">{earnings.ytd_session_count} sessions · {formatRupees(earnings.ytd_tds_deducted_paise)} TDS</p>
                 </div>
               </div>
-
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={workloadData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="sessions"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
-                    name="Sessions"
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="hours"
-                    stroke="#8b5cf6"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }}
-                    name="Hours"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
+            ) : (
+              <p className="text-sm text-indigo-100">Loading earnings…</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </motion.div>
+    </div>
   );
 }

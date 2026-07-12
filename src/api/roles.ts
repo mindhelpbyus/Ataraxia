@@ -1,9 +1,13 @@
 /**
- * api/roles.ts — Roles API thin client
- * Role lookups are delegated to the backend — no client-side role tables.
+ * api/roles.ts — Roles API thin client.
+ *
+ * The backend owns roles (backend-initial clients Lambda):
+ *   GET /roles          → platform role catalog
+ *   GET /users/me/role  → caller's authoritative role (DB User.role + Cognito groups)
+ * No role tables or role derivation live in the UI.
  */
 
-import { get, post } from './client';
+import { get } from './client';
 
 export interface Role {
     id: number;
@@ -12,44 +16,36 @@ export interface Role {
     description?: string;
 }
 
+export interface MyRole {
+    userId: number;
+    role: string;
+    isAdmin: boolean;
+    groups: string[];
+}
+
+interface Envelope<T> {
+    success: boolean;
+    data: T;
+}
+
 export async function getAllRoles(): Promise<Role[]> {
-    return get<Role[]>('/api/roles');
+    const res = await get<Envelope<Role[]>>('/roles');
+    return res.data;
 }
 
 export async function getProfessionalRoles(): Promise<Role[]> {
-    return get<Role[]>('/api/roles?type=professional');
+    const roles = await getAllRoles();
+    return roles.filter(r => r.name === 'therapist');
 }
 
-export async function getUserRole(userId: string): Promise<{ primaryRole: Role; roles: Role[] }> {
-    const role = await get<Role>(`/api/users/${userId}/role`);
-    return { primaryRole: role, roles: [role] };
-}
-
-// Security & Session Role Verification (Migrated from deleted services/roleVerification.ts)
-export interface RoleVerificationResult {
-    userId: string;
-    role: string;
-    videoRole: 'participant' | 'moderator';
-    verifiedAt: string;
-    sessionId?: string;
-}
-
-export async function verifyModeratorAccess(userId: string, sessionId?: string): Promise<RoleVerificationResult> {
-    return get<RoleVerificationResult>(`/api/verification/roles/moderator-access?userId=${userId}${sessionId ? `&sessionId=${sessionId}` : ''}`);
-}
-
-export async function verifySessionAccess(userId: string, sessionId: string): Promise<RoleVerificationResult> {
-    return get<RoleVerificationResult>(`/api/verification/roles/session-access?userId=${userId}&sessionId=${sessionId}`);
-}
-
-export async function batchVerifyUsers(userIds: string[]): Promise<Map<string, RoleVerificationResult>> {
-    const results = await get<Record<string, RoleVerificationResult>>(`/api/verification/roles/batch?userIds=${userIds.join(',')}`);
-    return new Map(Object.entries(results));
-}
-
-export function logSecurityEvent(event: any): void {
-    // Fire and forget security log to backend
-    post('/api/security/events', event).catch(() => {
-        // Silently fail if logging fails to prevent disruption
-    });
+/** The CURRENT user's role, resolved server-side from their JWT + User record. */
+export async function getUserRole(_userId: string): Promise<{ primaryRole: Role; roles: Role[] }> {
+    const [me, catalog] = await Promise.all([
+        get<Envelope<MyRole>>('/users/me/role'),
+        getAllRoles(),
+    ]);
+    const names = new Set<string>([me.data.role, ...me.data.groups.map(g => g.toLowerCase())]);
+    const roles = catalog.filter(r => names.has(r.name) || names.has(r.displayName.toLowerCase()));
+    const primary = catalog.find(r => r.name === me.data.role) ?? roles[0] ?? catalog[0];
+    return { primaryRole: primary, roles: roles.length ? roles : [primary] };
 }

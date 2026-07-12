@@ -1,26 +1,26 @@
 /**
  * api/verification.ts — Therapist Verification Admin API
  *
- * ✅ SECURITY FIX (Feb 22 2026): Removed localStorage.getItem('token').
- *    Auth is handled by HTTP-only cookies via api/client.ts — the frontend
- *    never needs to read or pass tokens manually.
+ * Real backend routes (backend-initial admin Lambda):
+ *   - list pending:  GET  /admin/therapists?status=pending
+ *   - approve:       POST /admin/therapists/{id}/approve
+ *   - reject:        POST /admin/therapists/{id}/reject   { reason }
+ *   - own status:    GET  /therapists/me   (therapist checking their application)
  *
  * ✅ Used by:
  *    - TherapistVerificationView.tsx
  *    - VerificationPendingPage.tsx
  */
 
-import { get, post } from './client';
+import { get } from './client';
+import {
+    listTherapists,
+    approveTherapist,
+    rejectTherapist as adminRejectTherapist,
+    type TherapistRow,
+} from './admin';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface VerificationUpdatePayload {
-    stage: 'documents' | 'background_check' | 'final';
-    status?: 'approved' | 'rejected';
-    action?: 'approve' | 'reject';
-    notes?: string;
-    details?: Record<string, unknown>;
-}
+// ─── Types (UI shape kept stable for existing consumers) ─────────────────────
 
 export interface PendingTherapist {
     id: string;
@@ -49,87 +49,56 @@ export interface RegistrationStatus {
     message?: string;
 }
 
+function toPendingTherapist(row: TherapistRow): PendingTherapist {
+    return {
+        id: String(row.id),
+        first_name: row.firstName,
+        last_name: row.lastName,
+        email: row.email,
+        phone_number: row.phone,
+        license_number: null, // detail-only field — fetch getTherapist(id) when needed
+        license_state: null,
+        account_status: row.isActive ? 'active' : 'inactive',
+        verification_stage: row.verificationStatus,
+        background_check_status: null, // no background-check service on the platform yet
+        created_at: row.registeredAt,
+        specialty: row.modalities.join(', ') || 'General',
+        profile_image_url: null,
+        license_verified: row.verificationStatus === 'verified',
+        verification_notes: null,
+    };
+}
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export const verificationService = {
-    /**
-     * Fetch all pending therapist verifications.
-     * Calls backend verification endpoint — no auth token needed client-side.
-     */
+    /** All therapists awaiting verification (admin view). */
     async getAllTherapists(): Promise<PendingTherapist[]> {
-        interface PendingResponse {
-            registrations: Array<{
-                id: string;
-                first_name: string;
-                last_name: string;
-                email: string;
-                phone_number: string | null;
-                license_number: string | null;
-                license_state: string | null;
-                registration_status: string;
-                workflow_stage: string;
-                background_check_status: string | null;
-                created_at: string;
-                specializations?: string;
-            }>;
-        }
-
-        const data = await get<PendingResponse>('/api/verification/pending');
-
-        return (data.registrations ?? []).map((reg) => ({
-            id: reg.id,
-            first_name: reg.first_name,
-            last_name: reg.last_name,
-            email: reg.email,
-            phone_number: reg.phone_number,
-            license_number: reg.license_number,
-            license_state: reg.license_state,
-            account_status: reg.registration_status,
-            verification_stage: reg.workflow_stage,
-            background_check_status: reg.background_check_status,
-            created_at: reg.created_at,
-            specialty: reg.specializations ?? 'General',
-            profile_image_url: null,
-            license_verified: false,
-            verification_notes: null,
-        }));
+        const result = await listTherapists({ status: 'pending', pageSize: 100 });
+        return result.data.map(toPendingTherapist);
     },
 
     /**
-     * Get registration status for a specific therapist (by user ID).
+     * A therapist's own application status (VerificationPendingPage).
+     * Reads GET /therapists/me and maps whichever status field the record carries.
      */
-    async getRegistrationStatus(userId: string): Promise<RegistrationStatus> {
-        return get<RegistrationStatus>(`/api/verification/status/${userId}`);
+    async getRegistrationStatus(_userId: string): Promise<RegistrationStatus> {
+        const me = await get<Record<string, unknown>>('/therapists/me');
+        const status = String(
+            me.verificationStatus ?? me.verification_status ??
+            me.accountStatus ?? me.account_status ??
+            (me.isVerified ? 'verified' : 'pending')
+        );
+        return { registration: { status, workflow_stage: status } };
     },
 
-    /**
-     * Update therapist verification stage.
-     * Final approval triggers account activation.
-     */
-    async updateVerificationStage(
-        id: string,
-        payload: VerificationUpdatePayload
-    ): Promise<unknown> {
-        if (payload.stage === 'final' && payload.status === 'approved') {
-            return this.activateTherapistAccount(id);
-        }
-
-        // ✅ Uses api/client.ts post() — credentials sent via HTTP-only cookie automatically
-        return post(`/api/therapists/${id}/verification`, payload);
-    },
-
-    /**
-     * Activate a therapist account after all verification stages pass.
-     */
+    /** Approve = the admin Lambda's approve action (sets isVerified, writes audit row). */
     async activateTherapistAccount(therapistId: string): Promise<unknown> {
-        // Direct backend logic using unified id — no more firebase_uid tracking
-        return post(`/api/verification/${therapistId}/activate`);
+        return approveTherapist(Number(therapistId));
     },
 
-    /**
-     * Reject a therapist application.
-     */
+    /** Reject with a reason (min 3 chars — enforced server-side). */
     async rejectTherapist(therapistId: string, reason: string): Promise<unknown> {
-        return post(`/api/verification/${therapistId}/reject`, { reason });
+        return adminRejectTherapist(Number(therapistId), reason);
     },
 };

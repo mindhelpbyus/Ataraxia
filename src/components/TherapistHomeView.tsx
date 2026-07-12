@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getTherapistAppointments } from '../api/appointmentsBackend';
+import { get } from '../api/client';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO, getHours } from 'date-fns';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
@@ -299,16 +300,23 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
 
   const loadProfileCompletion = async () => {
     try {
-      // TODO: Fetch from backend API
-      // const response = await fetch(`/api/users/${userId}/profile-completion`);
-      // const data = await response.json();
-      // setProfileCompletion(data.percentage);
-
-      // For now, check localStorage for completion status
-      const savedCompletion = localStorage.getItem(`profileCompletion_${userId}`);
-      if (savedCompletion) {
-        setProfileCompletion(parseInt(savedCompletion));
-      }
+      // Derived from the real profile record (GET /therapists/me) — the same
+      // fields the verification/admin flows care about. No localStorage state.
+      const me = await get<Record<string, unknown>>('/therapists/me');
+      const filled = (v: unknown) =>
+        v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0);
+      const checklist = [
+        me.bio,
+        me.licenseNumber ?? me.license_number,
+        me.clinicalSpecialties ?? me.specialties ?? me.modalities,
+        me.languagesSpoken ?? me.languages,
+        me.introFee ?? me.regularFee ?? me.sessionFees,
+        me.profilePhoto ?? me.profile_photo,
+        me.yearsOfExperience ?? me.years_of_experience,
+        me.location,
+      ];
+      const pct = Math.round((checklist.filter(filled).length / checklist.length) * 100);
+      setProfileCompletion(Math.max(10, pct)); // registration itself counts for the first 10%
     } catch (error) {
       console.error('Failed to load profile completion:', error);
     }

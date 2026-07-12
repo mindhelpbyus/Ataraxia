@@ -34,7 +34,6 @@ export { EnhancedAppointmentForm } from '../EnhancedAppointmentForm';
 // ─── Clients ──────────────────────────────────────────────────────────────────
 export { ClientDetailView } from '../ClientDetailView';
 export { ClientDetailsSidebar } from '../ClientDetailsSidebar';
-export { ClientJournalView } from '../ClientJournalView';
 export { ClientSidebar } from '../ClientSidebar';
 export { EditClientProfileForm } from '../EditClientProfileForm';
 export { EnhancedTherapistsTable } from '../EnhancedTherapistsTable';
@@ -56,7 +55,6 @@ export { QuickNotesView } from '../QuickNotesView';
 export { MessagesView } from '../MessagesView';
 export { TasksView } from '../TasksView';
 export { ReportsView } from '../ReportsView';
-export { SessionNotesView } from '../SessionNotesView';
 export { SettingsView } from '../SettingsView';
 export { SettingsSidebar } from '../SettingsSidebar';
 export { ErrorBoundary } from '../ErrorBoundary';

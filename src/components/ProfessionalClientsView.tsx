@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { get } from '../api/client';
 import { dataService } from '../api';
+import { getTherapistAppointments, type AppointmentDetails } from '../api/appointmentsBackend';
 import { Search, Filter, Plus, MoreVertical, Phone, Mail, Calendar, User, AlertCircle, TrendingUp, AlertTriangle, Shield, Brain, CheckCircle2, Stethoscope, Clock, FileText, ChevronRight, Eye, Send, Sparkles, ShieldAlert, Files, MessageSquare, Activity, Target, Upload, XCircle, Download, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -223,30 +224,69 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
   }, []);
 
   const loadClients = async () => {
+    interface BackendClient {
+      id: number;
+      email: string;
+      firstName: string;
+      lastName: string;
+      createdAt?: string;
+      profilePhoto?: string | null;
+    }
     try {
       // backend-initial: therapists see only their clients; admins see all.
-      //   therapist → GET /therapist/{therapistId}/clients
-      //   admin     → GET /clients
-      const endpoint = userRole === 'therapist'
-        ? `/therapist/${currentUserId}/clients`
-        : '/clients';
-      const data = await get<any[]>(endpoint);
+      //   therapist → GET /therapist/{id}/clients → { data: { assignedClients, appointmentClients } }
+      //   admin     → GET /clients                → { data: BackendClient[] }
+      let rows: BackendClient[];
+      // Per-client session stats joined from the therapist's own appointments.
+      const sessionStats = new Map<number, { total: number; next: string | null; last: string | null }>();
 
-      // Transform backend data to frontend format
-      const transformedClients: Client[] = data.map((client: any) => ({
-        id: client.id,
-        name: `${client.first_name || ''} ${client.last_name || ''}`.trim() || client.email,
-        email: client.email,
-        phone: client.phone_number || 'N/A',
-        status: client.account_status === 'active' ? 'active' : 'inactive',
-        lastVisit: client.created_at ? new Date(client.created_at).toISOString().split('T')[0] : 'N/A',
-        nextAppointment: null, // TODO: Get from appointment service
-        therapist: client.assigned_therapist_name || 'Unassigned',
-        totalSessions: 0, // TODO: Get from appointment service
-        condition: 'General Therapy', // TODO: Get from client profile
-        safetyRisk: client.safety_risk_level || 'low',
-        safetyFlags: [] // TODO: Get from client profile
-      }));
+      if (userRole === 'therapist' && currentUserId) {
+        const [clientsRes, appointments] = await Promise.all([
+          get<{ data: { assignedClients: BackendClient[]; appointmentClients: BackendClient[] } }>(
+            `/therapist/${currentUserId}/clients`
+          ),
+          getTherapistAppointments(currentUserId, {}).catch(() => [] as AppointmentDetails[])
+        ]);
+        rows = [...clientsRes.data.assignedClients, ...clientsRes.data.appointmentClients];
+
+        const now = Date.now();
+        for (const a of appointments) {
+          const cid = Number(a.clientId);
+          const s = sessionStats.get(cid) ?? { total: 0, next: null, last: null };
+          if (a.status === 'completed') {
+            s.total++;
+            if (!s.last || a.startTime > s.last) s.last = a.startTime;
+          }
+          const t = new Date(a.startTime).getTime();
+          if (t > now && (a.status === 'confirmed' || a.status === 'scheduled')) {
+            if (!s.next || a.startTime < s.next) s.next = a.startTime;
+          }
+          sessionStats.set(cid, s);
+        }
+      } else {
+        const res = await get<{ data: BackendClient[] }>('/clients');
+        rows = res.data;
+      }
+
+      const transformedClients: Client[] = rows.map((client) => {
+        const stats = sessionStats.get(client.id);
+        return {
+          id: String(client.id),
+          name: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email,
+          email: client.email,
+          phone: 'N/A', // not exposed by these endpoints
+          status: 'active',
+          lastVisit: stats?.last
+            ? new Date(stats.last).toISOString().split('T')[0]
+            : client.createdAt ? new Date(client.createdAt).toISOString().split('T')[0] : 'N/A',
+          nextAppointment: stats?.next ?? null,
+          therapist: userRole === 'therapist' ? 'You' : 'Unassigned',
+          totalSessions: stats?.total ?? 0,
+          condition: '—', // clinical concern lives in intake/notes, not this endpoint
+          safetyRisk: undefined, // renders "Not Screened" until assessments (MVP1.2) provide it
+          safetyFlags: undefined
+        };
+      });
       setClients(transformedClients);
     } catch (error) {
       console.error('Failed to load clients:', error);

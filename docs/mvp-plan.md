@@ -105,7 +105,24 @@ product risk and unblocks every later phase.
   `AppointmentPanel`/`EnhancedAppointmentForm` → their removal moves to the video-path task, not cleanup.
 - **Exit met:** typecheck 0 · tests 69/69 · build ✓ (deploy gate unblocked).
 
-### 0.2 Mock-data eradication (backend-initial is the API for everything)
+### 0.2 Mock-data eradication (backend-initial is the API for everything) — ✅ DONE 2026-07-11
+- [x] `src/api/admin.ts` typed client (envelope-unwrapping, types mirror backend `admin-types.ts`).
+- [x] `AdminDashboardView` — counts/leaderboard/weekly chart/pipeline from `/admin/*`; fabricated
+  radar replaced by the real audit-trail feed; money now ₹ (paise-aware).
+- [x] `SuperAdminDashboardView` — rebuilt lean: counts + 30-day volume + activity; every fake panel
+  (MRR/ARR, fake orgs, geo, system health, 4 fake tabs) removed; billing tiles gated on 0.3.
+- [x] Reports (all 3 roles) — real aggregates; TherapistReports now shows the real
+  `earnings-summary` payout cycle (gross/TDS/net, FY-to-date); **US-only CPT panels deleted** (guardrail).
+- [x] `verification.ts` → real `/admin/therapists?status=pending` + approve/reject (audit-trailed).
+- [x] **Roles moved to the backend** (user directive): new `GET /roles` + `GET /users/me/role` on
+  backend-initial clients Lambda + CDK routes; `roles.ts` is a thin client — no role tables in the UI.
+- [x] `ProfessionalClientsView` — loader was silently broken (mapped over the `{success,data}` envelope,
+  read snake_case fields) → fixed; per-client next-appointment/total-sessions computed from real
+  appointments; `safetyRisk` honestly renders "Not Screened" until MVP1.2.
+- [x] `TherapistHomeView` — profile completion derived from real `GET /therapists/me` (localStorage stub gone).
+- [x] Dead views deleted: `SessionNotesView`, `ClientJournalView` (zero consumers; notes UI = QuickNotesView).
+- ⚠️ Requires backend-initial deploy (new roles routes) before role resolution works against dev.
+- **Exit met:** zero mock-data blocks in `src/`; typecheck 0 · build ✓ · tests 69/69.
 | View | Replace mock with | Verified endpoint |
 |---|---|---|
 | `AdminDashboardView` | counts, therapist table, sessions chart, journey funnel | `GET /admin/dashboard/counts` · `/admin/therapists` · `/admin/appointments` · `/admin/activity` |
