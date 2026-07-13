@@ -54,8 +54,31 @@ function pickTokenStorage(): Storage | undefined {
   return undefined; // SDK default (localStorage)
 }
 
-const poolData: ICognitoUserPoolData = { UserPoolId, ClientId, Storage: pickTokenStorage() };
+// Captured once so every CognitoUser we construct explicitly shares it — see
+// newCognitoUser() below for why this can't just be read off `userPool`.
+const tokenStorage = pickTokenStorage();
+const poolData: ICognitoUserPoolData = { UserPoolId, ClientId, Storage: tokenStorage };
 export const userPool = new CognitoUserPool(poolData);
+
+/**
+ * Construct a CognitoUser bound to the same storage as `userPool`.
+ *
+ * The SDK's CognitoUser constructor reads `data.Storage` directly — it does
+ * NOT inherit `Pool.storage` even when `Pool` is given (and the SDK's public
+ * types don't expose `.storage` on CognitoUserPool at all, even though it
+ * exists at runtime). Every hand-rolled `new CognitoUser({ Username, Pool:
+ * userPool })` in this file (sign-in, confirm, phone flows) was silently
+ * falling back to the SDK's own default (localStorage) while
+ * `userPool.getCurrentUser()` correctly reads from sessionStorage — so a
+ * fresh login wrote tokens to localStorage, and the very next
+ * `getCurrentSession()` call found nothing there and returned null, sending
+ * every post-login API request with no Authorization header at all (401,
+ * immediate logout). Always go through this helper instead of calling
+ * `new CognitoUser(...)` directly.
+ */
+export function newCognitoUser(username: string): CognitoUser {
+  return new CognitoUser({ Username: username, Pool: userPool, Storage: tokenStorage });
+}
 
 /** Base URL of the Cognito Hosted UI for this pool/region. */
 export function hostedUiBase(): string {
@@ -89,7 +112,7 @@ export type SignInResult =
 
 /** SRP email+password sign-in. Surfaces a TOTP challenge when MFA is enabled. */
 export function cognitoSignIn(email: string, password: string): Promise<SignInResult> {
-  const user = new CognitoUser({ Username: email, Pool: userPool });
+  const user = newCognitoUser(email);
   const details = new AuthenticationDetails({ Username: email, Password: password });
 
   return new Promise((resolve, reject) => {
@@ -283,7 +306,7 @@ export function phoneSignUp(phoneNumber: string, password: string): Promise<stri
 
 /** Confirm phone sign-up with the SMS code. */
 export function phoneConfirm(phoneNumber: string, code: string): Promise<void> {
-  const user = new CognitoUser({ Username: phoneNumber, Pool: userPool });
+  const user = newCognitoUser(phoneNumber);
   return new Promise((resolve, reject) => {
     user.confirmRegistration(code, true, (err) => (err ? reject(err) : resolve()));
   });
@@ -291,7 +314,7 @@ export function phoneConfirm(phoneNumber: string, code: string): Promise<void> {
 
 /** Sign in with phone number + password (SRP). */
 export function phoneSignIn(phoneNumber: string, password: string): Promise<CognitoTokens> {
-  const user = new CognitoUser({ Username: phoneNumber, Pool: userPool });
+  const user = newCognitoUser(phoneNumber);
   const details = new AuthenticationDetails({ Username: phoneNumber, Password: password });
   return new Promise((resolve, reject) => {
     user.authenticateUser(details, {

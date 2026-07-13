@@ -161,7 +161,13 @@
       },
     },
     server: {
-      port: 3001,
+      // Must stay 3000 — it's the port allow-listed in the dev API Gateway's
+      // CORS config (backend-initial/infrastructure/config/environment.ts).
+      // Any other port gets every request blocked client-side by the browser
+      // preflight before the app's own code ever runs (looks like a silent
+      // failure / bogus "logged out" state, not an obvious CORS error).
+      port: 3000,
+      strictPort: true,
       open: true,
     },
   };

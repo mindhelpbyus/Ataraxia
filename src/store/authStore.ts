@@ -42,28 +42,49 @@ interface AuthState {
     _setUser: (user: AuthUser) => void;
 }
 
+// Bumped by every action that changes `user` (refreshUser/login/_setUser/logout).
+// refreshUser() is fired once on App mount and can still be in-flight (Cognito's
+// getSession callback isn't instant) when the user finishes an actual login —
+// without this guard, the stale mount-time check resolves afterward and stomps
+// the freshly-set session back to logged-out (the "kicked out right after
+// login" bug). Each call captures its own generation and only commits if it's
+// still current when it resolves.
+let authGeneration = 0;
+
 export const useAuthStore = create<AuthState>()(
     persist(
         (set) => ({
             user: null,
             isAuthenticated: false,
-            isLoading: false,
+            // Starts true: on a hard refresh, App's mount-effect kicks off refreshUser()
+            // (async Cognito session check) asynchronously. If this starts false,
+            // RequireAuth's very first render sees isLoading=false + isAuthenticated=false
+            // and redirects to /login before refreshUser() ever gets a chance to restore
+            // the session — the exact "logged out on every refresh" bug. refreshUser()
+            // always sets isLoading:false in its `finally`, so this never gets stuck true.
+            isLoading: true,
 
             refreshUser: async () => {
+                const gen = ++authGeneration;
                 set({ isLoading: true });
                 try {
                     const user = await getCurrentUser();
+                    // A newer write (e.g. a login the user completed while this
+                    // check was still in flight) already happened — don't clobber it.
+                    if (gen !== authGeneration) return;
                     set({ user, isAuthenticated: true });
                     logger.info('Session restored from Cognito');
                 } catch {
+                    if (gen !== authGeneration) return;
                     // No valid session — stay logged out
                     set({ user: null, isAuthenticated: false });
                 } finally {
-                    set({ isLoading: false });
+                    if (gen === authGeneration) set({ isLoading: false });
                 }
             },
 
             login: async (email, password) => {
+                const gen = ++authGeneration;
                 set({ isLoading: true });
                 try {
                     // Cognito SRP sign-in (throws MfaRequiredError if MFA is on —
@@ -73,7 +94,7 @@ export const useAuthStore = create<AuthState>()(
                     logger.info('Login successful');
                     return user;
                 } finally {
-                    set({ isLoading: false });
+                    if (gen === authGeneration) set({ isLoading: false });
                 }
             },
 
@@ -86,6 +107,7 @@ export const useAuthStore = create<AuthState>()(
                         message: err instanceof Error ? err.message : String(err),
                     });
                 } finally {
+                    authGeneration++;
                     set({ user: null, isAuthenticated: false });
                     // ✅ HIPAA: wipe all React Query cached PHI from memory
                     try {
@@ -98,7 +120,10 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            _setUser: (user) => set({ user, isAuthenticated: true }),
+            _setUser: (user) => {
+                authGeneration++;
+                set({ user, isAuthenticated: true });
+            },
         }),
         {
             name: 'ataraxia-auth',

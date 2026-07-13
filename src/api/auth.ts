@@ -19,10 +19,10 @@ import {
   getMfaEnabled,
   changePassword,
   userPool,
+  newCognitoUser,
   type SignInResult,
 } from '../lib/cognito';
 import {
-  CognitoUser,
   CognitoUserAttribute,
 } from 'amazon-cognito-identity-js';
 
@@ -235,7 +235,7 @@ export async function register(data: RegisterRequest): Promise<AuthUser> {
 
 /** Confirm a new account with the code Cognito emailed. */
 export async function verifyEmail(email: string, code: string): Promise<void> {
-  const user = new CognitoUser({ Username: email, Pool: userPool });
+  const user = newCognitoUser(email);
   return new Promise((resolve, reject) => {
     user.confirmRegistration(code, true, (err) => (err ? reject(err) : resolve()));
   });
@@ -257,7 +257,7 @@ export async function getCurrentUser(): Promise<AuthUser> {
 
 /** Trigger a Cognito password-reset code email. */
 export async function forgotPassword(email: string): Promise<void> {
-  const user = new CognitoUser({ Username: email, Pool: userPool });
+  const user = newCognitoUser(email);
   return new Promise((resolve, reject) => {
     user.forgotPassword({ onSuccess: () => resolve(), onFailure: (err) => reject(err) });
   });
@@ -269,7 +269,7 @@ export async function resetPassword(
   code: string,
   newPassword: string
 ): Promise<void> {
-  const user = new CognitoUser({ Username: email, Pool: userPool });
+  const user = newCognitoUser(email);
   return new Promise((resolve, reject) => {
     user.confirmPassword(code, newPassword, {
       onSuccess: () => resolve(),
