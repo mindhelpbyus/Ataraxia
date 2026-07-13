@@ -20,9 +20,20 @@ import {
 import { BarChart, Bar, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getTherapistAppointments } from '../api/appointmentsBackend';
 import { get } from '../api/client';
+import { listBillingSessions, type BillingSession } from '../api/billing';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO, getHours } from 'date-fns';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+
+/** GET /therapists/me/earnings-summary — backend-initial therapists Lambda (paise). */
+interface EarningsSummary {
+  current_period_net_paise: number;
+  current_period_sessions: number;
+  next_payout_date: string;
+}
+
+const formatRupees = (paise: number) =>
+  `₹${(paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
 interface TherapistHomeViewProps {
   userId: string;
@@ -287,8 +298,10 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
   const [, setRiskAlerts] = useState<any[]>([]);
   const [todaySchedule, setTodaySchedule] = useState<any[]>([]);
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
-  const [revenueThisMonth, setRevenueThisMonth] = useState(0);
   const [activeClients, setActiveClients] = useState(0);
+  const [earnings, setEarnings] = useState<EarningsSummary | null>(null);
+  const [outstandingPaise, setOutstandingPaise] = useState<number | null>(null);
+  const [moneyError, setMoneyError] = useState(false);
 
   // Profile Completion State
   const [profileCompletion, setProfileCompletion] = useState(10); // Default 10% after registration
@@ -296,7 +309,23 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
   useEffect(() => {
     loadDashboardData();
     loadProfileCompletion();
+    loadMoneySnapshot();
   }, [userId]);
+
+  const loadMoneySnapshot = async () => {
+    try {
+      const [earn, sessions] = await Promise.all([
+        get<EarningsSummary>('/therapists/me/earnings-summary'),
+        listBillingSessions({ therapistId: userId })
+      ]);
+      setEarnings(earn);
+      const unpaid = sessions.filter((s: BillingSession) => s.payoutState && s.payoutState !== 'paid');
+      setOutstandingPaise(unpaid.reduce((sum: number, s: BillingSession) => sum + (s.feeAmount || 0), 0));
+    } catch (error) {
+      console.error('Failed to load money snapshot', error);
+      setMoneyError(true);
+    }
+  };
 
   const loadProfileCompletion = async () => {
     try {
@@ -385,8 +414,6 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
       }
     });
     setWeeklyData(weeklyStats);
-
-    setRevenueThisMonth(completedThisMonth.length * 150);
     setActiveClients(new Set(data.map(apt => apt.clientId)).size);
   };
 
@@ -404,32 +431,39 @@ export function TherapistHomeView({ userId, userEmail, onNavigate, accountStatus
             <ProfileCompletion onNavigate={onNavigate} userId={userId} />
           )}
 
-          {/* Row 1: The Essential "Pulse" of the practice */}
-          <div className="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Row 1: The Essential "Pulse" of the practice — income + outstanding balance are
+              real GET /therapists/me/earnings-summary + /billing/sessions data (SimplePractice
+              screen #1 pattern: money snapshot on the home dashboard). */}
+          <div className="col-span-12 lg:col-span-9 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             <BreathingStatCard
               index={0} delay={0.1}
               icon={Users}
               label="Active Patients"
               value={activeClients}
-              trend="+3 this week"
             />
             <BreathingStatCard
               index={1} delay={0.2}
               icon={CheckCircle2}
-              label="Monthly Impact"
+              label="Sessions This Month"
               value={monthSessions}
-              trend="Sessions held"
             />
             <BreathingStatCard
               index={2} delay={0.3}
               icon={DollarSign}
-              label="Est. Revenue"
-              value={`$${revenueThisMonth.toLocaleString()}`}
-              trend="Solid growth"
+              label="Net Income (this cycle)"
+              value={earnings ? formatRupees(earnings.current_period_net_paise) : moneyError ? '—' : '…'}
+              trend={earnings ? `${earnings.current_period_sessions} paid sessions` : undefined}
+            />
+            <BreathingStatCard
+              index={3} delay={0.4}
+              icon={Clock}
+              label="Outstanding Balance"
+              value={outstandingPaise !== null ? formatRupees(outstandingPaise) : moneyError ? '—' : '…'}
+              trend={earnings ? `Next payout ${format(parseISO(earnings.next_payout_date), 'MMM d')}` : undefined}
             />
           </div>
 
-          <div className="col-span-12 lg:col-span-4">
+          <div className="col-span-12 lg:col-span-3">
             {/* Quick Action / Focus Card */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}

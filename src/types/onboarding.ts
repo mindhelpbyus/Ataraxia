@@ -219,7 +219,7 @@ export interface OnboardingData {
 
     // Step 9: Insurance/Financial
     acceptedInsurances?: string[];
-    privatePayRate?: string; // e.g. "$150"
+    privatePayRate?: string; // e.g. "₹1500"
     slidingScale?: boolean;
 
     // Step 10: Profile

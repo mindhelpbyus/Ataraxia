@@ -4,8 +4,10 @@ import { TherapistReports } from './reports/TherapistReports';
 import { AdminReports } from './reports/AdminReports';
 import { SuperAdminReports } from './reports/SuperAdminReports';
 import { Button } from './ui/button';
-import { Download, FileSpreadsheet, Calendar } from 'lucide-react';
+import { FileSpreadsheet, Calendar } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { type ExportableReport, downloadCsv } from './reports/reportUtils';
+import { toast } from 'sonner';
 
 interface ReportsViewProps {
   userRole: UserRole;
@@ -15,13 +17,14 @@ interface ReportsViewProps {
 
 export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewProps) {
   const [dateRange, setDateRange] = useState<'7days' | '30days' | '90days' | '1year'>('30days');
+  const [exportData, setExportData] = useState<ExportableReport | null>(null);
 
-  const handleExportPDF = () => {
-    // TODO: Implement PDF export functionality
-  };
-
-  const handleExportExcel = () => {
-    // TODO: Implement Excel export functionality
+  const handleExportCsv = () => {
+    if (!exportData) {
+      toast.info('Nothing to export yet — no data in the selected period.');
+      return;
+    }
+    downloadCsv(exportData, dateRange);
   };
 
   return (
@@ -31,10 +34,10 @@ export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewP
         <div className="mb-8">
           <div className="flex items-end justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">
+              <h1 className="text-3xl font-bold tracking-tight text-ink mb-2">
                 {userRole === 'superadmin' ? 'Platform Analytics' : userRole === 'admin' ? 'Practice Reports' : 'Performance Metrics'}
               </h1>
-              <p className="text-slate-500">
+              <p className="text-muted-text">
                 {userRole === 'superadmin'
                   ? 'System-wide metrics and platform performance'
                   : userRole === 'admin'
@@ -44,8 +47,8 @@ export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewP
             </div>
             <div className="flex items-center gap-3">
               <Select value={dateRange} onValueChange={(value: any) => setDateRange(value)}>
-                <SelectTrigger className="w-[180px] bg-card border-slate-200 shadow-sm">
-                  <Calendar className="h-4 w-4 mr-2 text-slate-500" />
+                <SelectTrigger className="w-[180px] bg-card border-rule shadow-sm">
+                  <Calendar className="h-4 w-4 mr-2 text-muted-text" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -57,18 +60,12 @@ export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewP
               </Select>
               <Button
                 variant="outline"
-                className="bg-card border-slate-200 shadow-sm hover:bg-slate-50 text-slate-700"
-                onClick={handleExportExcel}
+                className="bg-card border-rule shadow-sm hover:bg-surface-warm text-body-text"
+                onClick={handleExportCsv}
+                disabled={!exportData}
               >
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Export Excel
-              </Button>
-              <Button
-                className="shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
-                onClick={handleExportPDF}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
+                Export CSV
               </Button>
             </div>
           </div>
@@ -80,18 +77,21 @@ export function ReportsView({ userRole, currentUserId, userEmail }: ReportsViewP
             currentUserId={currentUserId}
             userEmail={userEmail}
             dateRange={dateRange}
+            onExportReady={setExportData}
           />
         )}
 
         {userRole === 'admin' && (
           <AdminReports
             dateRange={dateRange}
+            onExportReady={setExportData}
           />
         )}
 
         {userRole === 'superadmin' && (
           <SuperAdminReports
             dateRange={dateRange}
+            onExportReady={setExportData}
           />
         )}
       </div>

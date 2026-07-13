@@ -4,7 +4,8 @@
 > auth flow. Keep current via the `ai-maintenance` skill after structural changes. Repo-specific — never
 > shared with `backend-initial` / `billing_payment`.
 
-Last updated: 2026-07-12 (MVP0 mock-data eradication + billing transport unblock + design-system pass).
+Last updated: 2026-07-12 (MVP0 mock-data eradication + billing transport unblock + design-system pass +
+screen-depth pass: home income/balance cards, client document attach, report CSV export, video waiting room).
 
 ---
 
@@ -73,6 +74,7 @@ to send the **ID** token instead). Path prefix selects the backend.
 | `roles.ts` | `/roles`, `/users/me/role` — thin client; role catalog + resolution both live server-side | backend-initial |
 | `verification.ts` | `/admin/therapists?status=pending` + approve/reject; own-status via `/therapists/me` | backend-initial |
 | `billing.ts` (added 2026-07-12, replaces `subscription.ts` as the billing surface) | `/billing/*` — wallet, payments, sessions, invoices, refunds, disputes, ledger, payouts, config | **billing_payment** |
+| `clientDocuments.ts` (added 2026-07-12) | `/client-documents`, `/client-documents/upload-url` — presigned-PUT upload + register flow, PHI-dedicated bucket, therapist-only (403 otherwise) | backend-initial |
 | `messaging.ts` | chat | backend-initial (WebSocket / community-stack) |
 | `video.ts` | LiveKit token | backend-initial (or video-service) |
 | `recordings.ts`, `waitingRoom.ts`, `calls.ts`, `jitsi.ts` | video/session support | backend-initial / video-service |
@@ -90,6 +92,22 @@ to send the **ID** token instead). Path prefix selects the backend.
 
 > **Still pending:** `/organizations` has no backend route — `OrganizationManagementView` renders empty.
 > `subscription.ts` should be deleted once confirmed no remaining importers (superseded by `billing.ts`).
+
+> **Screen-depth pass (2026-07-12, mvp-plan.md §1.7):** `TherapistHomeView` — replaced fake
+> `sessions × $150` revenue with real `earnings-summary` net income + `/billing/sessions` outstanding
+> balance (paise, ₹). `ClientDetailView`/`ProfessionalClientsView` Documents tab — real document list/
+> upload via `clientDocuments.ts` + honest intake-form status (no fictional "send intake" backend call
+> exists; a therapist fills intake themselves via `POST /intake-forms`). `ReportsView` — CSV export wired
+> for all 3 role reports (`reportUtils.ts` `downloadCsv`); the old PDF/Excel buttons were no-ops, removed
+> rather than left fake. `TherapyVideoRoom.tsx` — real waiting-room gate via LiveKit
+> `useRemoteParticipants()` (shown until the other side actually joins); session timer already existed.
+> Also removed all remaining US-currency (`$`) / insurance-claims mock content flagged by the earlier
+> audit (`ProfessionalClientsView`, `ClientDetailView` billing tabs, onboarding consent/payment steps,
+> `DashboardLayout`'s fabricated global-search results) — India has no insurance-claims system (out of
+> scope, see `docs/simplepractice-screens.md` #10) and the platform bills in ₹/paise via billing_payment.
+> **Still fake, flagged not fixed:** `clientData.billing`/`detailData.billing` (insurance provider/copay/
+> claims) is still a mock-shaped prop with no real backend source — needs a real per-client billing
+> summary (wallet + billing sessions) before those two Billing tabs are honest.
 
 ---
 

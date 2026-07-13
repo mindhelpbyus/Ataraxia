@@ -9,10 +9,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { listAppointments, type AppointmentRow } from '../../api/admin';
 import { logger } from '../../utils/secureLogger';
-import { type ReportDateRange, rangeToDates, formatRupees, bucketByDay } from './reportUtils';
+import { type ReportDateRange, type ExportableReport, rangeToDates, formatRupees, bucketByDay } from './reportUtils';
 
 interface AdminReportsProps {
   dateRange: ReportDateRange;
+  onExportReady?: (report: ExportableReport | null) => void;
 }
 
 const StatCard = ({ title, value, subtitle, icon: Icon }: {
@@ -23,12 +24,12 @@ const StatCard = ({ title, value, subtitle, icon: Icon }: {
       <p className="text-sm font-medium text-muted-foreground">{title}</p>
       <Icon className="h-4 w-4 text-muted-foreground" />
     </div>
-    <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</h3>
+    <h3 className="mt-1 text-2xl font-bold tracking-tight text-ink">{value}</h3>
     {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
   </motion.div>
 );
 
-export function AdminReports({ dateRange }: AdminReportsProps) {
+export function AdminReports({ dateRange, onExportReady }: AdminReportsProps) {
   const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -78,9 +79,24 @@ export function AdminReports({ dateRange }: AdminReportsProps) {
       .map(t => ({ ...t, revenue: t.revenuePaise / 100, shortName: t.name.split(' ')[0] }));
   }, [appointments]);
 
+  useEffect(() => {
+    if (!onExportReady) return;
+    if (appointments.length === 0) { onExportReady(null); return; }
+    onExportReady({
+      slug: 'practice-report',
+      headers: ['Client', 'Therapist', 'Service Type', 'Scheduled At', 'Status', 'Payment Status', 'Fee (paise)'],
+      rows: appointments.map(a => [
+        a.clientName, a.therapistName, a.serviceType,
+        new Date(a.scheduledAt).toLocaleString('en-IN'),
+        a.status, a.paymentStatus, a.price
+      ])
+    });
+    return () => onExportReady(null);
+  }, [appointments, onExportReady]);
+
   return (
     <div className="space-y-6">
-      {loadError && <p className="text-sm text-rose-600">{loadError}</p>}
+      {loadError && <p className="text-sm text-danger">{loadError}</p>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Sessions" value={String(appointments.length)} subtitle={`${completed.length} completed`} icon={CalendarCheck} />
@@ -98,11 +114,11 @@ export function AdminReports({ dateRange }: AdminReportsProps) {
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={volume} barSize={18}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Bar dataKey="count" name="Appointments" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--rule)" />
+                <XAxis dataKey="day" tick={{ fill: 'var(--muted-text)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: 'var(--muted-text)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{ fill: 'var(--surface-warm)' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-card-hi)' }} />
+                <Bar dataKey="count" name="Appointments" fill="var(--action)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -116,15 +132,15 @@ export function AdminReports({ dateRange }: AdminReportsProps) {
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={byTherapist} layout="vertical" barSize={16}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                <XAxis type="number" allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="shortName" width={80} tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--rule)" />
+                <XAxis type="number" allowDecimals={false} tick={{ fill: 'var(--muted-text)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="shortName" width={80} tick={{ fill: 'var(--muted-text)', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  cursor={{ fill: 'var(--surface-warm)' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-card-hi)' }}
                   formatter={(value: number, name: string) => name === 'Revenue (₹)' ? [`₹${value.toLocaleString('en-IN')}`, name] : [value, name]}
                 />
-                <Bar dataKey="sessions" name="Sessions" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="sessions" name="Sessions" fill="var(--info)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

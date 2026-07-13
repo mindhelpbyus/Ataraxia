@@ -905,6 +905,21 @@ html {
   animation: spin 1s linear infinite;
 }
 
+/* Waiting-room presence pulse — TherapyVideoRoom.tsx */
+@keyframes lk-waiting-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.6);
+  }
+
+  70% {
+    box-shadow: 0 0 0 14px rgba(14, 165, 233, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
+}
+
 /* Invisible Scrollbar - hide scrollbar but keep scroll functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;

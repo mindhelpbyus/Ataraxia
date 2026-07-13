@@ -407,19 +407,12 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
     setExpandedSections(prev => ({ ...prev, [sectionName]: !prev[sectionName] }));
   };
 
-  // Shared mock search function to avoid duplication
-  const mockSearch = async (query: string) => {
-    if (!query || query.length < 2) return [];
-    const allResults = [
-      { id: 'org-1', title: 'Wellness Care Center', subtitle: 'wellnesscare.ataraxia.com', category: 'organizations' as const, status: 'Active' },
-      { id: 'therapist-1', title: 'Dr. Sarah Mitchell', subtitle: 'CBT Specialist', category: 'therapists' as const, status: 'Active' },
-      { id: 'user-1', title: 'John Davis', subtitle: 'Client', category: 'users' as const, status: 'Active' },
-      { id: 'ticket-1', title: 'Login Issues', subtitle: 'Ticket #2451', category: 'support' as const, status: 'Open' },
-      { id: 'payment-1', title: 'Payment received', subtitle: 'PMT-2024-11', category: 'payments' as const, status: 'Completed' },
-      { id: 'invoice-1', title: 'Invoice #INV-2024', subtitle: '$1,250.00', category: 'invoices' as const, status: 'Paid' },
-      { id: 'billing-1', title: 'Subscription Renewal', subtitle: 'Pro Plan', category: 'billing' as const, status: 'Active' }
-    ];
-    return allResults.filter(r => r.title.toLowerCase().includes(query.toLowerCase()));
+  // TODO(product): global search across orgs/users/support/payments has no backing
+  // endpoint yet — this used to return fabricated results (fake invoices, fake "Pro
+  // Plan" subscription). Returning empty until a real cross-entity search API exists;
+  // an honest "no results" beats fabricated ones.
+  const mockSearch = async (_query: string) => {
+    return [];
   };
 
   return (

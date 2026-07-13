@@ -13,6 +13,7 @@ import {
   RoomAudioRenderer,
   ControlBar,
   useTracks,
+  useRemoteParticipants,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -138,12 +139,17 @@ function RoomContent({ role }: { role: 'therapist' | 'client' }) {
     ],
     { onlySubscribed: false }
   );
+  const remoteParticipants = useRemoteParticipants();
+  const isWaiting = remoteParticipants.length === 0;
 
   return (
     <div style={s.roomInner}>
-      <GridLayout tracks={tracks} style={s.grid}>
-        <ParticipantTile />
-      </GridLayout>
+      <div style={s.gridWrap}>
+        <GridLayout tracks={tracks} style={s.grid}>
+          <ParticipantTile />
+        </GridLayout>
+        {isWaiting && <WaitingRoomOverlay role={role} />}
+      </div>
 
       <ControlBar
         controls={{
@@ -155,6 +161,30 @@ function RoomContent({ role }: { role: 'therapist' | 'client' }) {
         }}
         style={s.controls}
       />
+    </div>
+  );
+}
+
+// ── Waiting room — shown until the other participant (therapist or client)
+// actually joins the LiveKit room. Real presence via useRemoteParticipants(),
+// not a fixed timer or fake "connecting" spinner. ──
+function WaitingRoomOverlay({ role }: { role: 'therapist' | 'client' }) {
+  const [dots, setDots] = useState(1);
+  useEffect(() => {
+    const t = setInterval(() => setDots(d => (d % 3) + 1), 600);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div style={s.waitingOverlay}>
+      <div style={s.waitingPulse} />
+      <p style={s.waitingTitle}>
+        {role === 'therapist' ? 'Waiting for your client to join' : 'Waiting for your therapist to join'}
+        {'.'.repeat(dots)}
+      </p>
+      <p style={s.waitingSubtitle}>
+        You're connected and ready — your camera and mic are on. The session begins as soon as they arrive.
+      </p>
     </div>
   );
 }
@@ -214,8 +244,50 @@ const s: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     overflow: 'hidden',
   },
+  gridWrap: {
+    position: 'relative' as const,
+    flex: 1,
+    display: 'flex',
+  },
   grid: {
     flex: 1,
+  },
+  waitingOverlay: {
+    position: 'absolute' as const,
+    inset: 0,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
+    background: 'rgba(15,23,42,0.92)',
+    backdropFilter: 'blur(6px)',
+    zIndex: 5,
+    padding: '0 32px',
+    textAlign: 'center' as const,
+  },
+  waitingPulse: {
+    width: 14,
+    height: 14,
+    borderRadius: '50%',
+    background: '#0ea5e9',
+    boxShadow: '0 0 0 0 rgba(14,165,233,0.6)',
+    animation: 'lk-waiting-pulse 1.6s ease-out infinite',
+  },
+  waitingTitle: {
+    color: '#e2e8f0',
+    fontSize: 17,
+    fontWeight: 600,
+    fontFamily: 'sans-serif',
+    margin: 0,
+  },
+  waitingSubtitle: {
+    color: '#94a3b8',
+    fontSize: 13,
+    fontFamily: 'sans-serif',
+    maxWidth: 360,
+    margin: 0,
+    lineHeight: 1.5,
   },
   controls: {
     background: 'rgba(15,23,42,0.9)',

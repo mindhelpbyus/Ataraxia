@@ -10,10 +10,11 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { getDashboardCounts, listAppointments, type DashboardCounts, type AppointmentRow } from '../../api/admin';
 import { logger } from '../../utils/secureLogger';
-import { type ReportDateRange, rangeToDates, formatRupees, bucketByDay } from './reportUtils';
+import { type ReportDateRange, type ExportableReport, rangeToDates, formatRupees, bucketByDay } from './reportUtils';
 
 interface SuperAdminReportsProps {
   dateRange: ReportDateRange;
+  onExportReady?: (report: ExportableReport | null) => void;
 }
 
 const StatCard = ({ title, value, subtitle, icon: Icon }: {
@@ -24,21 +25,24 @@ const StatCard = ({ title, value, subtitle, icon: Icon }: {
       <p className="text-sm font-medium text-muted-foreground">{title}</p>
       <Icon className="h-4 w-4 text-muted-foreground" />
     </div>
-    <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</h3>
+    <h3 className="mt-1 text-2xl font-bold tracking-tight text-ink">{value}</h3>
     {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
   </motion.div>
 );
 
+// Deliberate multi-color semantic mapping (appointment status) — each status
+// needs a genuinely distinct hue, exempted from the single-accent token rule
+// the same way a mood scale or time-of-day gradient is (see CLAUDE.md rule 1).
 const STATUS_COLORS: Record<string, string> = {
-  completed: '#10b981',
-  confirmed: '#8b5cf6',
-  scheduled: '#3b82f6',
-  initiated: '#f59e0b',
-  cancelled: '#94a3b8',
-  'no-show': '#f43f5e'
+  completed: 'var(--action)',
+  confirmed: 'var(--lavender)',
+  scheduled: 'var(--info)',
+  initiated: 'var(--ochre)',
+  cancelled: 'var(--dim)',
+  'no-show': 'var(--danger)'
 };
 
-export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
+export function SuperAdminReports({ dateRange, onExportReady }: SuperAdminReportsProps) {
   const [counts, setCounts] = useState<DashboardCounts | null>(null);
   const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -82,9 +86,24 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
       .map(([status, count]) => ({ status, count }));
   }, [appointments]);
 
+  useEffect(() => {
+    if (!onExportReady) return;
+    if (appointments.length === 0) { onExportReady(null); return; }
+    onExportReady({
+      slug: 'platform-report',
+      headers: ['Client', 'Therapist', 'Service Type', 'Scheduled At', 'Status', 'Payment Status', 'Fee (paise)'],
+      rows: appointments.map(a => [
+        a.clientName, a.therapistName, a.serviceType,
+        new Date(a.scheduledAt).toLocaleString('en-IN'),
+        a.status, a.paymentStatus, a.price
+      ])
+    });
+    return () => onExportReady(null);
+  }, [appointments, onExportReady]);
+
   return (
     <div className="space-y-6">
-      {loadError && <p className="text-sm text-rose-600">{loadError}</p>}
+      {loadError && <p className="text-sm text-danger">{loadError}</p>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Therapists" value={counts ? counts.totalTherapists.toLocaleString('en-IN') : '—'} subtitle={counts ? `${counts.pendingTherapists} pending verification` : undefined} icon={UserCheck} />
@@ -104,15 +123,15 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
               <AreaChart data={volume}>
                 <defs>
                   <linearGradient id="sa-volume" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--action)" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="var(--action)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Area type="monotone" dataKey="count" name="Appointments" stroke="#6366f1" strokeWidth={2.5} fill="url(#sa-volume)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--rule)" />
+                <XAxis dataKey="day" tick={{ fill: 'var(--muted-text)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: 'var(--muted-text)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-card-hi)' }} />
+                <Area type="monotone" dataKey="count" name="Appointments" stroke="var(--action)" strokeWidth={2.5} fill="url(#sa-volume)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -134,10 +153,10 @@ export function SuperAdminReports({ dateRange }: SuperAdminReportsProps) {
                       <span className="capitalize text-foreground">{status.replace(/[-_]/g, ' ')}</span>
                       <span className="text-muted-foreground">{count} · {pct}%</span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-2 w-full rounded-full bg-rule overflow-hidden">
                       <div
                         className="h-full rounded-full"
-                        style={{ width: `${pct}%`, backgroundColor: STATUS_COLORS[status] ?? '#64748b' }}
+                        style={{ width: `${pct}%`, backgroundColor: STATUS_COLORS[status] ?? 'var(--dim)' }}
                       />
                     </div>
                   </div>

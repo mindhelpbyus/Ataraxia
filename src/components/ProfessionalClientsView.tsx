@@ -1074,8 +1074,12 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                               </div>
                             </div>
                           </div>
+                          {/* TODO(product): "Insurance"/copay language is US-shaped mock data
+                              (detailData.billing) — India has no insurance-claims system (out of
+                              scope, docs/simplepractice-screens.md #10). Needs a real per-client
+                              billing summary (wallet + billing sessions) before this is honest. */}
                           <div className="col-span-1 bg-surface-warm rounded-xl p-4 border border-rule">
-                            <p className="text-xs font-bold text-dim uppercase mb-3">Insurance & Billing</p>
+                            <p className="text-xs font-bold text-dim uppercase mb-3">Billing</p>
                             <div className="space-y-3">
                               <div className="flex justify-between">
                                 <span className="text-sm text-muted-text">Provider</span>
@@ -1083,12 +1087,12 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-sm text-muted-text">Copay</span>
-                                <span className="text-sm font-medium text-ink">${detailData.billing.copay}</span>
+                                <span className="text-sm font-medium text-ink">₹{detailData.billing.copay}</span>
                               </div>
                               <div className="h-px bg-rule-hi my-1" />
                               <div className="flex justify-between">
                                 <span className="text-sm text-muted-text">Outstanding</span>
-                                <span className="text-sm font-bold text-ink">${detailData.billing.outstandingBalance}</span>
+                                <span className="text-sm font-bold text-ink">₹{detailData.billing.outstandingBalance}</span>
                               </div>
                             </div>
                           </div>

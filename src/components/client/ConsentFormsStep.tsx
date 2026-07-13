@@ -138,29 +138,20 @@ By signing below, I acknowledge that I have received and reviewed the Notice of 
     {
         id: 'financial-policy',
         title: 'Financial Policy Agreement',
+        // TODO(product/legal): rest of this consent text (insurance/deductible language,
+        // fixed US-style fee schedule) is US-market boilerplate — India has no therapy
+        // insurance-claims system (out of scope, docs/simplepractice-screens.md #10) and
+        // session fees are set per-therapist (see Settings → Services), not fixed platform-
+        // wide. Needs a full India-appropriate rewrite with counsel before production use.
         content: `FINANCIAL POLICY AGREEMENT
 
 Thank you for choosing our practice. We are committed to providing you with quality mental health care. Please read and understand our financial policy.
 
 PAYMENT RESPONSIBILITY
-Payment is due at the time services are rendered. We accept cash, checks, credit cards, and debit cards. If you are using insurance, you are responsible for any deductibles, co-payments, or non-covered services.
-
-INSURANCE
-We participate with many insurance plans. However, insurance is a contract between you and your insurance company. You are responsible for:
-- Knowing your mental health benefits
-- Understanding your coverage limitations
-- Providing accurate insurance information
-- Paying any amounts not covered by your insurance
-
-We will bill your insurance company as a courtesy, but you are ultimately responsible for payment of services rendered.
+Payment is due at the time services are rendered, via the app's supported payment methods (UPI, cards, net banking, or wallet balance).
 
 FEES FOR SERVICES
-Our standard fees are:
-- Initial Evaluation (60-90 minutes): $200-$250
-- Individual Therapy (50 minutes): $150
-- Family/Couples Therapy (50 minutes): $175
-- Group Therapy (90 minutes): $75
-- Medication Management (30 minutes): $125
+Session fees are set by your therapist and shown before you confirm a booking. Rates may vary by session type and duration.
 
 Fees are subject to change with 30 days notice.
 
@@ -174,7 +165,7 @@ TELEPHONE CONSULTATIONS
 Brief telephone calls (under 10 minutes) are not charged. Longer consultations will be billed at the therapist's hourly rate, prorated to 15-minute increments.
 
 COURT APPEARANCES
-If you involve your therapist in legal proceedings, there is a fee of $400 per hour (including preparation and travel time) with a 4-hour minimum. Payment is required in advance.
+If you involve your therapist in legal proceedings, a court-appearance fee applies per hour (including preparation and travel time), with a 4-hour minimum. Payment is required in advance.
 
 COLLECTIONS
 In the event that your account is sent to collections, you will be responsible for all collection costs, including attorney fees and court costs.

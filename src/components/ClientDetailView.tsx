@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -11,10 +11,173 @@ import {
     FileText, Pill, Target, TrendingUp, TrendingDown, Activity,
     DollarSign, MessageSquare, Brain, Shield, User, Heart,
     CheckCircle2, XCircle, Download, ExternalLink,
-    Edit, Plus, ChevronRight
+    Edit, Plus, ChevronRight, Upload, ClipboardCheck, Loader2, File as FileIcon
 } from 'lucide-react';
 import { Line } from 'recharts';
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { get } from '../api/client';
+import {
+    listClientDocuments, uploadClientDocument, ALLOWED_DOCUMENT_MIME_TYPES,
+    type ClientDocument
+} from '../api/clientDocuments';
+import { toast } from 'sonner';
+
+// ─── Intake status (documents tab) ─────────────────────────────────────────
+// GET /intake-forms?clientId=X — { data: intakeForm | null }. There is no
+// "send intake" backend action (a therapist fills the intake themselves);
+// this card shows honest status rather than a fictional "send" button.
+function IntakeStatusCard({ clientId }: { clientId: string }) {
+    const [status, setStatus] = useState<'loading' | 'complete' | 'missing' | 'error'>('loading');
+
+    useEffect(() => {
+        let cancelled = false;
+        get<{ data: unknown }>(`/intake-forms?clientId=${clientId}`)
+            .then(res => { if (!cancelled) setStatus(res.data ? 'complete' : 'missing'); })
+            .catch(() => { if (!cancelled) setStatus('error'); });
+        return () => { cancelled = true; };
+    }, [clientId]);
+
+    return (
+        <Card>
+            <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-sm text-muted-foreground">Intake Form</p>
+                        <p className="text-lg font-semibold mt-1">
+                            {status === 'loading' && 'Checking…'}
+                            {status === 'complete' && 'Completed'}
+                            {status === 'missing' && 'Not started'}
+                            {status === 'error' && '—'}
+                        </p>
+                    </div>
+                    <ClipboardCheck className={`h-8 w-8 ${status === 'complete' ? 'text-action' : 'text-dim'}`} />
+                </div>
+                {status === 'missing' && (
+                    <p className="text-xs text-muted-foreground mt-4">
+                        Complete this client's intake from Settings → Template library, or during their next session.
+                    </p>
+                )}
+                {status === 'error' && (
+                    <p className="text-xs text-danger mt-4">Could not check intake status.</p>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+// ─── Client documents (documents tab) — real upload + list ────────────────
+function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function ClientDocumentsPanel({ clientId }: { clientId: string }) {
+    const [docs, setDocs] = useState<ClientDocument[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const load = () => {
+        setLoading(true);
+        listClientDocuments(clientId)
+            .then(setDocs)
+            .catch(() => setLoadError('Could not load documents.'))
+            .finally(() => setLoading(false));
+    };
+
+    useEffect(load, [clientId]);
+
+    const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = ''; // allow re-selecting the same file
+        if (!file) return;
+
+        if (!(ALLOWED_DOCUMENT_MIME_TYPES as readonly string[]).includes(file.type)) {
+            toast.error('Unsupported file type. Allowed: JPEG, PNG, HEIC, WEBP, PDF.');
+            return;
+        }
+        if (file.size > 25 * 1024 * 1024) {
+            toast.error('File is too large (max 25 MB).');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            await uploadClientDocument({ clientId, file });
+            toast.success('Document uploaded.');
+            load();
+        } catch (err) {
+            console.error('Document upload failed', err);
+            toast.error('Upload failed. Please try again.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                    <CardTitle className="text-lg">Client Documents</CardTitle>
+                    <CardDescription>Reports, photos, and PDFs attached to this client's record</CardDescription>
+                </div>
+                <div>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={ALLOWED_DOCUMENT_MIME_TYPES.join(',')}
+                        className="hidden"
+                        onChange={handleFileSelected}
+                    />
+                    <Button size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+                        {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                        {uploading ? 'Uploading…' : 'Attach Document'}
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                {loading && (
+                    <p className="text-sm text-muted-foreground py-6 text-center">Loading documents…</p>
+                )}
+                {!loading && loadError && (
+                    <p className="text-sm text-danger py-6 text-center">{loadError}</p>
+                )}
+                {!loading && !loadError && docs.length === 0 && (
+                    <p className="text-sm text-muted-foreground py-6 text-center">
+                        No documents yet. Attach reports, intake scans, or photos here.
+                    </p>
+                )}
+                {!loading && !loadError && docs.length > 0 && (
+                    <div className="space-y-2">
+                        {docs.map(doc => (
+                            <div key={doc.id} className="flex items-center justify-between p-3 bg-surface-warm rounded-lg">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <FileIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-medium truncate">{doc.originalFilename ?? doc.s3Key}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {new Date(doc.sessionDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            {' · '}{formatBytes(doc.sizeBytes)}
+                                        </p>
+                                    </div>
+                                </div>
+                                {doc.contentUrl ? (
+                                    <Button variant="ghost" size="sm" onClick={() => window.open(doc.contentUrl, '_blank', 'noopener,noreferrer')}>
+                                        <Download className="h-4 w-4" />
+                                    </Button>
+                                ) : (
+                                    <Badge variant="outline" className="text-xs">Restricted</Badge>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
 
 export interface ClientDetailData {
     clientId: string;
@@ -200,9 +363,9 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
 
     const getRiskBadge = (level: string) => {
         const colors = {
-            low: 'bg-green-100 text-green-800',
+            low: 'bg-action-light text-action-dark',
             medium: 'bg-action-light text-action-dark',
-            high: 'bg-red-100 text-red-800'
+            high: 'bg-danger-light text-danger'
         };
         return (
             <Badge className={colors[level as keyof typeof colors] || 'bg-muted text-foreground'}>
@@ -213,16 +376,16 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
 
     const getTrendIcon = (trend?: string) => {
         if (!trend) return <Activity className="h-4 w-4 text-muted-foreground" />;
-        if (trend === 'increasing') return <TrendingUp className="h-4 w-4 text-red-500" />;
-        if (trend === 'decreasing') return <TrendingDown className="h-4 w-4 text-green-500" />;
-        return <Activity className="h-4 w-4 text-blue-500" />;
+        if (trend === 'increasing') return <TrendingUp className="h-4 w-4 text-danger" />;
+        if (trend === 'decreasing') return <TrendingDown className="h-4 w-4 text-action" />;
+        return <Activity className="h-4 w-4 text-info" />;
     };
 
     const getStatusBadge = (status: string) => {
         const colors = {
-            active: 'bg-green-100 text-green-800',
+            active: 'bg-action-light text-action-dark',
             inactive: 'bg-muted text-foreground',
-            suspended: 'bg-red-100 text-red-800'
+            suspended: 'bg-danger-light text-danger'
         };
         return (
             <Badge className={colors[status as keyof typeof colors] || 'bg-muted text-foreground'}>
@@ -277,7 +440,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Edit className="h-4 w-4 mr-2" />
                             Edit Profile
                         </Button>
-                        <Button className="bg-[#1E7048] hover:bg-[#145C34] text-white rounded-full">
+                        <Button className="bg-action hover:bg-action-dark text-white rounded-full">
                             <Calendar className="h-4 w-4 mr-2" />
                             Schedule Session
                         </Button>
@@ -304,15 +467,15 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
 
                 {/* AI Insights Card */}
                 {(clientData.aiInsights.documentationAlerts.length > 0 || clientData.aiInsights.trendAlerts.length > 0) && (
-                    <Card className="border-blue-200 bg-blue-50">
+                    <Card className="border-info/30 bg-info/10">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm flex items-center gap-2">
-                                <Brain className="h-4 w-4 text-blue-600" />
+                                <Brain className="h-4 w-4 text-info" />
                                 AI Insights & Alerts
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <p className="text-sm text-blue-900">{clientData.aiInsights.progressSummary}</p>
+                            <p className="text-sm text-ink">{clientData.aiInsights.progressSummary}</p>
 
                             {clientData.aiInsights.documentationAlerts.length > 0 && (
                                 <div className="space-y-1">
@@ -328,7 +491,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             {clientData.aiInsights.trendAlerts.length > 0 && (
                                 <div className="space-y-1">
                                     {clientData.aiInsights.trendAlerts.map((alert, i) => (
-                                        <div key={i} className="flex items-start gap-2 text-sm text-red-800">
+                                        <div key={i} className="flex items-start gap-2 text-sm text-danger">
                                             <TrendingUp className="h-4 w-4 flex-shrink-0 mt-0.5" />
                                             <span><strong>{alert.type}:</strong> {alert.message}</span>
                                         </div>
@@ -350,7 +513,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                         {getStatusBadge(clientData.profile.status.accountStatus)}
                                     </div>
                                 </div>
-                                <CheckCircle2 className="h-8 w-8 text-green-500" />
+                                <CheckCircle2 className="h-8 w-8 text-action" />
                             </div>
                         </CardContent>
                     </Card>
@@ -376,7 +539,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                     <p className="text-sm text-muted-foreground">Total Sessions</p>
                                     <p className="text-2xl font-semibold mt-1">{clientData.sessions.stats.totalSessions}</p>
                                 </div>
-                                <Calendar className="h-8 w-8 text-blue-500" />
+                                <Calendar className="h-8 w-8 text-info" />
                             </div>
                         </CardContent>
                     </Card>
@@ -388,7 +551,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                     <p className="text-sm text-muted-foreground">Unread Messages</p>
                                     <p className="text-2xl font-semibold mt-1">{clientData.communication.unreadMessages}</p>
                                 </div>
-                                <MessageSquare className="h-8 w-8 text-purple-500" />
+                                <MessageSquare className="h-8 w-8 text-info" />
                             </div>
                         </CardContent>
                     </Card>
@@ -412,7 +575,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <User className="h-5 w-5 text-[#1E7048]" />
+                                        <User className="h-5 w-5 text-action" />
                                         Contact Information
                                     </CardTitle>
                                 </CardHeader>
@@ -467,7 +630,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg flex items-center gap-2">
-                                            <Calendar className="h-5 w-5 text-[#1E7048]" />
+                                            <Calendar className="h-5 w-5 text-action" />
                                             Next Session
                                         </CardTitle>
                                     </CardHeader>
@@ -477,12 +640,12 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                                 <p className="text-sm text-muted-foreground">Date & Time</p>
                                                 <p className="font-semibold">{clientData.sessions.nextSession.date} at {clientData.sessions.nextSession.startTime}</p>
                                             </div>
-                                            <Badge className="bg-blue-100 text-blue-800">
+                                            <Badge className="bg-info/15 text-info-foreground">
                                                 {clientData.sessions.nextSession.mode.toUpperCase()}
                                             </Badge>
                                         </div>
                                         <Separator />
-                                        <Button className="w-full bg-[#1E7048] hover:bg-[#145C34] text-white rounded-full">
+                                        <Button className="w-full bg-action hover:bg-action-dark text-white rounded-full">
                                             <Video className="h-4 w-4 mr-2" />
                                             Join Session
                                         </Button>
@@ -491,7 +654,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                                 <Edit className="h-4 w-4 mr-2" />
                                                 Reschedule
                                             </Button>
-                                            <Button variant="outline" size="sm" className="flex-1 text-red-600 hover:text-red-700">
+                                            <Button variant="outline" size="sm" className="flex-1 text-danger hover:text-danger">
                                                 <XCircle className="h-4 w-4 mr-2" />
                                                 Cancel
                                             </Button>
@@ -505,7 +668,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 <Card className="lg:col-span-2">
                                     <CardHeader>
                                         <CardTitle className="text-lg flex items-center gap-2">
-                                            <FileText className="h-5 w-5 text-[#1E7048]" />
+                                            <FileText className="h-5 w-5 text-action" />
                                             Last Session Summary
                                         </CardTitle>
                                         <CardDescription>
@@ -522,7 +685,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                             <ul className="space-y-1">
                                                 {clientData.sessions.lastSession.goalsDiscussed.map((goal, i) => (
                                                     <li key={i} className="flex items-start gap-2 text-sm">
-                                                        <ChevronRight className="h-4 w-4 text-[#1E7048] flex-shrink-0 mt-0.5" />
+                                                        <ChevronRight className="h-4 w-4 text-action flex-shrink-0 mt-0.5" />
                                                         {goal}
                                                     </li>
                                                 ))}
@@ -533,13 +696,13 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                             <ul className="space-y-1">
                                                 {clientData.sessions.lastSession.actionItems.map((item, i) => (
                                                     <li key={i} className="flex items-start gap-2 text-sm">
-                                                        <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                                        <CheckCircle2 className="h-4 w-4 text-action flex-shrink-0 mt-0.5" />
                                                         {item}
                                                     </li>
                                                 ))}
                                             </ul>
                                         </div>
-                                        <Button variant="link" className="p-0 h-auto text-[#1E7048]">
+                                        <Button variant="link" className="p-0 h-auto text-action">
                                             View Full Note <ExternalLink className="h-3 w-3 ml-1" />
                                         </Button>
                                     </CardContent>
@@ -555,14 +718,14 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Heart className="h-5 w-5 text-[#1E7048]" />
+                                        <Heart className="h-5 w-5 text-action" />
                                         Diagnoses
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
                                         <p className="text-sm font-semibold mb-2">Primary Diagnosis</p>
-                                        <div className="bg-blue-50 p-3 rounded-lg">
+                                        <div className="bg-info/10 p-3 rounded-lg">
                                             <p className="text-sm font-medium">{clientData.clinical.diagnoses.primary.code}</p>
                                             <p className="text-sm text-muted-foreground">{clientData.clinical.diagnoses.primary.description}</p>
                                         </div>
@@ -587,13 +750,13 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Pill className="h-5 w-5 text-[#1E7048]" />
+                                        <Pill className="h-5 w-5 text-action" />
                                         Current Medications
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     {clientData.clinical.medications.map((med, i) => (
-                                        <div key={i} className="border-l-2 border-[#1E7048] pl-3 py-2">
+                                        <div key={i} className="border-l-2 border-action pl-3 py-2">
                                             <p className="font-semibold">{med.name}</p>
                                             <p className="text-sm text-muted-foreground">{med.dosage}</p>
                                             <p className="text-xs text-muted-foreground mt-1">
@@ -612,7 +775,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card className="lg:col-span-2">
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Target className="h-5 w-5 text-[#1E7048]" />
+                                        <Target className="h-5 w-5 text-action" />
                                         Treatment Plan
                                     </CardTitle>
                                 </CardHeader>
@@ -620,7 +783,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
                                             <p className="text-sm font-semibold">Overall Progress</p>
-                                            <Badge className="bg-green-100 text-green-800">{clientData.clinical.treatmentPlan.progress.replace('_', ' ').toUpperCase()}</Badge>
+                                            <Badge className="bg-action-light text-action-dark">{clientData.clinical.treatmentPlan.progress.replace('_', ' ').toUpperCase()}</Badge>
                                         </div>
                                         <Progress value={clientData.clinical.treatmentPlan.progressPercent} className="h-2" />
                                         <p className="text-xs text-muted-foreground mt-1">{clientData.clinical.treatmentPlan.progressPercent}% Complete</p>
@@ -635,14 +798,14 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                         <ul className="space-y-1">
                                             {clientData.clinical.treatmentPlan.subGoals.map((goal, i) => (
                                                 <li key={i} className="flex items-start gap-2 text-sm">
-                                                    <CheckCircle2 className="h-4 w-4 text-[#1E7048] flex-shrink-0 mt-0.5" />
+                                                    <CheckCircle2 className="h-4 w-4 text-action flex-shrink-0 mt-0.5" />
                                                     {goal}
                                                 </li>
                                             ))}
                                         </ul>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <Badge className="bg-purple-100 text-purple-800">
+                                        <Badge className="bg-info/15 text-info-foreground">
                                             {clientData.clinical.treatmentPlan.modality}
                                         </Badge>
                                     </div>
@@ -677,9 +840,9 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                         </div>
                                     </div>
                                     {clientData.clinical.safety.lastSafetyAssessment.suicidalIdeation === 'yes' && (
-                                        <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
-                                            <p className="text-sm font-semibold text-red-900 mb-1">⚠️ Suicidal Ideation Reported</p>
-                                            <p className="text-sm text-red-800">Immediate review recommended. Ensure safety plan is active and up to date.</p>
+                                        <div className="bg-danger-light border border-danger/30 p-3 rounded-lg">
+                                            <p className="text-sm font-semibold text-ink mb-1">⚠️ Suicidal Ideation Reported</p>
+                                            <p className="text-sm text-danger">Immediate review recommended. Ensure safety plan is active and up to date.</p>
                                         </div>
                                     )}
                                     <Button
@@ -712,7 +875,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">No-Shows</p>
-                                        <p className="text-3xl font-semibold mt-1 text-red-500">{clientData.sessions.stats.noShows}</p>
+                                        <p className="text-3xl font-semibold mt-1 text-danger">{clientData.sessions.stats.noShows}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Frequency</p>
@@ -737,7 +900,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-center">
-                                        <p className="text-5xl font-bold text-[#1E7048]">{clientData.assessments.latest.PHQ9?.score ?? '-'}</p>
+                                        <p className="text-5xl font-bold text-action">{clientData.assessments.latest.PHQ9?.score ?? '-'}</p>
                                         <p className="text-sm text-muted-foreground mt-2">
                                             Trend: <span className="font-semibold capitalize">{clientData.assessments.latest.PHQ9?.trend || 'N/A'}</span>
                                         </p>
@@ -756,7 +919,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-center">
-                                        <p className="text-5xl font-bold text-[#F59E0B]">{clientData.assessments.latest.GAD7?.score ?? '-'}</p>
+                                        <p className="text-5xl font-bold text-warning">{clientData.assessments.latest.GAD7?.score ?? '-'}</p>
                                         <p className="text-sm text-muted-foreground mt-2">
                                             Trend: <span className="font-semibold capitalize">{clientData.assessments.latest.GAD7?.trend || 'N/A'}</span>
                                         </p>
@@ -797,7 +960,7 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                             <p className="text-sm text-muted-foreground">Session Notes</p>
                                             <p className="text-3xl font-semibold mt-1">{clientData.documents.notesCount}</p>
                                         </div>
-                                        <FileText className="h-8 w-8 text-blue-500" />
+                                        <FileText className="h-8 w-8 text-info" />
                                     </div>
                                     <Button
                                         variant="outline"
@@ -815,31 +978,10 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                 <CardContent className="pt-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground">Documents</p>
-                                            <p className="text-3xl font-semibold mt-1">{clientData.documents.documentsCount}</p>
-                                        </div>
-                                        <Download className="h-8 w-8 text-green-500" />
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full mt-4"
-                                        onClick={() => window.open(clientData.documents.links.documents, '_blank')}
-                                    >
-                                        <ExternalLink className="h-4 w-4 mr-2" />
-                                        View Documents
-                                    </Button>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardContent className="pt-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
                                             <p className="text-sm text-muted-foreground">Assessments</p>
                                             <p className="text-3xl font-semibold mt-1">{clientData.documents.assessmentsCount}</p>
                                         </div>
-                                        <Activity className="h-8 w-8 text-purple-500" />
+                                        <Activity className="h-8 w-8 text-info" />
                                     </div>
                                     <Button
                                         variant="outline"
@@ -852,17 +994,26 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                     </Button>
                                 </CardContent>
                             </Card>
+
+                            <IntakeStatusCard clientId={clientData.clientId} />
                         </div>
+
+                        <ClientDocumentsPanel clientId={clientData.clientId} />
                     </TabsContent>
 
-                    {/* Billing Tab */}
+                    {/* Billing Tab
+                        TODO(product): "Insurance"/"Claims" language + $ currency below is US-shaped
+                        mock data from clientData.billing — India has no insurance-claims system
+                        (out of scope per docs/simplepractice-screens.md #10) and this platform bills
+                        in ₹/paise via billing_payment. Needs a real ClientBillingSummary source
+                        (wallet + billing sessions, same as BillingView.tsx) before this tab is honest. */}
                     <TabsContent value="billing" className="space-y-6">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <Shield className="h-5 w-5 text-[#1E7048]" />
-                                        Insurance Information
+                                        <Shield className="h-5 w-5 text-action" />
+                                        Billing Information
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
@@ -872,12 +1023,12 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Copay</p>
-                                        <p className="font-semibold">${clientData.billing.copay}</p>
+                                        <p className="font-semibold">₹{clientData.billing.copay}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Outstanding Balance</p>
-                                        <p className={`font-semibold ${clientData.billing.outstandingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                            ${clientData.billing.outstandingBalance}
+                                        <p className={`font-semibold ${clientData.billing.outstandingBalance > 0 ? 'text-danger' : 'text-action'}`}>
+                                            ₹{clientData.billing.outstandingBalance}
                                         </p>
                                     </div>
                                 </CardContent>
@@ -886,21 +1037,21 @@ export function ClientDetailView({ clientData, onBack }: ClientDetailViewProps) 
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2">
-                                        <DollarSign className="h-5 w-5 text-[#1E7048]" />
-                                        Recent Claims
+                                        <DollarSign className="h-5 w-5 text-action" />
+                                        Recent Transactions
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-3">
                                         {clientData.billing.claims.map((claim) => (
-                                            <div key={claim.claimId} className="flex items-center justify-between p-3 bg-[var(--surface-warm)] rounded-lg">
+                                            <div key={claim.claimId} className="flex items-center justify-between p-3 bg-surface-warm rounded-lg">
                                                 <div>
                                                     <p className="text-sm font-medium">{claim.claimId}</p>
                                                     <p className="text-xs text-muted-foreground">{claim.date}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-semibold">${claim.amount}</p>
-                                                    <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                                                    <p className="font-semibold">₹{claim.amount}</p>
+                                                    <Badge className="bg-warning/15 text-warning text-xs">
                                                         {claim.status.toUpperCase()}
                                                     </Badge>
                                                 </div>

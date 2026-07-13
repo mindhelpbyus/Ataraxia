@@ -72,13 +72,13 @@ export function PaymentSetupStep({ formData, updateFormData }: StepProps) {
                     {formData.paymentMethod === 'self-pay' && (
                         <>
                             <Separator />
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <p className="text-sm text-blue-900 mb-2">
+                            <div className="bg-info/10 border border-info/30 rounded-lg p-4">
+                                <p className="text-sm text-info-foreground mb-2">
                                     <strong>Self-Pay Rates:</strong>
                                 </p>
-                                <ul className="list-disc pl-5 mt-1 space-y-1 text-sm text-blue-900">
-                                    <li>Initial Assessment (60 mins): $150</li>
-                                    <li>Individual Session (50 mins): $120</li>
+                                <ul className="list-disc pl-5 mt-1 space-y-1 text-sm text-info-foreground">
+                                    <li>Initial Assessment (60 mins): ₹1,500</li>
+                                    <li>Individual Session (50 mins): ₹1,200</li>
                                 </ul>
                             </div>
                         </>

@@ -39,3 +39,38 @@ export function bucketByDay<T>(
         count: b.count
     }));
 }
+
+/** Row-based export data a reports view hands up to the parent's Export button. */
+export interface ExportableReport {
+    /** Shown in the exported filename, e.g. "therapist-report". */
+    slug: string;
+    /** Column headers, in order. */
+    headers: string[];
+    /** One array per row, values in the same order as `headers`. */
+    rows: (string | number)[][];
+}
+
+function csvEscape(value: string | number): string {
+    const s = String(value);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/** Builds a CSV string from an ExportableReport (headers + rows). */
+export function toCsv(report: ExportableReport): string {
+    const lines = [report.headers, ...report.rows].map(row => row.map(csvEscape).join(','));
+    return lines.join('\r\n');
+}
+
+/** Triggers a browser download of the report as a CSV file. */
+export function downloadCsv(report: ExportableReport, dateRange: ReportDateRange): void {
+    const csv = toCsv(report);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${report.slug}-${dateRange}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
