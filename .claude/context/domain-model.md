@@ -5,7 +5,7 @@
 > shared with `backend-initial` / `billing_payment`.
 
 Last updated: 2026-07-12 (MVP0 mock-data eradication + billing transport unblock + design-system pass +
-screen-depth pass: home income/balance cards, client document attach, report CSV export, video waiting room).
+screen-depth pass + apiFetch/Zod adoption — fixed a live double-unwrap bug, see below).
 
 ---
 
@@ -108,6 +108,50 @@ to send the **ID** token instead). Path prefix selects the backend.
 > **Still fake, flagged not fixed:** `clientData.billing`/`detailData.billing` (insurance provider/copay/
 > claims) is still a mock-shaped prop with no real backend source — needs a real per-client billing
 > summary (wallet + billing sessions) before those two Billing tabs are honest.
+
+> **🔴 apiFetch + Zod adoption (2026-07-12) — fixed a live double-unwrap bug.** Pattern adopted from
+> `Iragu-website/lib/api/shared/fetch.ts`: `client.ts` gained `apiFetch<T>(endpoint, { schema, ... })` —
+> every response is validated against a Zod schema at the API boundary, throwing `ApiSchemaError`
+> (readable field diff) on a shape mismatch instead of shipping wrong data downstream. Also added
+> `UnauthorizedError` (401) and `ApiFetchError` (structured backend error) as distinct types, and an
+> `apiRequest`/`apiFetch` option `rawEnvelope` to see the un-auto-unwrapped body when a module needs to
+> inspect the envelope itself (backend-initial's admin Lambda wraps as `{ ok, data }` / `{ ok, error }` —
+> a **different** shape from the generic `{ data }` / `{ success, data }` envelopes `apiRequest`
+> auto-unwraps by default).
+>
+> **The bug this caught:** `admin.ts`, `roles.ts`, and `clientDocuments.ts` each hand-rolled their own
+> `Envelope<T>` type and did `res.data` on the result of `get<Envelope<T>>(...)` — but `apiRequest`
+> already auto-unwraps any body with a top-level `data` key, so by the time these modules received the
+> response it was **already** the bare payload, not the envelope. `res.data` on an already-unwrapped
+> object was `undefined`. In `admin.ts` this crashed inside `unwrap()` reading `env.error.message` on
+> `undefined` — proven with a standalone repro script against the real wire shape from
+> `backend-initial/src/lambdas/admin/src/handler.ts`'s `ok()` helper. Every screen backed by `admin.ts`
+> (`AdminDashboardView`, `SuperAdminDashboardView`, `reports/*`, `verification.ts` via re-export) has a
+> try/catch around the call that swallows the throw into its "could not load" fallback UI — so **these
+> screens have been silently rendering their error/empty state, not real numbers, since MVP0.2** (the
+> session that wired them). `roles.ts` (`getAllRoles`/`getUserRole`) and `clientDocuments.ts`
+> (`listClientDocuments`/`uploadClientDocument`) had the identical bug shape against their own routes.
+> **`billing.ts` did NOT have this bug** — billing_payment's controllers send payloads unenveloped
+> (`sendJson(response, 200, payload)`, confirmed against `payments.controller.js`/`wallet.controller.js`),
+> so `apiRequest`'s auto-unwrap correctly no-ops there; it was converted to `apiFetch` for schema
+> validation only, no logic change.
+>
+> Fix: `admin.ts` now validates the full `{ ok, data }` envelope via `rawEnvelope: true` + a
+> `z.discriminatedUnion('ok', …)` schema, unwrapping only after validation succeeds. `roles.ts` and
+> `clientDocuments.ts` write their Zod schema for the *inner* payload (default `rawEnvelope: false`),
+> matching what `apiRequest`'s existing auto-unwrap already hands them.
+>
+> **Not yet converted to `apiFetch`:** `sessions.ts`, `verification.ts`'s own `/therapists/me` call, and
+> most of the smaller `src/api/*` modules still use the untyped `get`/`post`/`put`/`del` helpers — those
+> don't have the specific double-unwrap bug (no second `.data` access) but also don't get schema
+> validation. Convert opportunistically when touching those files; `apiFetch` is now the preferred
+> pattern for **new** call sites per this repo's `CLAUDE.md`.
+>
+> **Verification status:** proven via a standalone Node script that reproduces the exact wire shape and
+> confirms the old code throws / the new code returns real data (both typecheck 0 and 69/69 tests stay
+> green — neither test suite exercised this path, which is itself a gap: no test caught a bug this
+> severe). **Not yet confirmed against a live authenticated session** — needs a real admin login to see
+> the dashboard render actual numbers end-to-end.
 
 ---
 

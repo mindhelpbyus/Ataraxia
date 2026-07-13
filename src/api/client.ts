@@ -10,6 +10,7 @@
  * - 401 → clear session + redirect to /login (token expired / invalid).
  */
 
+import { z } from 'zod';
 import { logger } from '../utils/secureLogger';
 import { getAccessToken as getCognitoAccessToken } from '../lib/cognito';
 
@@ -48,6 +49,14 @@ export interface ApiRequestOptions {
   isFormData?: boolean;
   /** Override the base URL (e.g. video-service). Defaults to the shared gateway. */
   baseUrl?: string;
+  /**
+   * Skip the automatic `{ data }` envelope unwrap and return the raw parsed
+   * body. Some backend routes wrap responses as `{ ok, data }` / `{ ok, error }`
+   * (backend-initial admin Lambda) rather than the generic `{ data }` shape —
+   * callers that need to inspect `ok`/`error` themselves (apiFetch's schema
+   * validation) must see the untouched body. Defaults to false (auto-unwrap).
+   */
+  rawEnvelope?: boolean;
 }
 
 // ─── Core Request ─────────────────────────────────────────────────────────────
@@ -56,7 +65,7 @@ export async function apiRequest<T>(
   endpoint: string,
   options: ApiRequestOptions = {}
 ): Promise<T> {
-  const { method = 'GET', headers = {}, body, isFormData = false, baseUrl = API_BASE_URL } = options;
+  const { method = 'GET', headers = {}, body, isFormData = false, baseUrl = API_BASE_URL, rawEnvelope = false } = options;
 
   const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
 
@@ -131,6 +140,8 @@ export async function apiRequest<T>(
 
     const parsed = JSON.parse(text) as Record<string, unknown>;
 
+    if (rawEnvelope) return parsed as T;
+
     // Unwrap standard backend envelope: { success, data, message }
     if (parsed.data !== undefined) {
       return parsed.data as T;
@@ -177,6 +188,110 @@ export function videoPost<T>(endpoint: string, body?: unknown): Promise<T> {
 
 export function del<T>(endpoint: string): Promise<T> {
   return apiRequest<T>(endpoint, { method: 'DELETE' });
+}
+
+// ─── Zod-validated fetch (apiFetch) ──────────────────────────────────────────
+// Adopted from iragu-website's lib/api/shared/fetch.ts pattern: every response
+// is validated against a Zod schema at the API boundary, so a shape mismatch
+// throws a readable ApiSchemaError in dev instead of silently misbehaving
+// downstream (this is what would have caught the ProfessionalClientsView
+// envelope bug immediately instead of it shipping as an empty list for weeks).
+// Built on top of apiRequest — same transport, auth, 401-redirect, and
+// envelope-unwrap behavior; this layer only adds schema validation + distinct
+// error types callers can branch on.
+
+/** Session expired or missing — same signal apiRequest's 401 path acts on. */
+export class UnauthorizedError extends Error {
+  readonly status = 401;
+  constructor(message = 'Unauthorized') {
+    super(message);
+    this.name = 'UnauthorizedError';
+  }
+}
+
+/** Backend returned a non-2xx with a structured { code, message, fields? } error. */
+export class ApiFetchError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    message: string,
+    readonly fields?: Record<string, string>
+  ) {
+    super(message);
+    this.name = 'ApiFetchError';
+  }
+}
+
+/** Backend returned 2xx but the body didn't match the expected schema. */
+export class ApiSchemaError extends Error {
+  constructor(
+    readonly endpoint: string,
+    readonly issues: z.core.$ZodIssue[]
+  ) {
+    super(`Response from ${endpoint} did not match the expected schema`);
+    this.name = 'ApiSchemaError';
+  }
+}
+
+export type ApiFetchOptions<T> = {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  body?: unknown;
+  /** Zod schema for the response body (after envelope unwrap). Required. */
+  schema: z.ZodType<T>;
+  /** Override the base URL — e.g. video-service, or billing.ts's ID-token header. */
+  baseUrl?: string;
+  headers?: Record<string, string>;
+  /** Idempotency key for mutating requests — pass a *stable* key per logical
+   *  action (not a fresh UUID per call) so a retry reuses it, not silently
+   *  bypasses the dedup it's meant to provide. */
+  idempotencyKey?: string;
+  /**
+   * Validate against the raw, un-unwrapped response body — required for
+   * backend-initial's admin Lambda, which wraps every response as
+   * `{ ok: true, data }` / `{ ok: false, error }` (a different shape from the
+   * generic `{ data }` envelope `apiRequest` auto-unwraps by default). Most
+   * routes should leave this false and write `schema` for the inner payload.
+   */
+  rawEnvelope?: boolean;
+};
+
+/**
+ * Typed, Zod-validated request. Prefer this over `apiRequest`/`get`/`post` for
+ * new call sites — the schema requirement makes API-shape drift a build-time
+ * or first-run error instead of a silent runtime one.
+ */
+export async function apiFetch<T>(endpoint: string, opts: ApiFetchOptions<T>): Promise<T> {
+  const headers: Record<string, string> = { ...opts.headers };
+  if (opts.idempotencyKey) headers['Idempotency-Key'] = opts.idempotencyKey;
+
+  let body: unknown;
+  try {
+    body = await apiRequest<unknown>(endpoint, {
+      method: opts.method ?? 'GET',
+      body: opts.body,
+      baseUrl: opts.baseUrl,
+      headers,
+      rawEnvelope: opts.rawEnvelope,
+    });
+  } catch (err) {
+    if (err instanceof ApiException) {
+      if (err.status === 401) throw new UnauthorizedError();
+      throw new ApiFetchError(
+        err.status ?? 0,
+        err.code ?? 'UNKNOWN_ERROR',
+        err.message,
+        (err.details as { fields?: Record<string, string> } | undefined)?.fields
+      );
+    }
+    throw err;
+  }
+
+  const parsed = opts.schema.safeParse(body);
+  if (!parsed.success) {
+    logger.error('[apiFetch] schema mismatch', { endpoint, issueCount: parsed.error.issues.length });
+    throw new ApiSchemaError(endpoint, parsed.error.issues);
+  }
+  return parsed.data;
 }
 
 // ─── Legacy compatibility shims ─────────────────────────────────────────────────

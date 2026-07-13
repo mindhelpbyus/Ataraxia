@@ -132,6 +132,13 @@ npm run typecheck    # tsc --noEmit  (must be clean — CI gate)
 ## Key Patterns & Conventions
 
 - **Call the typed `src/api/*` modules**, not `fetch`. Add a new domain module rather than inlining calls.
+- **New `src/api/*` call sites: use `apiFetch<T>` with a Zod `schema`**, not raw `get`/`post`/`put`/`del`.
+  Pattern adopted from `Iragu-website/lib/api/shared/fetch.ts` — validates every response at the API
+  boundary, throwing a readable `ApiSchemaError` on a shape mismatch instead of a silent runtime bug (this
+  caught a real double-unwrap crash across `admin.ts`/`roles.ts`/`clientDocuments.ts` — see
+  `.claude/context/domain-model.md` §2 for the full writeup). `apiRequest`'s default auto-unwrap strips a
+  top-level `data` key; if a route's envelope is shaped differently (e.g. backend-initial admin's
+  `{ ok, data }`), pass `rawEnvelope: true` and write the schema for the *whole* envelope, not the payload.
 - **Bearer token, not cookies.** The legacy cookie/CSRF model is being removed; auth state comes from the
   Cognito session held client-side.
 - **No server/DB code in this repo.** Anything resembling a backend belongs in `backend-initial` /

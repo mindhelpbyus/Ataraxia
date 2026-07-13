@@ -8,34 +8,43 @@
  *   3. POST /client-documents             → registers the ClientDocument row
  * Only a therapist (or admin acting on a therapist's behalf) may call these —
  * enforced server-side (403 FORBIDDEN_NOT_THERAPIST otherwise).
+ *
+ * Wire shape is { success: true, data } on every route here — apiRequest's
+ * auto-unwrap already strips that to bare `data`, so schemas below validate
+ * the *inner* payload (default rawEnvelope: false), matching what the old
+ * hand-rolled `Envelope<T>` + `res.data` here actually received (a second
+ * `.data` access on an already-unwrapped value — same bug class as admin.ts
+ * and roles.ts, all three fixed in the same pass).
  */
 
-import { get, post } from './client';
+import { z } from 'zod';
+import { apiFetch } from './client';
 
 export const ALLOWED_DOCUMENT_MIME_TYPES = [
     'image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif', 'image/webp',
     'application/pdf',
 ] as const;
 
-export interface ClientDocument {
-    id: string;
-    clientId: number;
-    therapistId: number;
-    appointmentId: number | null;
-    docType: string;
-    sessionDate: string;
-    s3Key: string;
-    mimeType: string;
-    sizeBytes: number;
-    originalFilename: string | null;
-    uploadedByRole: string;
-    uploadedByUserId: number;
-    createdAt: string;
+const ClientDocumentSchema = z.object({
+    id: z.string(),
+    clientId: z.number(),
+    therapistId: z.number(),
+    appointmentId: z.number().nullable(),
+    docType: z.string(),
+    sessionDate: z.string(),
+    s3Key: z.string(),
+    mimeType: z.string(),
+    sizeBytes: z.number(),
+    originalFilename: z.string().nullable(),
+    uploadedByRole: z.string(),
+    uploadedByUserId: z.number(),
+    createdAt: z.string(),
     /** Presigned GET URL, present only when the caller may view content (short-lived). */
-    contentUrl?: string;
-}
+    contentUrl: z.string().optional(),
+});
+export type ClientDocument = z.infer<typeof ClientDocumentSchema>;
 
-interface Envelope<T> { success: boolean; data: T }
+const UploadUrlSchema = z.object({ uploadUrl: z.string(), s3Key: z.string() });
 
 function withQuery(path: string, params: Record<string, string | number | undefined>): string {
     const q = new URLSearchParams();
@@ -44,9 +53,8 @@ function withQuery(path: string, params: Record<string, string | number | undefi
     return qs ? `${path}?${qs}` : path;
 }
 
-export async function listClientDocuments(clientId: number | string): Promise<ClientDocument[]> {
-    const res = await get<Envelope<ClientDocument[]>>(withQuery('/client-documents', { clientId }));
-    return res.data;
+export function listClientDocuments(clientId: number | string): Promise<ClientDocument[]> {
+    return apiFetch(withQuery('/client-documents', { clientId }), { schema: z.array(ClientDocumentSchema) });
 }
 
 /**
@@ -61,14 +69,15 @@ export async function uploadClientDocument(params: {
 }): Promise<ClientDocument> {
     const { clientId, file, appointmentId, sessionDate } = params;
 
-    const { uploadUrl, s3Key } = await get<{ uploadUrl: string; s3Key: string }>(
+    const { uploadUrl, s3Key } = await apiFetch(
         withQuery('/client-documents/upload-url', {
             clientId,
             mimeType: file.type,
             filename: file.name,
             appointmentId,
             sessionDate,
-        })
+        }),
+        { schema: UploadUrlSchema }
     );
 
     const putRes = await fetch(uploadUrl, {
@@ -80,14 +89,17 @@ export async function uploadClientDocument(params: {
         throw new Error(`Upload to storage failed: HTTP ${putRes.status}`);
     }
 
-    const res = await post<Envelope<ClientDocument>>('/client-documents', {
-        s3Key,
-        clientId,
-        mimeType: file.type,
-        sizeBytes: file.size,
-        originalFilename: file.name,
-        appointmentId,
-        sessionDate: sessionDate ?? new Date().toISOString(),
+    return apiFetch('/client-documents', {
+        method: 'POST',
+        body: {
+            s3Key,
+            clientId,
+            mimeType: file.type,
+            sizeBytes: file.size,
+            originalFilename: file.name,
+            appointmentId,
+            sessionDate: sessionDate ?? new Date().toISOString(),
+        },
+        schema: ClientDocumentSchema,
     });
-    return res.data;
 }

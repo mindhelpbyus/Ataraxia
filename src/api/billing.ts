@@ -8,10 +8,18 @@
  *   - Every POST/PUT/DELETE requires an `Idempotency-Key` header
  *     (else 400 IDEMPOTENCY_KEY_REQUIRED); same key + different body → 422.
  *   - All money in **paise** (₹1 = 100 paise). Lists are unpaginated, newest first.
+ *   - Response bodies are NOT enveloped (billing_payment's controllers
+ *     `sendJson(response, 200, payload)` the payload directly) — unlike
+ *     backend-initial, so schemas below validate the payload as-is.
+ *
+ * Uses apiFetch (Zod-validated) — a response that stops matching this file's
+ * types now throws a readable ApiSchemaError instead of shipping a silent
+ * shape mismatch to the UI.
  */
 
-import { apiRequest } from './client';
+import { apiFetch } from './client';
 import { getCurrentSession } from '../lib/cognito';
+import { z } from 'zod';
 
 // ─── Transport ────────────────────────────────────────────────────────────────
 
@@ -23,12 +31,12 @@ async function billingHeaders(mutating: boolean): Promise<Record<string, string>
     return headers;
 }
 
-async function bGet<T>(path: string): Promise<T> {
-    return apiRequest<T>(path, { headers: await billingHeaders(false) });
+async function bGet<T extends z.ZodType>(path: string, schema: T): Promise<z.infer<T>> {
+    return (await apiFetch(path, { schema, headers: await billingHeaders(false) })) as z.infer<T>;
 }
 
-async function bPost<T>(path: string, body?: unknown): Promise<T> {
-    return apiRequest<T>(path, { method: 'POST', body, headers: await billingHeaders(true) });
+async function bPost<T extends z.ZodType>(path: string, schema: T, body?: unknown): Promise<z.infer<T>> {
+    return (await apiFetch(path, { method: 'POST', body, schema, headers: await billingHeaders(true) })) as z.infer<T>;
 }
 
 function withQuery(path: string, query?: Record<string, string | number | undefined>): string {
@@ -41,154 +49,164 @@ function withQuery(path: string, query?: Record<string, string | number | undefi
     return qs ? `${path}?${qs}` : path;
 }
 
-// ─── Types (fields per billing_payment pgStore/Prisma shapes) ────────────────
+// ─── Schemas (fields per billing_payment pgStore/Prisma shapes) ─────────────
 
-export interface WalletBalance {
-    clientId: number;
+const WalletBalanceSchema = z.object({
+    clientId: z.number(),
     /** Paise. */
-    walletBalance: number;
-    currency: string;
-}
+    walletBalance: z.number(),
+    currency: z.string(),
+});
+export type WalletBalance = z.infer<typeof WalletBalanceSchema>;
 
-export interface Payment {
-    id: string;
-    sessionId?: string | null;
-    razorpayPaymentId?: string | null;
+const PaymentSchema = z.object({
+    id: z.string(),
+    sessionId: z.string().nullable().optional(),
+    razorpayPaymentId: z.string().nullable().optional(),
     /** Paise. */
-    amount: number;
-    currency?: string;
-    status: string;
-    settlementState?: string | null;
-    capturedAt?: string | null;
-    createdAt: string;
-}
+    amount: z.number(),
+    currency: z.string().optional(),
+    status: z.string(),
+    settlementState: z.string().nullable().optional(),
+    capturedAt: z.string().nullable().optional(),
+    createdAt: z.string(),
+});
+export type Payment = z.infer<typeof PaymentSchema>;
 
-export interface BillingSession {
-    id: string;
-    appointmentId?: number | string | null;
-    clientId: number | string;
-    therapistId: number | string;
+const BillingSessionSchema = z.object({
+    id: z.string(),
+    appointmentId: z.union([z.number(), z.string()]).nullable().optional(),
+    clientId: z.union([z.number(), z.string()]),
+    therapistId: z.union([z.number(), z.string()]),
     /** Paise. */
-    feeAmount: number;
-    currency?: string;
-    status: string;
-    payoutState?: string;
-    settlementState?: string;
-    disputeState?: string;
-    refundState?: string;
-    startsAt?: string;
-    createdAt: string;
-}
+    feeAmount: z.number(),
+    currency: z.string().optional(),
+    status: z.string(),
+    payoutState: z.string().optional(),
+    settlementState: z.string().optional(),
+    disputeState: z.string().optional(),
+    refundState: z.string().optional(),
+    startsAt: z.string().optional(),
+    createdAt: z.string(),
+});
+export type BillingSession = z.infer<typeof BillingSessionSchema>;
 
-export interface Invoice {
-    id: string;
-    type: string;
-    docNumber: string;
-    sessionId?: string | null;
-    paymentId?: string | null;
-    recipientType: string;
-    recipientId: number;
+const InvoiceSchema = z.object({
+    id: z.string(),
+    type: z.string(),
+    docNumber: z.string(),
+    sessionId: z.string().nullable().optional(),
+    paymentId: z.string().nullable().optional(),
+    recipientType: z.string(),
+    recipientId: z.number(),
     /** Paise. */
-    totalPaise?: number | null;
+    totalPaise: z.number().nullable().optional(),
     /** Alias of totalPaise (server maps it). */
-    total?: number | null;
-    title?: string | null;
-    status?: string | null;
-    currency?: string | null;
-    pdfStatus?: 'pending' | 'generated' | 'failed' | null;
-    generatedAt?: string;
-    createdAt: string;
-}
+    total: z.number().nullable().optional(),
+    title: z.string().nullable().optional(),
+    status: z.string().nullable().optional(),
+    currency: z.string().nullable().optional(),
+    pdfStatus: z.enum(['pending', 'generated', 'failed']).nullable().optional(),
+    generatedAt: z.string().optional(),
+    createdAt: z.string(),
+});
+export type Invoice = z.infer<typeof InvoiceSchema>;
 
-export interface InvoiceDownload {
-    downloadUrl: string | null;
-    pdfStatus: 'pending' | 'generated' | 'failed';
-    pdfFailureReason?: string | null;
-}
+const InvoiceDownloadSchema = z.object({
+    downloadUrl: z.string().nullable(),
+    pdfStatus: z.enum(['pending', 'generated', 'failed']),
+    pdfFailureReason: z.string().nullable().optional(),
+});
+export type InvoiceDownload = z.infer<typeof InvoiceDownloadSchema>;
 
-export interface Refund {
-    id: string;
-    sessionId?: string | null;
-    paymentId?: string | null;
+const RefundSchema = z.object({
+    id: z.string(),
+    sessionId: z.string().nullable().optional(),
+    paymentId: z.string().nullable().optional(),
     /** Paise. */
-    amount: number;
-    status: string;
-    createdAt: string;
-}
+    amount: z.number(),
+    status: z.string(),
+    createdAt: z.string(),
+});
+export type Refund = z.infer<typeof RefundSchema>;
 
-export interface Dispute {
-    id: string;
-    paymentId?: string | null;
-    sessionId?: string | null;
+const DisputeSchema = z.object({
+    id: z.string(),
+    paymentId: z.string().nullable().optional(),
+    sessionId: z.string().nullable().optional(),
     /** Paise. */
-    amount?: number;
-    status: string;
-    respondBy?: string | null;
-    createdAt: string;
-}
+    amount: z.number().optional(),
+    status: z.string(),
+    respondBy: z.string().nullable().optional(),
+    createdAt: z.string(),
+});
+export type Dispute = z.infer<typeof DisputeSchema>;
 
-export interface LedgerEntry {
-    id: string;
-    category: 'debit' | 'credit';
-    account?: string;
-    entryType?: string;
+const LedgerEntrySchema = z.object({
+    id: z.string(),
+    category: z.enum(['debit', 'credit']),
+    account: z.string().optional(),
+    entryType: z.string().optional(),
     /** Paise. */
-    amount: number;
-    sessionId?: string | null;
-    therapistId?: number | string | null;
-    clientId?: number | string | null;
-    balanceAfter?: number | null;
-    createdAt: string;
-}
+    amount: z.number(),
+    sessionId: z.string().nullable().optional(),
+    therapistId: z.union([z.number(), z.string()]).nullable().optional(),
+    clientId: z.union([z.number(), z.string()]).nullable().optional(),
+    balanceAfter: z.number().nullable().optional(),
+    createdAt: z.string(),
+});
+export type LedgerEntry = z.infer<typeof LedgerEntrySchema>;
 
-export interface Payout {
-    id: string;
-    therapistId: number | string;
-    batchId?: string | null;
+const PayoutSchema = z.object({
+    id: z.string(),
+    therapistId: z.union([z.number(), z.string()]),
+    batchId: z.string().nullable().optional(),
     /** Paise. */
-    amount?: number;
-    netAmount?: number;
-    status: string;
-    utr?: string | null;
-    createdAt: string;
-}
+    amount: z.number().optional(),
+    netAmount: z.number().optional(),
+    status: z.string(),
+    utr: z.string().nullable().optional(),
+    createdAt: z.string(),
+});
+export type Payout = z.infer<typeof PayoutSchema>;
 
-export interface PayoutBatch {
-    id: string;
-    periodStart?: string;
-    periodEnd?: string;
-    status: string;
-    createdAt: string;
-}
+const PayoutBatchSchema = z.object({
+    id: z.string(),
+    periodStart: z.string().optional(),
+    periodEnd: z.string().optional(),
+    status: z.string(),
+    createdAt: z.string(),
+});
+export type PayoutBatch = z.infer<typeof PayoutBatchSchema>;
 
 // ─── Wallet ───────────────────────────────────────────────────────────────────
 
 export function getMyWalletBalance(): Promise<WalletBalance> {
-    return bGet<WalletBalance>('/billing/wallet/balance');
+    return bGet('/billing/wallet/balance', WalletBalanceSchema);
 }
 
 export function getClientWallet(clientId: number | string): Promise<WalletBalance> {
-    return bGet<WalletBalance>(`/billing/clients/${clientId}/wallet`);
+    return bGet(`/billing/clients/${clientId}/wallet`, WalletBalanceSchema);
 }
 
 export function getClientWalletTransactions(clientId: number | string): Promise<unknown[]> {
-    return bGet<unknown[]>(`/billing/clients/${clientId}/wallet/transactions`);
+    return bGet(`/billing/clients/${clientId}/wallet/transactions`, z.array(z.unknown()));
 }
 
 // ─── Payments & sessions ──────────────────────────────────────────────────────
 
 export function listPayments(): Promise<Payment[]> {
-    return bGet<Payment[]>('/billing/payments');
+    return bGet('/billing/payments', z.array(PaymentSchema));
 }
 
 export function listBillingSessions(query?: {
     clientId?: string | number; therapistId?: string | number; status?: string;
 }): Promise<BillingSession[]> {
-    return bGet<BillingSession[]>(withQuery('/billing/sessions', query as Record<string, string | number | undefined>));
+    return bGet(withQuery('/billing/sessions', query as Record<string, string | number | undefined>), z.array(BillingSessionSchema));
 }
 
 export function getBillingSession(appointmentId: string | number): Promise<BillingSession> {
-    return bGet<BillingSession>(`/billing/sessions/${appointmentId}`);
+    return bGet(`/billing/sessions/${appointmentId}`, BillingSessionSchema);
 }
 
 // ─── Invoices ─────────────────────────────────────────────────────────────────
@@ -197,58 +215,58 @@ export function listInvoices(query?: {
     recipientId?: number | string; recipientType?: string; type?: string;
     sessionId?: string; limit?: number;
 }): Promise<Invoice[]> {
-    return bGet<Invoice[]>(withQuery('/billing/invoices', query as Record<string, string | number | undefined>));
+    return bGet(withQuery('/billing/invoices', query as Record<string, string | number | undefined>), z.array(InvoiceSchema));
 }
 
 export function getInvoice(invoiceId: string): Promise<Invoice> {
-    return bGet<Invoice>(`/billing/invoices/${invoiceId}`);
+    return bGet(`/billing/invoices/${invoiceId}`, InvoiceSchema);
 }
 
 /** Fresh 1-hour presigned S3 URL; every call is access-logged (DPDP). */
 export function getInvoiceDownload(invoiceId: string): Promise<InvoiceDownload> {
-    return bGet<InvoiceDownload>(`/billing/invoices/${invoiceId}/download`);
+    return bGet(`/billing/invoices/${invoiceId}/download`, InvoiceDownloadSchema);
 }
 
 // ─── Finance (admin) ──────────────────────────────────────────────────────────
 
 export function listRefunds(): Promise<Refund[]> {
-    return bGet<Refund[]>('/billing/refunds');
+    return bGet('/billing/refunds', z.array(RefundSchema));
 }
 
 export function listDisputes(): Promise<Dispute[]> {
-    return bGet<Dispute[]>('/billing/disputes');
+    return bGet('/billing/disputes', z.array(DisputeSchema));
 }
 
 export function getDisputeRateCheck(): Promise<{ status: string;[k: string]: unknown }> {
-    return bGet<{ status: string }>('/billing/disputes/rate-check');
+    return bGet('/billing/disputes/rate-check', z.object({ status: z.string() }).catchall(z.unknown()));
 }
 
 export function listLedger(query?: {
     clientId?: string | number; therapistId?: string | number; sessionId?: string;
 }): Promise<LedgerEntry[]> {
-    return bGet<LedgerEntry[]>(withQuery('/billing/ledger', query as Record<string, string | number | undefined>));
+    return bGet(withQuery('/billing/ledger', query as Record<string, string | number | undefined>), z.array(LedgerEntrySchema));
 }
 
 // ─── Payouts (admin) ──────────────────────────────────────────────────────────
 
 export function listPayouts(): Promise<Payout[]> {
-    return bGet<Payout[]>('/billing/payouts');
+    return bGet('/billing/payouts', z.array(PayoutSchema));
 }
 
 export function listPayoutBatches(): Promise<PayoutBatch[]> {
-    return bGet<PayoutBatch[]>('/billing/payouts/batches');
+    return bGet('/billing/payouts/batches', z.array(PayoutBatchSchema));
 }
 
 export function createPayoutBatch(endDate?: string): Promise<PayoutBatch> {
-    return bPost<PayoutBatch>('/billing/payouts/batches', endDate ? { endDate } : {});
+    return bPost('/billing/payouts/batches', PayoutBatchSchema, endDate ? { endDate } : {});
 }
 
 export function processPayoutBatch(batchId: string): Promise<PayoutBatch> {
-    return bPost<PayoutBatch>(`/billing/payouts/batches/${batchId}/process`);
+    return bPost(`/billing/payouts/batches/${batchId}/process`, PayoutBatchSchema);
 }
 
 // ─── Config (admin) ───────────────────────────────────────────────────────────
 
 export function listBillingConfig(): Promise<Record<string, unknown>> {
-    return bGet<Record<string, unknown>>('/billing/admin/billing-config');
+    return bGet('/billing/admin/billing-config', z.record(z.string(), z.unknown()));
 }

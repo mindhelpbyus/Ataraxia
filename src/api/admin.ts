@@ -1,110 +1,125 @@
 /**
  * api/admin.ts — Admin Lambda thin client (backend-initial `/admin/*`).
  *
- * Response envelope: every admin route returns `{ ok: true, data }` or
- * `{ ok: false, error: { code, message, fields? } }` — unwrapped here so
- * callers get the payload directly (types mirror src/shared/admin-types.ts
- * in backend-initial; keep the two in sync).
+ * Response envelope: every admin route returns the RAW body
+ * `{ ok: true, data }` or `{ ok: false, error: { code, message, fields? } }`
+ * (see backend-initial src/lambdas/admin/src/handler.ts `ok()`/`err()`).
+ *
+ * Uses `apiFetch` with `rawEnvelope: true` + a Zod schema over the *whole*
+ * envelope — validated then unwrapped here. This replaced a hand-rolled
+ * `unwrap()` that operated on `apiRequest`'s auto-unwrapped body (which had
+ * already stripped `{ ok, data }` down to bare `data`), so `env.ok` was always
+ * `undefined` and every call in this module threw and was silently swallowed
+ * by callers' try/catch fallback UI — dashboards were rendering the "could
+ * not load" state, not real numbers, since MVP0.2.
  */
 
-import { get, post, put } from './client';
-import { ApiException } from './client';
+import { z } from 'zod';
+import { apiFetch, ApiFetchError } from './client';
 
-// ── Types (mirror backend-initial src/shared/admin-types.ts) ─────────────────
+// ── Schemas (mirror backend-initial src/shared/admin-types.ts) ───────────────
 
-export interface DashboardCounts {
-    pendingTherapists: number;
-    pendingPayouts: number;
-    totalClients: number;
-    totalTherapists: number;
+const DashboardCountsSchema = z.object({
+    pendingTherapists: z.number(),
+    pendingPayouts: z.number(),
+    totalClients: z.number(),
+    totalTherapists: z.number(),
+});
+export type DashboardCounts = z.infer<typeof DashboardCountsSchema>;
+
+const PaginationSchema = z.object({
+    page: z.number(),
+    pageSize: z.number(),
+    total: z.number(),
+    totalPages: z.number(),
+});
+export type Pagination = z.infer<typeof PaginationSchema>;
+
+function paginated<T extends z.ZodType>(item: T) {
+    return z.object({ data: z.array(item), pagination: PaginationSchema });
 }
+export type Paginated<T> = { data: T[]; pagination: Pagination };
 
-export interface Pagination {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-}
+const TherapistRowSchema = z.object({
+    id: z.number(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+    phone: z.string().nullable(),
+    verificationStatus: z.string(),
+    modalities: z.array(z.string()),
+    registeredAt: z.string(),
+    isActive: z.boolean(),
+});
+export type TherapistRow = z.infer<typeof TherapistRowSchema>;
 
-export interface Paginated<T> {
-    data: T[];
-    pagination: Pagination;
-}
+const TherapistDetailSchema = TherapistRowSchema.extend({
+    title: z.string().nullable(),
+    licenseNumber: z.string().nullable(),
+    licenseState: z.string().nullable(),
+    licenseExpiration: z.string().nullable(),
+    clinicalSpecialties: z.array(z.string()),
+    languagesSpoken: z.array(z.string()),
+    introFee: z.number().nullable(),
+    regularFee: z.number().nullable(),
+    bio: z.string().nullable(),
+    yearsOfExperience: z.number().nullable(),
+    location: z.string().nullable(),
+    bankVerified: z.boolean(),
+    verifiedAt: z.string().nullable(),
+    rejectedAt: z.string().nullable(),
+    rejectedReason: z.string().nullable(),
+});
+export type TherapistDetail = z.infer<typeof TherapistDetailSchema>;
 
-export interface TherapistRow {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string | null;
-    verificationStatus: string;
-    modalities: string[];
-    registeredAt: string;
-    isActive: boolean;
-}
+const ClientRowSchema = z.object({
+    id: z.number(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+    phone: z.string().nullable(),
+    assignedTherapistName: z.string().nullable(),
+    registeredAt: z.string(),
+});
+export type ClientRow = z.infer<typeof ClientRowSchema>;
 
-export interface TherapistDetail extends TherapistRow {
-    title: string | null;
-    licenseNumber: string | null;
-    licenseState: string | null;
-    licenseExpiration: string | null;
-    clinicalSpecialties: string[];
-    languagesSpoken: string[];
-    introFee: number | null;
-    regularFee: number | null;
-    bio: string | null;
-    yearsOfExperience: number | null;
-    location: string | null;
-    bankVerified: boolean;
-    verifiedAt: string | null;
-    rejectedAt: string | null;
-    rejectedReason: string | null;
-}
+const ClientDetailSchema = ClientRowSchema.extend({
+    assignedTherapistId: z.number().nullable(),
+    recentAppointments: z.array(z.object({
+        id: z.number(),
+        scheduledAt: z.string(),
+        status: z.string(),
+        therapistName: z.string(),
+    })),
+});
+export type ClientDetail = z.infer<typeof ClientDetailSchema>;
 
-export interface ClientRow {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string | null;
-    assignedTherapistName: string | null;
-    registeredAt: string;
-}
-
-export interface ClientDetail extends ClientRow {
-    assignedTherapistId: number | null;
-    recentAppointments: {
-        id: number;
-        scheduledAt: string;
-        status: string;
-        therapistName: string;
-    }[];
-}
-
-export interface AppointmentRow {
-    id: number;
-    clientId: number;
-    clientName: string;
-    therapistId: number;
-    therapistName: string;
-    serviceType: string;
-    scheduledAt: string;
-    status: string;
-    paymentStatus: string;
-    bookedBy: string;
+const AppointmentRowSchema = z.object({
+    id: z.number(),
+    clientId: z.number(),
+    clientName: z.string(),
+    therapistId: z.number(),
+    therapistName: z.string(),
+    serviceType: z.string(),
+    scheduledAt: z.string(),
+    status: z.string(),
+    paymentStatus: z.string(),
+    bookedBy: z.string(),
     /** Paise (₹1 = 100 paise) — like every money field on the platform. */
-    price: number;
-}
+    price: z.number(),
+});
+export type AppointmentRow = z.infer<typeof AppointmentRowSchema>;
 
-export interface AdminActivityRow {
-    id: number;
-    actor: { id: number; firstName: string; lastName: string; email: string };
-    action: string;
-    targetType: string;
-    targetId: number;
-    metadata: unknown;
-    createdAt: string;
-}
+const AdminActivityRowSchema = z.object({
+    id: z.number(),
+    actor: z.object({ id: z.number(), firstName: z.string(), lastName: z.string(), email: z.string() }),
+    action: z.string(),
+    targetType: z.string(),
+    targetId: z.number(),
+    metadata: z.unknown(),
+    createdAt: z.string(),
+});
+export type AdminActivityRow = z.infer<typeof AdminActivityRowSchema>;
 
 export interface ListQuery {
     page?: number;
@@ -118,15 +133,34 @@ export interface ListQuery {
     clientId?: number;
 }
 
-// ── Envelope unwrap ───────────────────────────────────────────────────────────
+// ── Envelope ───────────────────────────────────────────────────────────────
 
-type Envelope<T> =
+function envelope<T extends z.ZodType>(data: T) {
+    return z.discriminatedUnion('ok', [
+        z.object({ ok: z.literal(true), data }),
+        z.object({ ok: z.literal(false), error: z.object({ code: z.string(), message: z.string(), fields: z.record(z.string(), z.string()).optional() }) }),
+    ]);
+}
+
+type AdminEnvelope<T> =
     | { ok: true; data: T }
     | { ok: false; error: { code: string; message: string; fields?: Record<string, string> } };
 
-function unwrap<T>(env: Envelope<T>): T {
-    if (env.ok) return env.data;
-    throw new ApiException({ message: env.error.message, code: env.error.code, details: env.error.fields });
+async function callAdmin<T extends z.ZodType>(
+    endpoint: string,
+    schema: T,
+    opts: { method?: 'GET' | 'POST' | 'PUT'; body?: unknown } = {}
+): Promise<z.infer<T>> {
+    const result = (await apiFetch(endpoint, {
+        method: opts.method ?? 'GET',
+        body: opts.body,
+        rawEnvelope: true,
+        schema: envelope(schema),
+    })) as AdminEnvelope<z.infer<T>>;
+    if (!result.ok) {
+        throw new ApiFetchError(0, result.error.code, result.error.message, result.error.fields);
+    }
+    return result.data;
 }
 
 function withQuery(path: string, query?: ListQuery): string {
@@ -141,45 +175,45 @@ function withQuery(path: string, query?: ListQuery): string {
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 
-export async function getDashboardCounts(): Promise<DashboardCounts> {
-    return unwrap(await get<Envelope<DashboardCounts>>('/admin/dashboard/counts'));
+export function getDashboardCounts(): Promise<DashboardCounts> {
+    return callAdmin('/admin/dashboard/counts', DashboardCountsSchema);
 }
 
-export async function listTherapists(query?: ListQuery): Promise<Paginated<TherapistRow>> {
-    return unwrap(await get<Envelope<Paginated<TherapistRow>>>(withQuery('/admin/therapists', query)));
+export function listTherapists(query?: ListQuery): Promise<Paginated<TherapistRow>> {
+    return callAdmin(withQuery('/admin/therapists', query), paginated(TherapistRowSchema));
 }
 
-export async function getTherapist(therapistId: number): Promise<TherapistDetail> {
-    return unwrap(await get<Envelope<TherapistDetail>>(`/admin/therapists/${therapistId}`));
+export function getTherapist(therapistId: number): Promise<TherapistDetail> {
+    return callAdmin(`/admin/therapists/${therapistId}`, TherapistDetailSchema);
 }
 
-export async function approveTherapist(therapistId: number): Promise<TherapistDetail> {
-    return unwrap(await post<Envelope<TherapistDetail>>(`/admin/therapists/${therapistId}/approve`, {}));
+export function approveTherapist(therapistId: number): Promise<TherapistDetail> {
+    return callAdmin(`/admin/therapists/${therapistId}/approve`, TherapistDetailSchema, { method: 'POST', body: {} });
 }
 
-export async function rejectTherapist(therapistId: number, reason: string): Promise<TherapistDetail> {
-    return unwrap(await post<Envelope<TherapistDetail>>(`/admin/therapists/${therapistId}/reject`, { reason }));
+export function rejectTherapist(therapistId: number, reason: string): Promise<TherapistDetail> {
+    return callAdmin(`/admin/therapists/${therapistId}/reject`, TherapistDetailSchema, { method: 'POST', body: { reason } });
 }
 
-export async function listClients(query?: ListQuery): Promise<Paginated<ClientRow>> {
-    return unwrap(await get<Envelope<Paginated<ClientRow>>>(withQuery('/admin/clients', query)));
+export function listClients(query?: ListQuery): Promise<Paginated<ClientRow>> {
+    return callAdmin(withQuery('/admin/clients', query), paginated(ClientRowSchema));
 }
 
-export async function getClient(clientId: number): Promise<ClientDetail> {
-    return unwrap(await get<Envelope<ClientDetail>>(`/admin/clients/${clientId}`));
+export function getClient(clientId: number): Promise<ClientDetail> {
+    return callAdmin(`/admin/clients/${clientId}`, ClientDetailSchema);
 }
 
-export async function updateClient(
+export function updateClient(
     clientId: number,
     updates: Partial<Pick<ClientRow, 'firstName' | 'lastName' | 'email' | 'phone'>> & { assignedTherapistId?: number | null }
 ): Promise<ClientDetail> {
-    return unwrap(await put<Envelope<ClientDetail>>(`/admin/clients/${clientId}`, updates));
+    return callAdmin(`/admin/clients/${clientId}`, ClientDetailSchema, { method: 'PUT', body: updates });
 }
 
-export async function listAppointments(query?: ListQuery): Promise<Paginated<AppointmentRow>> {
-    return unwrap(await get<Envelope<Paginated<AppointmentRow>>>(withQuery('/admin/appointments', query)));
+export function listAppointments(query?: ListQuery): Promise<Paginated<AppointmentRow>> {
+    return callAdmin(withQuery('/admin/appointments', query), paginated(AppointmentRowSchema));
 }
 
-export async function listActivity(query?: ListQuery): Promise<Paginated<AdminActivityRow>> {
-    return unwrap(await get<Envelope<Paginated<AdminActivityRow>>>(withQuery('/admin/activity', query)));
+export function listActivity(query?: ListQuery): Promise<Paginated<AdminActivityRow>> {
+    return callAdmin(withQuery('/admin/activity', query), paginated(AdminActivityRowSchema));
 }
