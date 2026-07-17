@@ -242,12 +242,21 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
 
       if (userRole === 'therapist' && currentUserId) {
         const [clientsRes, appointments] = await Promise.all([
-          get<{ data: { assignedClients: BackendClient[]; appointmentClients: BackendClient[] } }>(
-            `/therapist/${currentUserId}/clients`
+          // "me" (not currentUserId, which is the Cognito sub — a UUID the
+          // backend's numeric-only {therapistId} path param can never match)
+          // — the backend resolves the caller's own DB id from the JWT.
+          //
+          // Wire shape is { success, data: { assignedClients, appointmentClients } }
+          // — apiRequest's auto-unwrap already strips the outer `data`, so this
+          // resolves to { assignedClients, appointmentClients } directly (a second
+          // `.data` access here was the same double-unwrap bug fixed earlier in
+          // admin.ts/roles.ts/clientDocuments.ts, just missed in this file).
+          get<{ assignedClients: BackendClient[]; appointmentClients: BackendClient[] }>(
+            `/therapist/me/clients`
           ),
           getTherapistAppointments(currentUserId, {}).catch(() => [] as AppointmentDetails[])
         ]);
-        rows = [...clientsRes.data.assignedClients, ...clientsRes.data.appointmentClients];
+        rows = [...clientsRes.assignedClients, ...clientsRes.appointmentClients];
 
         const now = Date.now();
         for (const a of appointments) {
@@ -264,8 +273,10 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
           sessionStats.set(cid, s);
         }
       } else {
-        const res = await get<{ data: BackendClient[] }>('/clients');
-        rows = res.data;
+        // Wire shape is { success, data, pagination } — apiRequest's auto-unwrap
+        // already strips the outer `data`, so this resolves to the array
+        // directly (same double-unwrap bug class as the therapist branch above).
+        rows = await get<BackendClient[]>('/clients');
       }
 
       const transformedClients: Client[] = rows.map((client) => {

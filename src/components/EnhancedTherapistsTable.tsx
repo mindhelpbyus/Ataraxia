@@ -83,7 +83,13 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
       setLoading(true);
       // backend-initial: GET /therapists (no /api/ prefix). Backend scopes results
       // by the authenticated Cognito identity/role.
-      const data = await get<any[]>('/therapists');
+      //
+      // Wire shape is { success, data: { items, count, totalCount }, requestId,
+      // timestamp } (formatPaginatedResponse) — apiRequest's auto-unwrap already
+      // strips the outer `data`, so this resolves to { items, count, totalCount },
+      // not a bare array (same double-unwrap bug class as ProfessionalClientsView).
+      const res = await get<{ items: any[] }>('/therapists');
+      const data = res?.items;
 
       if (data) {
         // Transform backend data to frontend format

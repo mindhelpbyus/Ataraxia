@@ -56,18 +56,18 @@ const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, coun
 
   let greeting = "Good morning";
   let Icon = Sun;
-  let bgGradient = "from-action via-action-dark to-sage-dark";
+  let bgGradient = "from-action-light to-sage-light";
   let message = "Let's bring some light to your patients' lives today.";
 
   if (hour >= 12 && hour < 17) {
     greeting = "Good afternoon";
     Icon = CloudSun;
-    bgGradient = "from-blue-400 via-sky-500 to-sky-600";
+    bgGradient = "from-sage-light to-action-light";
     message = "Hope your day is flowing smoothly.";
   } else if (hour >= 17) {
     greeting = "Good evening";
     Icon = Moon;
-    bgGradient = "from-indigo-900 via-slate-800 to-ink";
+    bgGradient = "from-surface-sage to-action-light";
     message = "Time to wrap up and rest.";
   }
 
@@ -75,31 +75,29 @@ const SoulfulHeader = ({ userName, count, onNavigate }: { userName: string, coun
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br ${bgGradient} shadow-2xl shadow-ink/10 mb-10`}
+      className={`relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br ${bgGradient} border border-action-border/40 shadow-sm mb-10`}
     >
-      <div className="absolute inset-0 bg-card/5 backdrop-blur-[2px]" />
-      {/* Organic Shapes */}
-      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-card/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 -mb-32 -ml-20 w-80 h-80 bg-black/10 rounded-full blur-3xl" />
+      {/* Single soft highlight, top-right — one quiet accent instead of competing blurs */}
+      <div className="absolute top-0 right-0 -mt-24 -mr-24 w-80 h-80 bg-card/40 rounded-full blur-3xl" />
 
       <div className="relative z-10 p-10 flex items-center justify-between">
         <div className="space-y-3">
-          <div className="flex items-center gap-3 font-medium tracking-wide text-sm uppercase">
+          <div className="flex items-center gap-3 font-medium tracking-wide text-sm uppercase text-action-dark">
             <Icon className="w-5 h-5" />
             <span>{format(new Date(), 'EEEE, MMMM do')}</span>
           </div>
-          <h1 className="text-5xl font-bold tracking-tighter">
+          <h1 className="text-5xl font-bold tracking-tighter text-ink">
             {greeting}, {userName.split(' ')[0]}.
           </h1>
-          <p className="text-xl font-light max-w-lg leading-relaxed">
-            {message} You have <span className="font-bold underline underline-offset-4">{count} sessions</span> remaining.
+          <p className="text-xl font-light max-w-lg leading-relaxed text-body-text">
+            {message} You have <span className="font-bold underline underline-offset-4 text-ink">{count} sessions</span> remaining.
           </p>
         </div>
 
         <div className="hidden md:block">
           <Button
             onClick={() => onNavigate('calendar')}
-            className="bg-primary/20 hover:bg-primary/30 border-primary/20 border backdrop-blur-md shadow-xl rounded-2xl px-8 h-14 text-lg transition-all hover:scale-105 active:scale-95"
+            className="bg-action hover:bg-action-dark text-white shadow-lg rounded-2xl px-8 h-14 text-lg transition-all hover:scale-105 active:scale-95"
           >
             <CalendarDays className="h-5 w-5 mr-3" />
             View Calendar

@@ -11,6 +11,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { FileText, IndianRupee, Clock, Download, Loader2 } from 'lucide-react';
 import { listInvoices, getInvoiceDownload, type Invoice } from '../api/billing';
+import { get } from '../api/client';
 import { UserRole } from '../types/appointment';
 import { toast } from 'sonner';
 
@@ -51,9 +52,23 @@ export function InvoicesView({ userRole, currentUserId }: InvoicesViewProps) {
       setLoading(true);
       try {
         // Admin sees all; therapist/client see their own documents.
-        const query = userRole === 'admin' || userRole === 'superadmin'
-          ? { limit: 200 }
-          : { recipientId: currentUserId, limit: 200 };
+        //
+        // billing_payment's recipientId is the numeric DB User.id, but
+        // currentUserId here is the Cognito sub (a UUID) — the frontend's
+        // user model is keyed on the JWT subject everywhere else. Resolve
+        // the real numeric id first (same pattern as GET /therapists/me)
+        // instead of sending the UUID straight through, which billing_payment
+        // rejects with a Postgres integer-cast 500.
+        let query: { limit: number; recipientId?: number };
+        if (userRole === 'admin' || userRole === 'superadmin') {
+          query = { limit: 200 };
+        } else if (userRole === 'therapist') {
+          const me = await get<{ id: number }>('/therapists/me');
+          query = { recipientId: me.id, limit: 200 };
+        } else {
+          const me = await get<{ id: number }>(`/clients/by-cognito-id/${currentUserId}`);
+          query = { recipientId: me.id, limit: 200 };
+        }
         const data = await listInvoices(query);
         setInvoices(Array.isArray(data) ? data : []);
         setLoadError(null);

@@ -177,42 +177,33 @@ export function DashboardLayout({ userRole, currentUserId, userEmail, userName, 
   } | null>(null);
 
   useEffect(() => {
-    const fetchSubscription = async () => {
-      if (userRole !== 'therapist') {
-        if (userRole === 'superadmin' || userRole === 'org_admin') {
-          setSubscriptionInfo({
-            status: 'active',
-            tier: 'enterprise',
-            trialDaysRemaining: null,
-            isTrialActive: false,
-            canAccessFeatures: true,
-            isOrgOwner: true,
-            organizationName: 'Ataraxia Platform'
-          });
-        }
-        return;
-      }
-      try {
-        const { SubscriptionService } = await import('../api/subscription');
-        const info = await SubscriptionService.getUserSubscription(currentUserId);
-        setSubscriptionInfo(info as any);
-      } catch (error: any) {
-        if (error.message === 'CLIENT_NO_SUBSCRIPTION') return;
-        console.error('Failed to fetch subscription:', error);
-        if (userRole === 'therapist') {
-          setSubscriptionInfo({
-            status: 'trial',
-            tier: 'trial',
-            trialDaysRemaining: 30,
-            isTrialActive: true,
-            canAccessFeatures: true,
-            organizationName: 'My Practice',
-            isOrgOwner: true
-          });
-        }
-      }
-    };
-    if (currentUserId) fetchSubscription();
+    // No subscriptions/billing-tier system exists on either backend yet
+    // (api/subscriptions.ts's /api/subscriptions/{id} has never had a route
+    // on the gateway — every call 404s at the CORS layer before the browser
+    // even sees a status). Skip the dead network call and go straight to
+    // the same fallback state it always ended up at anyway.
+    if (!currentUserId) return;
+    if (userRole === 'superadmin' || userRole === 'org_admin') {
+      setSubscriptionInfo({
+        status: 'active',
+        tier: 'enterprise',
+        trialDaysRemaining: null,
+        isTrialActive: false,
+        canAccessFeatures: true,
+        isOrgOwner: true,
+        organizationName: 'Ataraxia Platform'
+      });
+    } else if (userRole === 'therapist') {
+      setSubscriptionInfo({
+        status: 'trial',
+        tier: 'trial',
+        trialDaysRemaining: 30,
+        isTrialActive: true,
+        canAccessFeatures: true,
+        organizationName: 'My Practice',
+        isOrgOwner: true
+      });
+    }
   }, [currentUserId, userRole]);
 
   const handleTabChange = (tab: string, subTab?: string) => {
