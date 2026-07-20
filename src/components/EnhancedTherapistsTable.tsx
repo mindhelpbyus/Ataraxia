@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, User, MoreVertical, Search, Filter, Plus, Award, UserCheck, Clock, Check, ShieldAlert } from 'lucide-react';
+import { Phone, Mail, User, MoreVertical, Search, Filter, Plus, Award, UserCheck, Clock, Check, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -7,7 +7,7 @@ import { Input } from './ui/input';
 // import { AvailabilityModal } from './AvailabilityModal';
 // REMOVED: TherapistVerificationDetailModal - verification is handled in separate screen
 import { dataService } from '../api';
-import { get } from '../api/client';
+import { apiRequest } from '../api/client';
 import { UserRole } from '../types/appointment';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
@@ -40,6 +40,10 @@ import {
   TableRow,
 } from './ui/table';
 import { Card, CardContent } from './ui/card';
+import { SortableTableHead } from './ui/sortable-table-head';
+import { ColumnVisibilityMenu } from './ui/column-visibility-menu';
+import { useSortableList } from '../hooks/useSortableList';
+import { useColumnVisibility, type ColumnDef } from '../hooks/useColumnVisibility';
 
 
 interface Therapist {
@@ -51,10 +55,23 @@ interface Therapist {
   specialty: string;
   location: string;
   credentials: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive';
+  verificationStatus: string;
   organization?: string;
   avatar?: string;
 }
+
+type TherapistSortField = 'lastName' | 'verificationStatus' | 'isActive' | 'createdAt';
+const RECORDS_PER_PAGE = 25;
+
+const THERAPIST_COLUMNS: ColumnDef[] = [
+  { id: 'name', label: 'Name', locked: true },
+  { id: 'email', label: 'Email' },
+  { id: 'phone', label: 'Phone' },
+  { id: 'specialty', label: 'Specialty' },
+  { id: 'verification', label: 'Verification' },
+  { id: 'status', label: 'Status', locked: true },
+];
 
 interface EnhancedTherapistsTableProps {
   userRole: UserRole;
@@ -68,28 +85,44 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
   const [, setSelectedTherapistId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage] = useState(10);
+  const [verificationFilter, setVerificationFilter] = useState<string>('all');
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [, setLoading] = useState(true);
-  const [] = useState('');
+
+  const { sortBy, sortOrder, page, setPage, toggleSort } = useSortableList<TherapistSortField>('createdAt');
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const { isVisible, toggle } = useColumnVisibility('ataraxia.therapists.columns', THERAPIST_COLUMNS);
 
   useEffect(() => {
     loadTherapists();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortBy, sortOrder, page, statusFilter, verificationFilter]);
 
   const loadTherapists = async () => {
     try {
       setLoading(true);
-      // backend-initial: GET /therapists (no /api/ prefix). Backend scopes results
-      // by the authenticated Cognito identity/role.
+      // backend-initial: GET /therapists (no /api/ prefix). Backend scopes
+      // results by the authenticated Cognito identity/role.
       //
       // Wire shape is { success, data: { items, count, totalCount }, requestId,
-      // timestamp } (formatPaginatedResponse) — apiRequest's auto-unwrap already
-      // strips the outer `data`, so this resolves to { items, count, totalCount },
-      // not a bare array (same double-unwrap bug class as ProfessionalClientsView).
-      const res = await get<{ items: any[] }>('/therapists');
-      const data = res?.items;
+      // timestamp } (formatPaginatedResponse) — need `totalCount` for the page
+      // controls, so this bypasses get()'s auto-unwrap (which would strip
+      // `data` down to bare `items` and drop the sibling `totalCount`) via
+      // apiRequest's rawEnvelope option directly.
+      const query = new URLSearchParams({
+        skip: String((page - 1) * RECORDS_PER_PAGE),
+        limit: String(RECORDS_PER_PAGE),
+        sortBy,
+        sortOrder,
+      });
+      if (statusFilter !== 'all') query.set('isActive', statusFilter === 'active' ? 'true' : 'false');
+      if (verificationFilter !== 'all') query.set('verificationStatus', verificationFilter);
+      const res = await apiRequest<{ data: { items: any[]; count: number; totalCount: number } }>(
+        `/therapists?${query.toString()}`,
+        { rawEnvelope: true }
+      );
+      const data = res?.data?.items;
 
       if (data) {
         // Transform backend data to frontend format
@@ -97,14 +130,17 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
           id: therapist.id,
           name: `${therapist.first_name || ''} ${therapist.last_name || ''}`.trim() || therapist.email,
           email: therapist.email,
-          phone: therapist.phone_number || 'N/A',
-          specialty: therapist.clinical_specialties ? Object.keys(therapist.clinical_specialties)[0] : 'General Therapy',
-          location: 'N/A', // TODO: Get from therapist profile
-          credentials: therapist.degree || 'N/A',
-          status: therapist.account_status === 'active' ? 'active' : 'inactive',
+          phone: therapist.phone || 'N/A',
+          specialty: therapist.therapist_profile?.clinical_specialties?.[0] || 'General Therapy',
+          location: therapist.therapist_profile?.location || 'N/A',
+          credentials: therapist.therapist_profile?.title || 'N/A',
+          status: therapist.is_active === false ? 'inactive' : 'active',
+          verificationStatus: therapist.therapist_profile?.verification_status || 'pending',
           organization: therapist.organization_name || 'Independent'
         }));
         setTherapists(transformedTherapists);
+        setTotalPages(Math.ceil((res.data.totalCount ?? 0) / RECORDS_PER_PAGE) || 1);
+        setTotalCount(res.data.totalCount ?? 0);
       } else {
         console.warn('Failed to fetch therapists from backend, using empty list');
         setTherapists([]);
@@ -142,50 +178,64 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
     ? therapists.filter((t: Therapist) => t.organization === organizationId)
     : therapists;
 
+  // Status/verification filters are sent server-side (query params in
+  // loadTherapists); search stays client-side (filters the current page
+  // only) — the backend has no full-text search param yet on /therapists.
   const filteredTherapists = filteredByOrg.filter((therapist: Therapist) => {
-    const matchesSearch =
+    return (
       therapist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       therapist.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       therapist.phone.includes(searchQuery) ||
       therapist.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
       therapist.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      therapist.credentials.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus = statusFilter === 'all' || therapist.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
+      therapist.credentials.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   });
-
-  const totalPages = Math.ceil(filteredTherapists.length / recordsPerPage);
-  const startIndex = (currentPage - 1) * recordsPerPage;
-  const endIndex = startIndex + recordsPerPage;
-  const paginatedTherapists = filteredTherapists.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: Therapist['status']) => {
     switch (status) {
       case 'active':
         return (
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50  border border-green-200 ">
-            <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-            <span className="text-xs font-medium text-green-700 ">Active</span>
-          </div>
-        );
-      case 'pending':
-        return (
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-50  border border-yellow-200 ">
-            <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-            <span className="text-xs font-medium text-yellow-700 ">Pending</span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-action-light border border-action-border">
+            <div className="h-1.5 w-1.5 rounded-full bg-action" />
+            <span className="text-xs font-medium text-action-dark">Active</span>
           </div>
         );
       case 'inactive':
         return (
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-warm)]  border border-border ">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-warm)] border border-border">
             <div className="h-1.5 w-1.5 rounded-full bg-[var(--dim)]" />
-            <span className="text-xs font-medium text-muted-foreground ">Inactive</span>
+            <span className="text-xs font-medium text-muted-foreground">Inactive</span>
           </div>
         );
       default:
         return null;
+    }
+  };
+
+  const getVerificationBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return (
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-action-light border border-action-border">
+            <div className="h-1.5 w-1.5 rounded-full bg-action" />
+            <span className="text-xs font-medium text-action-dark">Approved</span>
+          </div>
+        );
+      case 'rejected':
+        return (
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-danger-light border border-danger-border">
+            <div className="h-1.5 w-1.5 rounded-full bg-danger" />
+            <span className="text-xs font-medium text-danger">Rejected</span>
+          </div>
+        );
+      default:
+        return (
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ochre-light border border-ochre-border">
+            <div className="h-1.5 w-1.5 rounded-full bg-ochre" />
+            <span className="text-xs font-medium text-ochre">Pending</span>
+          </div>
+        );
     }
   };
 
@@ -271,18 +321,29 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
                   className="pl-9 border-border/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all duration-200"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px] border-border/50 focus:ring-primary/20">
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+                <SelectTrigger className="w-[160px] border-border/50 focus:ring-primary/20">
                   <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Therapists</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={verificationFilter} onValueChange={(v) => { setVerificationFilter(v); setPage(1); }}>
+                <SelectTrigger className="w-[170px] border-border/50 focus:ring-primary/20">
+                  <SelectValue placeholder="Verification" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Verification</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+              <ColumnVisibilityMenu columns={THERAPIST_COLUMNS} isVisible={isVisible} onToggle={toggle} />
             </div>
           </CardContent>
         </Card>
@@ -312,17 +373,17 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
         </motion.div>
 
         <motion.div variants={statsVariants}>
-          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-green-500/20 transition-all duration-300 group">
+          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-action/20 transition-all duration-300 group">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Active</p>
-                  <p className="text-3xl font-bold tracking-tight text-green-600">
+                  <p className="text-3xl font-bold tracking-tight text-action">
                     {therapists.filter((t: Therapist) => t.status === 'active').length}
                   </p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors duration-300">
-                  <UserCheck className="h-6 w-6 text-green-600" />
+                <div className="h-12 w-12 rounded-xl bg-action/10 flex items-center justify-center group-hover:bg-action/20 transition-colors duration-300">
+                  <UserCheck className="h-6 w-6 text-action" />
                 </div>
               </div>
             </CardContent>
@@ -330,17 +391,17 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
         </motion.div>
 
         <motion.div variants={statsVariants}>
-          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-yellow-500/20 transition-all duration-300 group">
+          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-ochre/20 transition-all duration-300 group">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Pending</p>
-                  <p className="text-3xl font-bold tracking-tight text-yellow-600">
-                    {therapists.filter((t: Therapist) => t.status === 'pending').length}
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Pending Verification</p>
+                  <p className="text-3xl font-bold tracking-tight text-ochre">
+                    {therapists.filter((t: Therapist) => t.verificationStatus === 'pending').length}
                   </p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-yellow-500/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors duration-300">
-                  <Clock className="h-6 w-6 text-yellow-600" />
+                <div className="h-12 w-12 rounded-xl bg-ochre-light flex items-center justify-center group-hover:bg-ochre-light/70 transition-colors duration-300">
+                  <Clock className="h-6 w-6 text-ochre" />
                 </div>
               </div>
             </CardContent>
@@ -373,18 +434,22 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30 border-border/50">
-                  <TableHead className="w-[280px] font-semibold text-muted-foreground uppercase tracking-wider">Therapist</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Email</TableHead>
-                  <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Phone</TableHead>
-                  <TableHead className="w-[180px] font-semibold text-muted-foreground uppercase tracking-wider">Specialty</TableHead>
-                  <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Location</TableHead>
-                  <TableHead className="w-[110px] font-semibold text-muted-foreground uppercase tracking-wider">Status</TableHead>
+                  <SortableTableHead field="lastName" label="Therapist" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} className="w-[280px]" />
+                  {isVisible('email') && <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Email</TableHead>}
+                  {isVisible('phone') && <TableHead className="w-[140px] font-semibold text-muted-foreground uppercase tracking-wider">Phone</TableHead>}
+                  {isVisible('specialty') && <TableHead className="w-[180px] font-semibold text-muted-foreground uppercase tracking-wider">Specialty</TableHead>}
+                  {isVisible('verification') && (
+                    <SortableTableHead field="verificationStatus" label="Verification" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} className="w-[150px]" />
+                  )}
+                  {isVisible('status') && (
+                    <SortableTableHead field="isActive" label="Status" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} className="w-[110px]" />
+                  )}
                   <TableHead className="w-[40px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <AnimatePresence mode="popLayout">
-                  {paginatedTherapists.map((therapist: Therapist) => (
+                  {filteredTherapists.map((therapist: Therapist) => (
                     <motion.tr
                       key={therapist.id}
                       variants={itemVariants}
@@ -412,35 +477,42 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Mail className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
-                          <span className="text-sm text-muted-foreground truncate">{therapist.email}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
-                          <span className="text-sm text-muted-foreground">{therapist.phone}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Award className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
-                          <span className="text-sm text-muted-foreground truncate" title={therapist.specialty}>
-                            {therapist.specialty}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
-                          <span className="text-sm text-muted-foreground">{therapist.location}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {getStatusBadge(therapist.status)}
-                      </TableCell>
+                      {isVisible('email') && (
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Mail className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                            <span className="text-sm text-muted-foreground truncate">{therapist.email}</span>
+                          </div>
+                        </TableCell>
+                      )}
+                      {isVisible('phone') && (
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                            <span className="text-sm text-muted-foreground">{therapist.phone}</span>
+                          </div>
+                        </TableCell>
+                      )}
+                      {isVisible('specialty') && (
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Award className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" strokeWidth={2} />
+                            <span className="text-sm text-muted-foreground truncate" title={therapist.specialty}>
+                              {therapist.specialty}
+                            </span>
+                          </div>
+                        </TableCell>
+                      )}
+                      {isVisible('verification') && (
+                        <TableCell className="py-4">
+                          {getVerificationBadge(therapist.verificationStatus)}
+                        </TableCell>
+                      )}
+                      {isVisible('status') && (
+                        <TableCell className="py-4">
+                          {getStatusBadge(therapist.status)}
+                        </TableCell>
+                      )}
                       <TableCell className="py-4 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -467,7 +539,7 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
                             )}
 
                             {therapist.status === 'inactive' && (
-                              <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'active')} className="text-green-600 focus:text-green-700 focus:bg-green-50">
+                              <DropdownMenuItem onClick={() => handleStatusUpdate(therapist.id, 'active')} className="text-action focus:text-action-dark focus:bg-action-light">
                                 <Check className="mr-2 h-4 w-4" /> Reactivate
                               </DropdownMenuItem>
                             )}
@@ -482,56 +554,57 @@ export function EnhancedTherapistsTable({ userRole, organizationId }: EnhancedTh
           </div>
 
           {/* Pagination */}
-          <div className="w-full flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20">
-            <div className="text-sm text-muted-foreground">
-              Showing <span className="font-medium text-foreground">{startIndex + 1}</span> to{' '}
-              <span className="font-medium text-foreground">{Math.min(endIndex, filteredTherapists.length)}</span> of{' '}
-              <span className="font-medium text-foreground">{filteredTherapists.length}</span> therapists
+          {totalPages > 1 && (
+            <div className="w-full flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20">
+              <div className="text-sm text-muted-foreground">
+                Page <span className="font-medium text-foreground">{page}</span> of{' '}
+                <span className="font-medium text-foreground">{totalPages}</span> · {totalCount} therapists
+              </div>
+
+              <Pagination>
+                <PaginationContent>
+                  <PaginationPrevious
+                    size="icon"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum: number;
+
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (page <= 3) {
+                      pageNum = i + 1;
+                    } else if (page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = page - 2 + i;
+                    }
+
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          size="icon"
+                          isActive={page === pageNum}
+                          onClick={() => setPage(pageNum)}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  <PaginationNext
+                    size="icon"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationContent>
+              </Pagination>
             </div>
-
-            <Pagination>
-              <PaginationContent>
-                <PaginationPrevious
-                  size="icon"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum: number;
-
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <PaginationItem key={pageNum}>
-                      <PaginationLink
-                        size="icon"
-                        isActive={currentPage === pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        className="cursor-pointer"
-                      >
-                        {pageNum}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
-
-                <PaginationNext
-                  size="icon"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationContent>
-            </Pagination>
-          </div>
+          )}
         </CardContent>
       </Card>
       {/* <AvailabilityModal

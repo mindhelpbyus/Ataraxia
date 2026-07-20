@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { get } from '../api/client';
+import { get, apiRequest } from '../api/client';
 import { dataService } from '../api';
 import { getTherapistAppointments, type AppointmentDetails } from '../api/appointmentsBackend';
 import { Search, Filter, Plus, MoreVertical, Phone, Mail, Calendar, User, AlertCircle, TrendingUp, AlertTriangle, Shield, Brain, CheckCircle2, Stethoscope, Clock, FileText, ChevronRight, Eye, Send, Sparkles, ShieldAlert, Files, MessageSquare, Activity, Target, Upload, XCircle, Download, Video } from 'lucide-react';
@@ -16,6 +16,18 @@ import {
   TableHeader,
   TableRow,
 } from './ui/table';
+import { SortableTableHead } from './ui/sortable-table-head';
+import { ColumnVisibilityMenu } from './ui/column-visibility-menu';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from './ui/pagination';
+import { useSortableList } from '../hooks/useSortableList';
+import { useColumnVisibility, type ColumnDef } from '../hooks/useColumnVisibility';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +64,18 @@ interface Client {
   safetyRisk?: 'low' | 'moderate' | 'high';
   safetyFlags?: string[];
 }
+
+type ClientSortField = 'lastName' | 'isActive' | 'createdAt';
+
+const CLIENT_COLUMNS: ColumnDef[] = [
+  { id: 'name', label: 'Name', locked: true },
+  { id: 'email', label: 'Email' },
+  { id: 'phone', label: 'Phone' },
+  { id: 'therapist', label: 'Assigned Therapist' },
+  { id: 'safety', label: 'Safety' },
+  { id: 'status', label: 'Status', locked: true },
+  { id: 'joined', label: 'Joined' },
+];
 
 interface ProfessionalClientsViewProps {
   userRole: 'admin' | 'therapist' | 'superadmin' | 'client' | string;
@@ -203,8 +227,11 @@ const mapClientToDetailData = (client: Client): ClientDetailData => {
 
 
 export function ProfessionalClientsView({ userRole, currentUserId }: ProfessionalClientsViewProps) {
+  const isAdminView = userRole !== 'therapist';
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [assignedFilter, setAssignedFilter] = useState<string>('all');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const [newClient, setNewClient] = useState({
@@ -219,9 +246,21 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
   const [clients, setClients] = useState<Client[]>([]);
   const [, setLoading] = useState(true);
 
+  // Server-side sort + pagination — admin's full-platform list only. A
+  // therapist's own caseload (via /therapist/me/clients) is small and has no
+  // pagination/sort support on that route; this state is simply unused there.
+  const RECORDS_PER_PAGE = 25;
+  const { sortBy, sortOrder, page, setPage, toggleSort } = useSortableList<ClientSortField>('createdAt');
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const { isVisible, toggle } = useColumnVisibility('ataraxia.clients.columns', CLIENT_COLUMNS);
+
   useEffect(() => {
     loadClients();
-  }, []);
+    // Admin list depends on sort/page/filters; therapist's own list doesn't
+    // use any of them but re-running on their change is harmless (same call).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRole, currentUserId, sortBy, sortOrder, page, statusFilter, assignedFilter]);
 
   const loadClients = async () => {
     interface BackendClient {
@@ -229,13 +268,19 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
       email: string;
       firstName: string;
       lastName: string;
+      phone?: string | null;
+      isActive?: boolean;
       createdAt?: string;
       profilePhoto?: string | null;
+      clientProfile?: {
+        safetyRiskLevel?: string | null;
+        assignedTherapist?: { user: { id: number; firstName: string; lastName: string } } | null;
+      } | null;
     }
     try {
       // backend-initial: therapists see only their clients; admins see all.
-      //   therapist → GET /therapist/{id}/clients → { data: { assignedClients, appointmentClients } }
-      //   admin     → GET /clients                → { data: BackendClient[] }
+      //   therapist → GET /therapist/me/clients → { assignedClients, appointmentClients } (small caseload, no sort/pagination)
+      //   admin     → GET /clients               → { success, data, pagination } (full platform list, sortable/paginated/filterable)
       let rows: BackendClient[];
       // Per-client session stats joined from the therapist's own appointments.
       const sessionStats = new Map<number, { total: number; next: string | null; last: string | null }>();
@@ -257,6 +302,8 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
           getTherapistAppointments(currentUserId, {}).catch(() => [] as AppointmentDetails[])
         ]);
         rows = [...clientsRes.assignedClients, ...clientsRes.appointmentClients];
+        setTotalPages(1);
+        setTotalCount(rows.length);
 
         const now = Date.now();
         for (const a of appointments) {
@@ -273,28 +320,50 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
           sessionStats.set(cid, s);
         }
       } else {
-        // Wire shape is { success, data, pagination } — apiRequest's auto-unwrap
-        // already strips the outer `data`, so this resolves to the array
-        // directly (same double-unwrap bug class as the therapist branch above).
-        rows = await get<BackendClient[]>('/clients');
+        // Wire shape is { success, data, pagination } — need `pagination` for
+        // the page controls, so this bypasses get()'s auto-unwrap (which would
+        // strip `data` down to the bare array and drop the sibling `pagination`
+        // key) via apiRequest's rawEnvelope option directly.
+        const query = new URLSearchParams({
+          page: String(page),
+          limit: String(RECORDS_PER_PAGE),
+          sortBy,
+          sortOrder,
+        });
+        if (statusFilter !== 'all') query.set('isActive', statusFilter === 'active' ? 'true' : 'false');
+        if (assignedFilter !== 'all') query.set('assignedTherapistId', assignedFilter);
+        const res = await apiRequest<{ data: BackendClient[]; pagination: { totalPages: number; total: number } }>(
+          `/clients?${query.toString()}`,
+          { rawEnvelope: true }
+        );
+        rows = res.data;
+        setTotalPages(res.pagination.totalPages);
+        setTotalCount(res.pagination.total);
       }
 
       const transformedClients: Client[] = rows.map((client) => {
         const stats = sessionStats.get(client.id);
+        const assignedTherapist = client.clientProfile?.assignedTherapist?.user;
         return {
           id: String(client.id),
           name: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email,
           email: client.email,
-          phone: 'N/A', // not exposed by these endpoints
-          status: 'active',
+          phone: client.phone || 'N/A',
+          status: client.isActive === false ? 'inactive' : 'active',
           lastVisit: stats?.last
             ? new Date(stats.last).toISOString().split('T')[0]
             : client.createdAt ? new Date(client.createdAt).toISOString().split('T')[0] : 'N/A',
           nextAppointment: stats?.next ?? null,
-          therapist: userRole === 'therapist' ? 'You' : 'Unassigned',
+          therapist: userRole === 'therapist'
+            ? 'You'
+            : assignedTherapist
+              ? `${assignedTherapist.firstName} ${assignedTherapist.lastName}`.trim()
+              : 'Unassigned',
           totalSessions: stats?.total ?? 0,
           condition: '—', // clinical concern lives in intake/notes, not this endpoint
-          safetyRisk: undefined, // renders "Not Screened" until assessments (MVP1.2) provide it
+          safetyRisk: client.clientProfile?.safetyRiskLevel === 'low' || client.clientProfile?.safetyRiskLevel === 'moderate' || client.clientProfile?.safetyRiskLevel === 'high'
+            ? client.clientProfile.safetyRiskLevel
+            : undefined,
           safetyFlags: undefined
         };
       });
@@ -308,6 +377,8 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
     }
   };
 
+  // Search stays client-side (filters the current page only) — the backend
+  // has no full-text search param yet on /clients.
   const filteredClients = clients.filter((client: Client) => {
     const matchesSearch =
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -316,9 +387,7 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
       client.therapist.toLowerCase().includes(searchQuery.toLowerCase()) ||
       client.condition.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const getStatusBadge = (status: string) => {
@@ -468,18 +537,31 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                   className="pl-9 border-border/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all duration-200"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px] border-border/50 focus:ring-primary/20">
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+                <SelectTrigger className="w-[160px] border-border/50 focus:ring-primary/20">
                   <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Clients</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+              {isAdminView && (
+                <Select value={assignedFilter} onValueChange={(v) => { setAssignedFilter(v); setPage(1); }}>
+                  <SelectTrigger className="w-[160px] border-border/50 focus:ring-primary/20">
+                    <SelectValue placeholder="Assignment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Assignments</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              {isAdminView && (
+                <ColumnVisibilityMenu columns={CLIENT_COLUMNS} isVisible={isVisible} onToggle={toggle} />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -564,14 +646,25 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30 border-border/50">
-                  <TableHead className="font-semibold text-foreground">Client</TableHead>
-                  <TableHead className="font-semibold text-foreground">Contact</TableHead>
-                  <TableHead className="font-semibold text-foreground">Status</TableHead>
-                  <TableHead className="font-semibold text-foreground">Condition</TableHead>
-                  <TableHead className="font-semibold text-foreground">Safety</TableHead>
-                  <TableHead className="font-semibold text-foreground">Last Visit</TableHead>
-                  <TableHead className="font-semibold text-foreground">Next Appointment</TableHead>
-                  <TableHead className="font-semibold text-foreground">Sessions</TableHead>
+                  {isAdminView ? (
+                    <SortableTableHead field="lastName" label="Name" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} />
+                  ) : (
+                    <TableHead className="font-semibold text-foreground">Name</TableHead>
+                  )}
+                  {isVisible('email') && <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Email</TableHead>}
+                  {isVisible('phone') && <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Phone</TableHead>}
+                  {isAdminView && isVisible('therapist') && <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Assigned Therapist</TableHead>}
+                  {isVisible('safety') && <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Safety</TableHead>}
+                  {isAdminView ? (
+                    isVisible('status') && <SortableTableHead field="isActive" label="Status" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} />
+                  ) : (
+                    <TableHead className="font-semibold text-foreground">Status</TableHead>
+                  )}
+                  {isAdminView ? (
+                    isVisible('joined') && <SortableTableHead field="createdAt" label="Joined" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} />
+                  ) : (
+                    <TableHead className="font-semibold text-foreground">Last Visit</TableHead>
+                  )}
                   <TableHead className="text-right font-semibold text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -595,44 +688,41 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
                               {client.name.split(' ').map((n: string) => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="font-medium text-foreground group-hover:text-primary transition-colors">{client.name}</p>
-                            <p className="text-sm text-muted-foreground">{client.therapist}</p>
-                          </div>
+                          <p className="font-medium text-foreground group-hover:text-primary transition-colors">{client.name}</p>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
+                      {isVisible('email') && (
+                        <TableCell>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Mail className="h-3.5 w-3.5" />
                             {client.email}
                           </div>
+                        </TableCell>
+                      )}
+                      {isVisible('phone') && (
+                        <TableCell>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Phone className="h-3.5 w-3.5" />
                             {client.phone}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(client.status)}</TableCell>
-                      <TableCell>
-                        <span className="text-sm text-foreground font-medium">{client.condition}</span>
-                      </TableCell>
-                      <TableCell>
-                        {getSafetyBadge(client)}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-foreground">{formatDate(client.lastVisit)}</span>
-                      </TableCell>
-                      <TableCell>
-                        {client.nextAppointment ? (
-                          <span className="text-sm text-foreground">{formatDate(client.nextAppointment)}</span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">Not scheduled</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm font-semibold text-foreground">{client.totalSessions}</span>
-                      </TableCell>
+                        </TableCell>
+                      )}
+                      {isAdminView && isVisible('therapist') && (
+                        <TableCell>
+                          <span className="text-sm text-foreground">{client.therapist}</span>
+                        </TableCell>
+                      )}
+                      {isVisible('safety') && (
+                        <TableCell>
+                          {getSafetyBadge(client)}
+                        </TableCell>
+                      )}
+                      {isVisible('status') && <TableCell>{getStatusBadge(client.status)}</TableCell>}
+                      {isVisible('joined') && (
+                        <TableCell>
+                          <span className="text-sm text-foreground">{formatDate(client.lastVisit)}</span>
+                        </TableCell>
+                      )}
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -670,6 +760,43 @@ export function ProfessionalClientsView({ userRole, currentUserId }: Professiona
               </TableBody>
             </Table>
           </div>
+
+          {isAdminView && totalPages > 1 && (
+            <div className="w-full flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20">
+              <div className="text-sm text-muted-foreground">
+                Page <span className="font-medium text-foreground">{page}</span> of{' '}
+                <span className="font-medium text-foreground">{totalPages}</span> · {totalCount} clients
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationPrevious
+                    size="icon"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum: number;
+                    if (totalPages <= 5) pageNum = i + 1;
+                    else if (page <= 3) pageNum = i + 1;
+                    else if (page >= totalPages - 2) pageNum = totalPages - 4 + i;
+                    else pageNum = page - 2 + i;
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink size="icon" isActive={page === pageNum} onClick={() => setPage(pageNum)} className="cursor-pointer">
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  <PaginationNext
+                    size="icon"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
 
           <AnimatePresence>
             {filteredClients.length === 0 && (

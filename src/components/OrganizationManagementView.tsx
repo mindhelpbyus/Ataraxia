@@ -10,20 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { Badge } from './ui/badge';
 import {
-  Building2, Plus, Search, MoreVertical, Edit, Trash2,
-  Users, Shield, Settings, DollarSign, Activity,
+  Building2, Plus, Search, Mail, Phone, MapPin,
+  DollarSign, Activity,
   Filter
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -32,22 +23,32 @@ import {
   TableHeader,
   TableRow,
 } from './ui/table';
+import { SortableTableHead } from './ui/sortable-table-head';
+import { ColumnVisibilityMenu } from './ui/column-visibility-menu';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from './ui/pagination';
 import { Card, CardContent } from './ui/card';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { toast } from 'sonner';
-import { get } from '../api/client';
+import { listOrganizations, type Organization as BackendOrganization } from '../api/organizations';
+import { useSortableList } from '../hooks/useSortableList';
+import { useColumnVisibility, type ColumnDef } from '../hooks/useColumnVisibility';
 
 interface Organization {
   id: string;
   organizationName: string;
-  organizationType: string;
-  numberOfClinicians: number;
-  numberOfClients: number;
-  subscriptionPlan: string;
-  status: 'active' | 'inactive' | 'suspended';
-  createdAt: Date;
   primaryContactEmail: string;
-  hipaaCompliant: boolean;
+  phone: string;
+  city: string;
+  state: string;
+  status: 'active' | 'inactive';
+  createdAt: Date;
 }
 
 interface OrganizationManagementViewProps {
@@ -56,76 +57,82 @@ interface OrganizationManagementViewProps {
   onNavigate: () => void;
 }
 
+type OrgSortField = 'name' | 'isActive' | 'createdAt';
+const RECORDS_PER_PAGE = 25;
+
+const ORG_COLUMNS: ColumnDef[] = [
+  { id: 'name', label: 'Name', locked: true },
+  { id: 'email', label: 'Email' },
+  { id: 'phone', label: 'Phone' },
+  { id: 'location', label: 'City / State' },
+  { id: 'status', label: 'Status', locked: true },
+  { id: 'created', label: 'Created' },
+];
+
 export function OrganizationManagementView(_props: OrganizationManagementViewProps) {
   const [showSetupForm, setShowSetupForm] = useState(false);
-  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const { sortBy, sortOrder, page, setPage, toggleSort } = useSortableList<OrgSortField>('createdAt');
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const { isVisible, toggle } = useColumnVisibility('ataraxia.organizations.columns', ORG_COLUMNS);
 
   const loadOrganizations = async () => {
     try {
-      // TODO(backend): no `/organizations` route exists on backend-initial or
-      // billing_payment yet. When added, call it here. Until then, render empty.
-      const data = await get<any[]>('/organizations').catch(() => []);
-      setOrganizations(Array.isArray(data) ? data : []);
+      setLoading(true);
+      const result = await listOrganizations({
+        page,
+        limit: RECORDS_PER_PAGE,
+        sortBy,
+        sortOrder,
+        isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
+      });
+      const mapped: Organization[] = result.data.map((org: BackendOrganization) => ({
+        id: String(org.id),
+        organizationName: org.name,
+        primaryContactEmail: org.email ?? 'N/A',
+        phone: org.phone ?? 'N/A',
+        city: org.city ?? '',
+        state: org.state ?? '',
+        status: org.isActive ? 'active' : 'inactive',
+        createdAt: new Date(org.createdAt),
+      }));
+      setOrganizations(mapped);
+      setTotalPages(result.pagination.totalPages || 1);
+      setTotalCount(result.pagination.total);
     } catch (e) {
       console.error('Failed to load organizations', e);
       toast.error('Failed to load organizations');
+      setOrganizations([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     loadOrganizations();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortBy, sortOrder, page, statusFilter]);
 
   const handleCreateOrganization = () => {
-    setEditingOrg(null);
     setShowSetupForm(true);
   };
 
-  const handleEditOrganization = (org: Organization) => {
-    setEditingOrg(org);
-    setShowSetupForm(true);
-  };
-
-  const handleDeleteOrganization = (orgId: string) => {
-    toast.success('Organization Deleted', {
-      description: 'The organization has been permanently removed'
-    });
-    setOrganizations(organizations.filter(org => org.id !== orgId));
-  };
-
-  const handleOrganizationComplete = (data: any) => {
-    if (editingOrg) {
-      setOrganizations(organizations.map(org =>
-        org.id === editingOrg.id
-          ? { ...org, organizationName: data.organizationName }
-          : org
-      ));
-    } else {
-      const newOrg: Organization = {
-        id: `ORG-${String(organizations.length + 1).padStart(3, '0')}`,
-        organizationName: data.organizationName,
-        organizationType: data.organizationType,
-        numberOfClinicians: data.numberOfClinicians || 0,
-        numberOfClients: 0,
-        subscriptionPlan: data.subscriptionPlan || 'starter',
-        status: 'active',
-        createdAt: new Date(),
-        primaryContactEmail: data.primaryContactEmail || '',
-        hipaaCompliant: data.hipaaBAASigned || false
-      };
-      setOrganizations([...organizations, newOrg]);
-    }
+  const handleOrganizationComplete = () => {
+    // No POST /organizations route exists yet — the setup form is UI-only
+    // until that's built. Just close it; nothing to persist.
+    toast.info('Organization setup isn’t wired to the backend yet — nothing was saved.');
     setShowSetupForm(false);
-    setEditingOrg(null);
   };
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      active: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+      active: 'bg-action-light text-action-dark border-action-border',
       inactive: 'bg-muted text-muted-foreground border-border',
-      suspended: 'bg-rose-50 text-rose-700 border-rose-100'
     };
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[status as keyof typeof styles] || styles.active}`}>
@@ -134,22 +141,11 @@ export function OrganizationManagementView(_props: OrganizationManagementViewPro
     );
   };
 
-  const getOrganizationTypeLabel = (type: string) => {
-    const labels: { [key: string]: string } = {
-      'solo': 'Solo Practice',
-      'small-group': 'Small Group',
-      'mid-size': 'Mid-size Clinic',
-      'large-enterprise': 'Enterprise',
-      'telehealth-only': 'Telehealth',
-      'multi-location': 'Multi-site'
-    };
-    return labels[type] || type;
-  };
-
+  // Search stays client-side (filters the current page only) — the backend
+  // has no full-text search param yet on /organizations.
   const filteredOrganizations = organizations.filter(org =>
     org.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    org.primaryContactEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    org.id.toLowerCase().includes(searchQuery.toLowerCase())
+    org.primaryContactEmail.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Animation variants
@@ -200,18 +196,14 @@ export function OrganizationManagementView(_props: OrganizationManagementViewPro
     return (
       <OrganizationSetupForm
         onComplete={handleOrganizationComplete}
-        onCancel={() => {
-          setShowSetupForm(false);
-          setEditingOrg(null);
-        }}
-        editMode={!!editingOrg}
-        existingData={editingOrg || undefined}
+        onCancel={() => setShowSetupForm(false)}
+        editMode={false}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-8 max-w-[1600px] mx-auto font-sans selection:bg-indigo-100">
+    <div className="min-h-screen bg-background p-8 max-w-[1600px] mx-auto font-sans selection:bg-action-light">
 
       {/* Header */}
       <motion.div
@@ -232,18 +224,18 @@ export function OrganizationManagementView(_props: OrganizationManagementViewPro
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="flex-1 relative group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-indigo-600" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                 <Input
-                  placeholder="Search organizations by name, email, or ID..."
+                  placeholder="Search organizations by name or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 border-border/50 focus-visible:ring-indigo-600/20 focus-visible:border-indigo-600 transition-all duration-200"
+                  className="pl-9 border-border/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all duration-200"
                 />
               </div>
-              <Select value="all" onValueChange={() => { }}>
-                <SelectTrigger className="w-[180px] border-border/50 focus:ring-indigo-600/20">
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+                <SelectTrigger className="w-[160px] border-border/50 focus:ring-primary/20">
                   <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Organizations</SelectItem>
@@ -251,6 +243,7 @@ export function OrganizationManagementView(_props: OrganizationManagementViewPro
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+              <ColumnVisibilityMenu columns={ORG_COLUMNS} isVisible={isVisible} onToggle={toggle} />
             </div>
           </CardContent>
         </Card>
@@ -261,54 +254,18 @@ export function OrganizationManagementView(_props: OrganizationManagementViewPro
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+        className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
       >
         <motion.div variants={statsVariants}>
-          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-blue-500/20 transition-all duration-300 group">
+          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 group">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Total Organizations</p>
-                  <p className="text-3xl font-bold tracking-tight">{organizations.length}</p>
+                  <p className="text-3xl font-bold tracking-tight">{totalCount}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors duration-300">
-                  <Building2 className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={statsVariants}>
-          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-emerald-500/20 transition-all duration-300 group">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Total Clinicians</p>
-                  <p className="text-3xl font-bold tracking-tight text-emerald-600">
-                    {organizations.reduce((sum, org) => sum + org.numberOfClinicians, 0)}
-                  </p>
-                </div>
-                <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors duration-300">
-                  <Users className="h-6 w-6 text-emerald-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={statsVariants}>
-          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-violet-500/20 transition-all duration-300 group">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Active Patients</p>
-                  <p className="text-3xl font-bold tracking-tight text-violet-600">
-                    {organizations.reduce((sum, org) => sum + org.numberOfClients, 0)}
-                  </p>
-                </div>
-                <div className="h-12 w-12 rounded-xl bg-violet-500/10 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors duration-300">
-                  <Activity className="h-6 w-6 text-violet-600" />
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-300">
+                  <Building2 className="h-6 w-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -320,13 +277,31 @@ export function OrganizationManagementView(_props: OrganizationManagementViewPro
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Avg. Revenue</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Active (this page)</p>
                   <p className="text-3xl font-bold tracking-tight text-action">
-                    ${((organizations.reduce((sum, org) => sum + org.numberOfClinicians, 0) * 99) / (organizations.length || 1)).toLocaleString()}
+                    {organizations.filter((org) => org.status === 'active').length}
                   </p>
                 </div>
                 <div className="h-12 w-12 rounded-xl bg-action/10 flex items-center justify-center group-hover:bg-action/20 transition-colors duration-300">
-                  <DollarSign className="h-6 w-6 text-action" />
+                  <Activity className="h-6 w-6 text-action" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={statsVariants}>
+          <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 shadow-sm hover:shadow-lg hover:border-ochre/20 transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Inactive (this page)</p>
+                  <p className="text-3xl font-bold tracking-tight text-ochre">
+                    {organizations.filter((org) => org.status === 'inactive').length}
+                  </p>
+                </div>
+                <div className="h-12 w-12 rounded-xl bg-ochre-light flex items-center justify-center group-hover:bg-ochre-light/70 transition-colors duration-300">
+                  <DollarSign className="h-6 w-6 text-ochre" />
                 </div>
               </div>
             </CardContent>
@@ -334,26 +309,28 @@ export function OrganizationManagementView(_props: OrganizationManagementViewPro
         </motion.div>
       </motion.div>
 
-
-
-      {/* Organizations Table - Card Directory Style */}
+      {/* Organizations Table */}
       <Card className="border-border/50 shadow-lg overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30 border-border/50">
-                  <TableHead className="w-[300px] font-semibold text-muted-foreground uppercase tracking-wider">Organization</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Type & Plan</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Stats</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Status</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Created</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <SortableTableHead field="name" label="Organization" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} className="w-[300px]" />
+                  {isVisible('email') && <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Email</TableHead>}
+                  {isVisible('phone') && <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">Phone</TableHead>}
+                  {isVisible('location') && <TableHead className="font-semibold text-muted-foreground uppercase tracking-wider">City / State</TableHead>}
+                  {isVisible('status') && (
+                    <SortableTableHead field="isActive" label="Status" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} />
+                  )}
+                  {isVisible('created') && (
+                    <SortableTableHead field="createdAt" label="Created" activeField={sortBy} sortOrder={sortOrder} onSort={toggleSort} />
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <AnimatePresence mode="popLayout">
-                  {filteredOrganizations.map((org, _index) => (
+                  {filteredOrganizations.map((org) => (
                     <motion.tr
                       key={org.id}
                       variants={itemVariants}
@@ -365,90 +342,96 @@ export function OrganizationManagementView(_props: OrganizationManagementViewPro
                     >
                       <TableCell className="py-4">
                         <div className="flex items-center gap-4">
-                          <Avatar className="h-12 w-12 ring-2 ring-background shadow-sm group-hover:ring-indigo-600/20 transition-all duration-200">
-                            <AvatarFallback className="bg-gradient-to-br from-indigo-50 to-slate-50 text-indigo-600 font-bold">
+                          <Avatar className="h-12 w-12 ring-2 ring-background shadow-sm group-hover:ring-primary/20 transition-all duration-200">
+                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold">
                               {org.organizationName.substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <h3 className="font-semibold text-foreground group-hover:text-indigo-600 transition-colors">{org.organizationName}</h3>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <Badge variant="outline" className="text-[10px] h-4 px-1 text-muted-foreground border-border">
-                                {org.id}
-                              </Badge>
-                              {org.hipaaCompliant && (
-                                <span className="flex items-center gap-0.5 text-[10px] text-emerald-600 font-medium">
-                                  <Shield className="w-3 h-3" /> HIPAA
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{org.organizationName}</h3>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-foreground">{getOrganizationTypeLabel(org.organizationType)}</span>
+                      {isVisible('email') && (
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Mail className="h-3.5 w-3.5" />
+                            {org.primaryContactEmail}
                           </div>
-                          <p className="text-xs text-muted-foreground capitalize">{org.subscriptionPlan.replace('-', ' ')} Plan</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-foreground leading-none">{org.numberOfClinicians}</p>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Providers</p>
+                        </TableCell>
+                      )}
+                      {isVisible('phone') && (
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Phone className="h-3.5 w-3.5" />
+                            {org.phone}
                           </div>
-                          <div className="w-px h-8 bg-border/50"></div>
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-foreground leading-none">{org.numberOfClients}</p>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Patients</p>
+                        </TableCell>
+                      )}
+                      {isVisible('location') && (
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
+                            {[org.city, org.state].filter(Boolean).join(', ') || 'N/A'}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {getStatusBadge(org.status)}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <span className="text-sm text-muted-foreground">
-                          {org.createdAt.toLocaleDateString()}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
-                              <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-[160px] rounded-xl border-border shadow-xl p-1">
-                            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEditOrganization(org)} className="rounded-lg cursor-pointer">
-                              <Edit className="h-4 w-4 mr-2" /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => toast.info('Settings coming soon')} className="rounded-lg cursor-pointer">
-                              <Settings className="h-4 w-4 mr-2" /> Configure
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-muted" />
-                            <DropdownMenuItem onClick={() => handleDeleteOrganization(org.id)} className="text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50">
-                              <Trash2 className="h-4 w-4 mr-2" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                        </TableCell>
+                      )}
+                      {isVisible('status') && <TableCell className="py-4">{getStatusBadge(org.status)}</TableCell>}
+                      {isVisible('created') && (
+                        <TableCell className="py-4">
+                          <span className="text-sm text-muted-foreground">
+                            {org.createdAt.toLocaleDateString()}
+                          </span>
+                        </TableCell>
+                      )}
                     </motion.tr>
                   ))}
                 </AnimatePresence>
               </TableBody>
-              {filteredOrganizations.length === 0 && (
+              {!loading && filteredOrganizations.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    No organizations found matching "{searchQuery}"
+                    No organizations found{searchQuery ? ` matching "${searchQuery}"` : ''}
                   </TableCell>
                 </TableRow>
               )}
             </Table>
           </div>
+
+          {totalPages > 1 && (
+            <div className="w-full flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20">
+              <div className="text-sm text-muted-foreground">
+                Page <span className="font-medium text-foreground">{page}</span> of{' '}
+                <span className="font-medium text-foreground">{totalPages}</span> · {totalCount} organizations
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationPrevious
+                    size="icon"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum: number;
+                    if (totalPages <= 5) pageNum = i + 1;
+                    else if (page <= 3) pageNum = i + 1;
+                    else if (page >= totalPages - 2) pageNum = totalPages - 4 + i;
+                    else pageNum = page - 2 + i;
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink size="icon" isActive={page === pageNum} onClick={() => setPage(pageNum)} className="cursor-pointer">
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  <PaginationNext
+                    size="icon"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
